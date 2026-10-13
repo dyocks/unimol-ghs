@@ -83,6 +83,7 @@
     .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
+    .btn:active { transform: scale(0.98); }
   </style>
 </head>
 <body>
@@ -181,39 +182,77 @@
 
   <div class="footer">
     <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
-    <button class="btn" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
+    <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
- <script>
+
+  <!-- Biblioteca TWebChannel Oficial TOTVS embutida (Compatível com WebApp T-Cloud e SmartClient) -->
+  <script>
+    var twebchannel = {
+      connect: function(callback) {
+        if (window.parent && window.parent !== window) {
+          window.addEventListener("message", function(event) {
+            if (event.data && event.data.type === "advplToJs" && twebchannel.advplToJs) {
+              twebchannel.advplToJs(event.data.codeType, event.data.content);
+            }
+          });
+          if (callback) callback();
+        }
+      },
+      jsToAdvpl: function(codeType, content) {
+        // 1. Disparo padrão para Protheus WebApp (iframe postMessage)
+        if (window.parent && window.parent !== window) {
+          // Formato WebApp 10.x (TOTVS T-Cloud)
+          window.parent.postMessage({
+            type: "jsToAdvpl",
+            codeType: codeType,
+            content: content
+          }, "*");
+
+          // Formato alternativo de mensageria interna do WebApp
+          window.parent.postMessage({
+            type: "TOTVS_WEBCHANNEL_JS_TO_ADVPL",
+            codeType: codeType,
+            content: content
+          }, "*");
+        }
+        // 2. Caso esteja rodando em SmartClient Desktop Qt
+        if (typeof totvs !== "undefined" && totvs.webChannel && totvs.webChannel.jsToAdvpl) {
+          totvs.webChannel.jsToAdvpl(codeType, content);
+        }
+      },
+      advplToJs: null
+    };
+  </script>
+
+  <!-- Lógica do Mosaico GHS -->
+  <script>
     let state = {};
-    let webSocket = null;
 
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
-      const wp   = urlParams.get('wp')  || ''; // Porta do TWebChannel vinda do Protheus
 
       if (cod || desc) {
         document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
+      } else {
+        document.getElementById("txtProd").innerText = "Selecione as classificações aplicáveis";
       }
 
       if (sel) {
         const aSel = sel.split(',');
         aSel.forEach(field => {
-          if (field) state[field] = true;
+          if (field && field.trim() !== "") {
+            state[field.trim()] = true;
+          }
         });
       }
+      
       renderState();
 
-      // Conecta ao TWebChannel do Protheus se a porta foi informada
-      if (wp) {
-        try {
-          webSocket = new WebSocket("ws://127.0.0.1:" + wp);
-        } catch (e) {
-          console.log("Fallback URL ativo");
-        }
-      }
+      // Conecta ao canal do Protheus
+      twebchannel.connect();
     };
 
     function toggleGHS(field) {
@@ -238,6 +277,10 @@
     }
 
     function fecharJanela() {
+      const btn = document.getElementById("btnSalvar");
+      btn.innerText = "Gravando no Protheus...";
+      btn.style.background = "#16a34a";
+
       const aAtivos = [];
       for (let field in state) {
         if (state[field]) {
@@ -246,9 +289,8 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Adicionamos o parâmetro "&t=" com Date.now() para evitar cache do navegador no TWebEngine
-      const urlBase = window.location.origin + window.location.pathname;
-      window.location.href = urlBase + "?action=SAVE&sel=" + cSelecionados + "&t=" + Date.now();
+      // Envia pelo TWebChannel sem recarregar a página (não pisca!)
+      twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
     }
   </script>
 </body>
