@@ -83,7 +83,6 @@
     .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
-    .btn:active { transform: scale(0.98); }
   </style>
 </head>
 <body>
@@ -185,46 +184,6 @@
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
-  <!-- Biblioteca TWebChannel Oficial TOTVS embutida (Compatível com WebApp T-Cloud e SmartClient) -->
-  <script>
-    var twebchannel = {
-      connect: function(callback) {
-        if (window.parent && window.parent !== window) {
-          window.addEventListener("message", function(event) {
-            if (event.data && event.data.type === "advplToJs" && twebchannel.advplToJs) {
-              twebchannel.advplToJs(event.data.codeType, event.data.content);
-            }
-          });
-          if (callback) callback();
-        }
-      },
-      jsToAdvpl: function(codeType, content) {
-        // 1. Disparo padrão para Protheus WebApp (iframe postMessage)
-        if (window.parent && window.parent !== window) {
-          // Formato WebApp 10.x (TOTVS T-Cloud)
-          window.parent.postMessage({
-            type: "jsToAdvpl",
-            codeType: codeType,
-            content: content
-          }, "*");
-
-          // Formato alternativo de mensageria interna do WebApp
-          window.parent.postMessage({
-            type: "TOTVS_WEBCHANNEL_JS_TO_ADVPL",
-            codeType: codeType,
-            content: content
-          }, "*");
-        }
-        // 2. Caso esteja rodando em SmartClient Desktop Qt
-        if (typeof totvs !== "undefined" && totvs.webChannel && totvs.webChannel.jsToAdvpl) {
-          totvs.webChannel.jsToAdvpl(codeType, content);
-        }
-      },
-      advplToJs: null
-    };
-  </script>
-
-  <!-- Lógica do Mosaico GHS -->
   <script>
     let state = {};
 
@@ -236,8 +195,6 @@
 
       if (cod || desc) {
         document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
-      } else {
-        document.getElementById("txtProd").innerText = "Selecione as classificações aplicáveis";
       }
 
       if (sel) {
@@ -248,11 +205,7 @@
           }
         });
       }
-      
       renderState();
-
-      // Conecta ao canal do Protheus
-      twebchannel.connect();
     };
 
     function toggleGHS(field) {
@@ -277,10 +230,6 @@
     }
 
     function fecharJanela() {
-      const btn = document.getElementById("btnSalvar");
-      btn.innerText = "Gravando no Protheus...";
-      btn.style.background = "#16a34a";
-
       const aAtivos = [];
       for (let field in state) {
         if (state[field]) {
@@ -289,8 +238,19 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Envia pelo TWebChannel sem recarregar a página (não pisca!)
-      twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
+      // Pega a origem exata do WebApp T-Cloud via document.referrer
+      // Quando redirecionamos o iframe de volta para o domínio do T-Cloud (ex: /webapp/favicon.ico?action=SAVE...),
+      // o iframe passa a ter a MESMA ORIGEM (Same-Origin) da janela pai do Protheus!
+      // Isso destrava a leitura da URL no bLoadFinished do AdvPL!
+      let originUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/favicon.ico";
+      if (document.referrer) {
+        try {
+          const ref = new URL(document.referrer);
+          originUrl = ref.origin + "/webapp/favicon.ico";
+        } catch(e) {}
+      }
+
+      window.location.href = originUrl + "?action=SAVE&sel=" + cSelecionados;
     }
   </script>
 </body>
