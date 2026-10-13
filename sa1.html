@@ -238,19 +238,17 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Pega a origem exata do WebApp T-Cloud via document.referrer
-      // Quando redirecionamos o iframe de volta para o domínio do T-Cloud (ex: /webapp/favicon.ico?action=SAVE...),
-      // o iframe passa a ter a MESMA ORIGEM (Same-Origin) da janela pai do Protheus!
-      // Isso destrava a leitura da URL no bLoadFinished do AdvPL!
-      let originUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/favicon.ico";
+      // Redireciona para um recurso 200 OK na mesma origem do WebApp T-Cloud
+      // Isso evita o erro HTTP 404 e dispara o bLoadFinished no AdvPL com a URL completa!
+      let targetUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/totvstec.js";
       if (document.referrer) {
         try {
           const ref = new URL(document.referrer);
-          originUrl = ref.origin + "/webapp/favicon.ico";
+          targetUrl = ref.origin + "/webapp/totvstec.js";
         } catch(e) {}
       }
 
-      window.location.href = originUrl + "?action=SAVE&sel=" + cSelecionados;
+      window.location.href = targetUrl + "?action=SAVE&sel=" + cSelecionados;
     }
   </script>
 </body>
