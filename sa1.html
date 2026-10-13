@@ -229,7 +229,7 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
-    function fecharJanela() {
+   function fecharJanela() {
       const aAtivos = [];
       for (let field in state) {
         if (state[field]) {
@@ -238,13 +238,12 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Redireciona para um recurso 200 OK na mesma origem do WebApp T-Cloud
-      // Isso evita o erro HTTP 404 e dispara o bLoadFinished no AdvPL com a URL completa!
-      let targetUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/totvstec.js";
+      // Este arquivo aparece no seu DevTools como 200 OK dentro de /webapp/:
+      let targetUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/webapp-10.2.2-RC4-frontend.min.js";
       if (document.referrer) {
         try {
           const ref = new URL(document.referrer);
-          targetUrl = ref.origin + "/webapp/totvstec.js";
+          targetUrl = ref.origin + "/webapp/webapp-10.2.2-RC4-frontend.min.js";
         } catch(e) {}
       }
 
