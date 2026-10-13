@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -17,11 +17,10 @@
     .card-ghs { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; cursor: pointer; text-align: center; position: relative; transition: all 0.2s ease; }
     .card-ghs:hover { border-color: #94a3b8; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
     
-    /* Destaque quando selecionado */
+    /* Selecionado */
     .card-ghs.selected { border-color: #dc2626; background: #fff5f5; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
     
-    /* Container para suas imagens do GitHub */
-    .img-container { width: 85px; height: 85px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
+    .img-container { width: 90px; height: 90px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
     .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
     .card-ghs .code { font-size: 0.72rem; font-weight: 700; color: #64748b; }
@@ -48,81 +47,99 @@
   </div>
 
   <div class="grid-ghs">
-    <div class="card-ghs" id="card_B1_XGHS01" onclick="toggleGHS('B1_XGHS01')">
+    <!-- 1. Explosivo -->
+    <div class="card-ghs" id="card_B1_XPEXPL" onclick="toggleGHS('B1_XPEXPL')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs01.png" alt="GHS01" /></div>
-      <div class="code">GHS01 &bull; B1_XGHS01</div>
+      <div class="img-container"><img src="img/B1_XPEXPL.png" alt="Explosivo" /></div>
+      <div class="code">B1_XPEXPL</div>
       <div class="title">Explosivo</div>
       <div class="desc">Explosivos e peróxidos orgânicos</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS02" onclick="toggleGHS('B1_XGHS02')">
+    <!-- 2. Inflamável -->
+    <div class="card-ghs" id="card_B1_XPINFL" onclick="toggleGHS('B1_XPINFL')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs02.png" alt="GHS02" /></div>
-      <div class="code">GHS02 &bull; B1_XGHS02</div>
+      <div class="img-container"><img src="img/B1_XPINFL.png" alt="Inflamável" /></div>
+      <div class="code">B1_XPINFL</div>
       <div class="title">Inflamável</div>
-      <div class="desc">Gases, líquidos e sólidos inflamáveis</div>
+      <div class="desc">Líquidos, gases e sólidos inflamáveis</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS03" onclick="toggleGHS('B1_XGHS03')">
+    <!-- 3. Oxidante / Comburente -->
+    <div class="card-ghs" id="card_B1_XPOXID" onclick="toggleGHS('B1_XPOXID')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs03.png" alt="GHS03" /></div>
-      <div class="code">GHS03 &bull; B1_XGHS03</div>
+      <div class="img-container"><img src="img/B1_XPOXID.png" alt="Oxidante" /></div>
+      <div class="code">B1_XPOXID</div>
       <div class="title">Oxidante / Comburente</div>
       <div class="desc">Gases e líquidos oxidantes</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS04" onclick="toggleGHS('B1_XGHS04')">
+    <!-- 4. Gás sob Pressão -->
+    <div class="card-ghs" id="card_B1_XPGASP" onclick="toggleGHS('B1_XPGASP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs04.png" alt="GHS04" /></div>
-      <div class="code">GHS04 &bull; B1_XGHS04</div>
+      <div class="img-container"><img src="img/B1_XPGASP.png" alt="Gás sob Pressão" /></div>
+      <div class="code">B1_XPGASP</div>
       <div class="title">Gás sob Pressão</div>
       <div class="desc">Gases comprimidos e liquefeitos</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS05" onclick="toggleGHS('B1_XGHS05')">
+    <!-- 5. Corrosão Metais -->
+    <div class="card-ghs" id="card_B1_XPCORM" onclick="toggleGHS('B1_XPCORM')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs05.png" alt="GHS05" /></div>
-      <div class="code">GHS05 &bull; B1_XGHS05</div>
-      <div class="title">Corrosivo</div>
-      <div class="desc">Corrosão de metais, pele e olhos</div>
+      <div class="img-container"><img src="img/B1_XPCORM.png" alt="Corrosivo Metais" /></div>
+      <div class="code">B1_XPCORM</div>
+      <div class="title">Corrosivo p/ Metais</div>
+      <div class="desc">Substâncias corrosivas a metais</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS06" onclick="toggleGHS('B1_XGHS06')">
+    <!-- 6. Corrosão Pele/Olhos -->
+    <div class="card-ghs" id="card_B1_XSCORP" onclick="toggleGHS('B1_XSCORP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs06.png" alt="GHS06" /></div>
-      <div class="code">GHS06 &bull; B1_XGHS06</div>
+      <div class="img-container"><img src="img/B1_XSCORP.png" alt="Corrosão Dérmica" /></div>
+      <div class="code">B1_XSCORP</div>
+      <div class="title">Corrosão Dérmica/Ocular</div>
+      <div class="desc">Corrosão cutânea e lesões oculares graves</div>
+    </div>
+
+    <!-- 7. Toxicidade Aguda (Caveira) -->
+    <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
+      <div class="check-box">&#10003;</div>
+      <div class="img-container"><img src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
+      <div class="code">B1_XSTOXA</div>
       <div class="title">Toxicidade Aguda</div>
-      <div class="desc">Fatal ou tóxico por ingestão ou contato</div>
+      <div class="desc">Fatal ou tóxico por ingestão ou inalação</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS07" onclick="toggleGHS('B1_XGHS07')">
+    <!-- 8. Nocivo / Irritante (Exclamação) -->
+    <div class="card-ghs" id="card_B1_XSIRRP" onclick="toggleGHS('B1_XSIRRP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs07.png" alt="GHS07" /></div>
-      <div class="code">GHS07 &bull; B1_XGHS07</div>
+      <div class="img-container"><img src="img/B1_XSIRRP.png" alt="Irritante" /></div>
+      <div class="code">B1_XSIRRP</div>
       <div class="title">Nocivo / Irritante</div>
       <div class="desc">Irritação dérmica e ocular</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS08" onclick="toggleGHS('B1_XGHS08')">
+    <!-- 9. Perigo à Saúde (Busto) -->
+    <div class="card-ghs" id="card_B1_XSPERA" onclick="toggleGHS('B1_XSPERA')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs08.png" alt="GHS08" /></div>
-      <div class="code">GHS08 &bull; B1_XGHS08</div>
+      <div class="img-container"><img src="img/B1_XSPERA.png" alt="Perigo à Saúde" /></div>
+      <div class="code">B1_XSPERA</div>
       <div class="title">Perigo à Saúde</div>
-      <div class="desc">Carcinogênico, mutagênico e aspiração</div>
+      <div class="desc">Mutagenicidade, carcinogenicidade e aspiração</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XGHS09" onclick="toggleGHS('B1_XGHS09')">
+    <!-- 10. Meio Ambiente Aquático -->
+    <div class="card-ghs" id="card_B1_XSMAQU" onclick="toggleGHS('B1_XSMAQU')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="imagens/ghs09.png" alt="GHS09" /></div>
-      <div class="code">GHS09 &bull; B1_XGHS09</div>
+      <div class="img-container"><img src="img/B1_XSMAQU.png" alt="Meio Ambiente" /></div>
+      <div class="code">B1_XSMAQU</div>
       <div class="title">Meio Ambiente</div>
-      <div class="desc">Toxidade crônica para ambiente aquático</div>
+      <div class="desc">Toxicidade aguda e crônica aquática</div>
     </div>
   </div>
 
   <div class="footer">
-    <div class="status-count" id="txtCount">Perigos selecionados: 0 de 9</div>
+    <div class="status-count" id="txtCount">Perigos selecionados: 0</div>
     <button class="btn" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
@@ -136,14 +153,11 @@
       if (port) {
         try {
           ws = new WebSocket("ws://127.0.0.1:" + port);
-          ws.onopen = () => { console.log("WebSocket Conectado com sucesso na porta " + port); };
-        } catch(e) { 
-          console.error("Erro na conexão WebSocket:", e); 
-        }
+          ws.onopen = () => { console.log("WebSocket conectado na porta " + port); };
+        } catch(e) { console.error(e); }
       }
     }
 
-    // Chamado pelo AdvPL via RunJavaScript assim que a página termina de carregar
     function initData(cCod, cDesc, objState) {
       document.getElementById("txtProd").innerText = "Produto: " + cCod + " - " + cDesc;
       state = objState || {};
@@ -169,7 +183,7 @@
           }
         }
       }
-      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 9";
+      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count;
     }
 
     function enviarAdvpl(key, val) {
