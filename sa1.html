@@ -183,22 +183,21 @@
     <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
     <button class="btn" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
-
-  <script>
+ <script>
     let state = {};
+    let webSocket = null;
 
     window.onload = function() {
-      // 1. Lê os parâmetros vindos direto do Protheus pela URL
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
+      const wp   = urlParams.get('wp')  || ''; // Porta do TWebChannel vinda do Protheus
 
       if (cod || desc) {
         document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
       }
 
-      // 2. Pré-marca os perigos já salvos no produto
       if (sel) {
         const aSel = sel.split(',');
         aSel.forEach(field => {
@@ -206,6 +205,15 @@
         });
       }
       renderState();
+
+      // Conecta ao TWebChannel do Protheus se a porta foi informada
+      if (wp) {
+        try {
+          webSocket = new WebSocket("ws://127.0.0.1:" + wp);
+        } catch (e) {
+          console.log("Fallback URL ativo");
+        }
+      }
     };
 
     function toggleGHS(field) {
@@ -229,7 +237,6 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
-    // 3. Ao clicar no botão azul, redireciona informando os selecionados para o AdvPL interceptar
     function fecharJanela() {
       const aAtivos = [];
       for (let field in state) {
@@ -237,7 +244,11 @@
           aAtivos.push(field);
         }
       }
-      window.location.href = "https://dyocks.github.io/unimol-ghs/sa1.html?action=SAVE&sel=" + aAtivos.join(',');
+      const cSelecionados = aAtivos.join(',');
+
+      // Adicionamos o parâmetro "&t=" com Date.now() para evitar cache do navegador no TWebEngine
+      const urlBase = window.location.origin + window.location.pathname;
+      window.location.href = urlBase + "?action=SAVE&sel=" + cSelecionados + "&t=" + Date.now();
     }
   </script>
 </body>
