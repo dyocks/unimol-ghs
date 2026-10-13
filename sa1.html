@@ -238,16 +238,20 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Este arquivo aparece no seu DevTools como 200 OK dentro de /webapp/:
-      let targetUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10314/webapp/webapp-10.2.2-RC4-frontend.min.js";
-      if (document.referrer) {
-        try {
-          const ref = new URL(document.referrer);
-          targetUrl = ref.origin + "/webapp/webapp-10.2.2-RC4-frontend.min.js";
-        } catch(e) {}
-      }
+      // Salva os dados no localStorage do navegador do usuário
+      localStorage.setItem("GHS_RESULTADO", cSelecionados);
+      localStorage.setItem("GHS_TIMESTAMP", Date.now().toString());
 
-      window.location.href = targetUrl + "?action=SAVE&sel=" + cSelecionados;
+      // Muda o botão para dar feedback visual imediato
+      const btn = document.getElementById("btnSalvar");
+      btn.innerText = "Salvo com sucesso!";
+      btn.style.background = "#16a34a";
+
+      // Fecha o iframe/janela após meio segundo
+      setTimeout(function() {
+        // Tenta fechar a janela/modal do navegador se houver suporte
+        window.close();
+      }, 500);
     }
   </script>
 </body>
