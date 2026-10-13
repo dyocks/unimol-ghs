@@ -6,33 +6,85 @@
   <title>Mosaico GHS - TOTVS Protheus</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background: #f8fafc; color: #1e293b; padding: 16px; user-select: none; }
     
-    .header { background: #ffffff; border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
-    .header h2 { font-size: 1.15rem; color: #0f172a; font-weight: 700; }
-    .header .prod-info { font-size: 0.88rem; color: #64748b; margin-top: 3px; }
-    .header .badge { background: #2563eb; color: #fff; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 0.8rem; }
+    /* Trava 100% da tela sem rolagem */
+    html, body { 
+      height: 100vh; 
+      overflow: hidden; 
+      background: #f8fafc; 
+      color: #1e293b; 
+      padding: 10px 14px; 
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .header { 
+      background: #ffffff; 
+      border-radius: 6px; 
+      padding: 8px 14px; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-shrink: 0;
+    }
+    .header h2 { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
+    .header .prod-info { font-size: 0.82rem; color: #64748b; }
+    .header .badge { background: #2563eb; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
 
-    .grid-ghs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
-    .card-ghs { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; cursor: pointer; text-align: center; position: relative; transition: all 0.2s ease; }
-    .card-ghs:hover { border-color: #94a3b8; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+    /* Grade 5 colunas x 2 linhas */
+    .grid-ghs { 
+      display: grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      grid-template-rows: repeat(2, 1fr);
+      gap: 10px; 
+      flex-grow: 1;
+      margin: 10px 0;
+    }
+    
+    .card-ghs { 
+      background: #ffffff; 
+      border: 2px solid #e2e8f0; 
+      border-radius: 6px; 
+      padding: 6px 8px; 
+      cursor: pointer; 
+      text-align: center; 
+      position: relative; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease; 
+    }
+    .card-ghs:hover { border-color: #94a3b8; transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.06); }
     
     /* Selecionado */
     .card-ghs.selected { border-color: #dc2626; background: #fff5f5; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
     
-    .img-container { width: 90px; height: 90px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
+    .img-container { width: 62px; height: 62px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
     .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-    .card-ghs .code { font-size: 0.72rem; font-weight: 700; color: #64748b; }
-    .card-ghs .title { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin: 3px 0; }
-    .card-ghs .desc { font-size: 0.72rem; color: #64748b; line-height: 1.25; }
+    .card-ghs .code { font-size: 0.65rem; font-weight: 700; color: #64748b; margin-top: 2px; }
+    .card-ghs .title { font-size: 0.80rem; font-weight: 700; color: #0f172a; margin: 1px 0; line-height: 1.1; }
+    .card-ghs .desc { font-size: 0.65rem; color: #64748b; line-height: 1.15; }
 
-    .check-box { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 4px; display: none; align-items: center; justify-content: center; background: #dc2626; color: #fff; font-size: 12px; }
+    .check-box { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border: 2px solid #cbd5e1; border-radius: 3px; display: none; align-items: center; justify-content: center; background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; }
     .card-ghs.selected .check-box { display: flex; }
 
-    .footer { background: #ffffff; border-radius: 8px; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .status-count { font-size: 0.88rem; font-weight: 600; color: #475569; }
-    .btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: background 0.2s; }
+    .footer { 
+      background: #ffffff; 
+      border-radius: 6px; 
+      padding: 8px 14px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
+      flex-shrink: 0;
+    }
+    .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
+    .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
   </style>
 </head>
@@ -47,70 +99,64 @@
   </div>
 
   <div class="grid-ghs">
-    <!-- 1. Explosivo -->
+    <!-- Linha 1: Perigos Físicos -->
     <div class="card-ghs" id="card_B1_XPEXPL" onclick="toggleGHS('B1_XPEXPL')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XPEXPL.png" alt="Explosivo" /></div>
       <div class="code">B1_XPEXPL</div>
       <div class="title">Explosivo</div>
-      <div class="desc">Explosivos e peróxidos orgânicos</div>
+      <div class="desc">Explosivos e peróxidos</div>
     </div>
 
-    <!-- 2. Inflamável -->
     <div class="card-ghs" id="card_B1_XPINFL" onclick="toggleGHS('B1_XPINFL')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XPINFL.png" alt="Inflamável" /></div>
       <div class="code">B1_XPINFL</div>
       <div class="title">Inflamável</div>
-      <div class="desc">Líquidos, gases e sólidos inflamáveis</div>
+      <div class="desc">Gases, líquidos e sólidos</div>
     </div>
 
-    <!-- 3. Oxidante / Comburente -->
     <div class="card-ghs" id="card_B1_XPOXID" onclick="toggleGHS('B1_XPOXID')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XPOXID.png" alt="Oxidante" /></div>
       <div class="code">B1_XPOXID</div>
-      <div class="title">Oxidante / Comburente</div>
-      <div class="desc">Gases e líquidos oxidantes</div>
+      <div class="title">Oxidante</div>
+      <div class="desc">Gases e líquidos comburentes</div>
     </div>
 
-    <!-- 4. Gás sob Pressão -->
     <div class="card-ghs" id="card_B1_XPGASP" onclick="toggleGHS('B1_XPGASP')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XPGASP.png" alt="Gás sob Pressão" /></div>
       <div class="code">B1_XPGASP</div>
-      <div class="title">Gás sob Pressão</div>
-      <div class="desc">Gases comprimidos e liquefeitos</div>
+      <div class="title">Gás Pressurizado</div>
+      <div class="desc">Comprimidos e liquefeitos</div>
     </div>
 
-    <!-- 5. Corrosão Metais -->
     <div class="card-ghs" id="card_B1_XPCORM" onclick="toggleGHS('B1_XPCORM')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XPCORM.png" alt="Corrosivo Metais" /></div>
       <div class="code">B1_XPCORM</div>
-      <div class="title">Corrosivo p/ Metais</div>
-      <div class="desc">Substâncias corrosivas a metais</div>
+      <div class="title">Corrosivo Metais</div>
+      <div class="desc">Corrosão a ligas metálicas</div>
     </div>
 
-    <!-- 6. Corrosão Pele/Olhos -->
+    <!-- Linha 2: Perigos à Saúde e Meio Ambiente -->
     <div class="card-ghs" id="card_B1_XSCORP" onclick="toggleGHS('B1_XSCORP')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XSCORP.png" alt="Corrosão Dérmica" /></div>
       <div class="code">B1_XSCORP</div>
-      <div class="title">Corrosão Dérmica/Ocular</div>
-      <div class="desc">Corrosão cutânea e lesões oculares graves</div>
+      <div class="title">Corrosão Dérmica/Olhos</div>
+      <div class="desc">Lesões cutâneas e oculares</div>
     </div>
 
-    <!-- 7. Toxicidade Aguda (Caveira) -->
     <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
       <div class="code">B1_XSTOXA</div>
       <div class="title">Toxicidade Aguda</div>
-      <div class="desc">Fatal ou tóxico por ingestão ou inalação</div>
+      <div class="desc">Fatal/tóxico por ingestão</div>
     </div>
 
-    <!-- 8. Nocivo / Irritante (Exclamação) -->
     <div class="card-ghs" id="card_B1_XSIRRP" onclick="toggleGHS('B1_XSIRRP')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XSIRRP.png" alt="Irritante" /></div>
@@ -119,27 +165,25 @@
       <div class="desc">Irritação dérmica e ocular</div>
     </div>
 
-    <!-- 9. Perigo à Saúde (Busto) -->
     <div class="card-ghs" id="card_B1_XSPERA" onclick="toggleGHS('B1_XSPERA')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XSPERA.png" alt="Perigo à Saúde" /></div>
       <div class="code">B1_XSPERA</div>
       <div class="title">Perigo à Saúde</div>
-      <div class="desc">Mutagenicidade, carcinogenicidade e aspiração</div>
+      <div class="desc">Carcinogênico e aspiração</div>
     </div>
 
-    <!-- 10. Meio Ambiente Aquático -->
     <div class="card-ghs" id="card_B1_XSMAQU" onclick="toggleGHS('B1_XSMAQU')">
       <div class="check-box">&#10003;</div>
       <div class="img-container"><img src="img/B1_XSMAQU.png" alt="Meio Ambiente" /></div>
       <div class="code">B1_XSMAQU</div>
       <div class="title">Meio Ambiente</div>
-      <div class="desc">Toxicidade aguda e crônica aquática</div>
+      <div class="desc">Toxicidade ambiente aquático</div>
     </div>
   </div>
 
   <div class="footer">
-    <div class="status-count" id="txtCount">Perigos selecionados: 0</div>
+    <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
     <button class="btn" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
@@ -153,7 +197,7 @@
       if (port) {
         try {
           ws = new WebSocket("ws://127.0.0.1:" + port);
-          ws.onopen = () => { console.log("WebSocket conectado na porta " + port); };
+          ws.onopen = () => { console.log("WebSocket Conectado!"); };
         } catch(e) { console.error(e); }
       }
     }
@@ -183,7 +227,7 @@
           }
         }
       }
-      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count;
+      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
     function enviarAdvpl(key, val) {
