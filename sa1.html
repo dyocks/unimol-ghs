@@ -230,6 +230,10 @@
     }
 
    function fecharJanela() {
+      const btn = document.getElementById("btnSalvar");
+      btn.innerText = "Gravando no Protheus...";
+      btn.style.background = "#16a34a";
+
       const aAtivos = [];
       for (let field in state) {
         if (state[field]) {
@@ -238,20 +242,26 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Salva os dados no localStorage do navegador do usuário
-      localStorage.setItem("GHS_RESULTADO", cSelecionados);
-      localStorage.setItem("GHS_TIMESTAMP", Date.now().toString());
+      // Pega a porta do canal passada pela URL (?wp=...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const wp = urlParams.get('wp');
 
-      // Muda o botão para dar feedback visual imediato
-      const btn = document.getElementById("btnSalvar");
-      btn.innerText = "Salvo com sucesso!";
-      btn.style.background = "#16a34a";
+      if (wp) {
+        // Envia via WebSocket nativo do TWebChannel do Protheus
+        try {
+          const ws = new WebSocket("ws://127.0.0.1:" + wp);
+          ws.onopen = function() {
+            ws.send(JSON.stringify({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }));
+            setTimeout(function() { ws.close(); }, 300);
+          };
+        } catch(e) {}
+      }
 
-      // Fecha o iframe/janela após meio segundo
-      setTimeout(function() {
-        // Tenta fechar a janela/modal do navegador se houver suporte
-        window.close();
-      }, 500);
+      // Fallback seguro via postMessage para o WebApp da nuvem (T-Cloud)
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }, "*");
+        window.parent.postMessage({ type: "TOTVS_WEBCHANNEL_JS_TO_ADVPL", codeType: "SAVE_GHS", content: cSelecionados }, "*");
+      }
     }
   </script>
 </body>
