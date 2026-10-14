@@ -251,51 +251,22 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
     function fecharJanela() {
-  const btn = document.getElementById("btnSalvar");
-  btn.innerText = "Gravando no Protheus...";
-  btn.style.background = "#16a34a";
-  btn.disabled = true;
+      const btn = document.getElementById("btnSalvar");
+      btn.innerText = "A gravar no Protheus...";
+      btn.style.background = "#16a34a";
+      btn.disabled = true;
 
-  const aAtivos = [];
-  for (let field in state) {
-    if (state[field]) {
-      aAtivos.push(field);
-    }
-  }
-  const cSelecionados = aAtivos.join(',');
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const cod = urlParams.get('cod') || '';
-
-  // Se você tiver o endpoint REST ou API no Protheus:
-  fetch('/rest/ghs/' + encodeURIComponent(cod), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ campos: cSelecionados })
-  })
-  .then(response => {
-    if (!response.ok) throw new Error("Erro na gravação");
-    return response.json();
-  })
-  .then(data => {
-    btn.innerText = "Sucesso! Fechando...";
-    setTimeout(() => {
-      // Fecha a janela ou modal
-      if (window.parent && window.parent.closeModal) {
-        window.parent.closeModal();
-      } else {
-        window.close();
+      const aAtivos = [];
+      for (let field in state) {
+        if (state[field]) {
+          aAtivos.push(field);
+        }
       }
-    }, 600);
-  })
-  .catch(err => {
-    console.error("Falha ao salvar via REST:", err);
-    // Se a API não estiver configurada no momento, tente fechar o modal
-    alert("Dados selecionados: " + cSelecionados);
-  });
-} 
+      const cSelecionados = aAtivos.join(',');
+
+      // Dispara o sinal diretamente para o TWebEngine do AdvPL através da URL
+      window.location.href = "protheus://save_ghs?sel=" + encodeURIComponent(cSelecionados);
+    }
   </script>
 </body>
 </html>
