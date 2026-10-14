@@ -229,34 +229,39 @@
 
     // 2. Lógica da Aplicação GHS
     let state = {};
-    let tChannel = null;
 
-    window.onload = function() {
+    // Garante que o carregamento inicial ocorra assim que o DOM estiver pronto
+    document.addEventListener("DOMContentLoaded", function() {
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
-      const port = urlParams.get('wp');
 
+      // Exibe código e descrição no cabeçalho
       if (cod || desc) {
-        document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
+        document.getElementById("txtProd").innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
       }
 
+      // Reinicializa o estado
+      state = {
+        "B1_XPEXPL": false, "B1_XPINFL": false, "B1_XPOXID": false, "B1_XPGASP": false, "B1_XPCORM": false,
+        "B1_XSCORP": false, "B1_XSTOXA": false, "B1_XSIRRP": false, "B1_XSPERA": false, "B1_XSMAQU": false
+      };
+
+      // Marca como true os campos recebidos no parâmetro sel
       if (sel) {
         const aSel = sel.split(',');
-        aSel.forEach(field => {
-          if (field && field.trim() !== "") {
-            state[field.trim()] = true;
+        aSel.forEach(function(field) {
+          const cFld = field.trim();
+          if (cFld) {
+            state[cFld] = true;
           }
         });
       }
-      renderState();
 
-      // Inicializa a escuta se houver porta informada
-      if (port) {
-        tChannel = new TWebChannel(port);
-      }
-    };
+      // Atualiza visualmente todos os cards
+      renderState();
+    });
 
     function toggleGHS(field) {
       state[field] = !state[field];
