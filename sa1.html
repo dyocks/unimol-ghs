@@ -281,8 +281,46 @@
 
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
-      btn.innerText = "Utilize o botão 'Confirmar e Gravar' abaixo";
-      btn.style.background = "#2563eb";
+      btn.innerText = "Gravando no Protheus...";
+      btn.style.background = "#16a34a";
+      btn.disabled = true;
+
+      const aAtivos = [];
+      for (let field in state) {
+        if (state[field]) {
+          aAtivos.push(field);
+        }
+      }
+      const cSelecionados = aAtivos.join(',');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const cod = urlParams.get('cod') || '';
+
+      // Envia diretamente para o REST do Protheus no TCloud
+      const restUrl = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10303/rest/WSSALVAGHS/" + encodeURIComponent(cod);
+
+      fetch(restUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ campos: cSelecionados })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        return res.json();
+      })
+      .then(data => {
+        btn.innerText = "Gravado com sucesso! Pode fechar a janela.";
+        btn.style.background = "#059669";
+        alert("Perigos GHS gravados com sucesso! Feche a janela no X superior.");
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerText = "Erro ao gravar. Tentar novamente";
+        btn.style.background = "#dc2626";
+        alert("Falha na chamada REST: " + err.message);
+      });
     }
   </script>
 
