@@ -184,14 +184,19 @@
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
+ <!-- Biblioteca oficial de comunicação TOTVS WebChannel -->
+  <script src="twebchannel.js"></script>
+
   <script>
     let state = {};
+    let twebchannel = null;
 
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
+      const port = urlParams.get('wp');
 
       if (cod || desc) {
         document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
@@ -206,7 +211,24 @@
         });
       }
       renderState();
+
+      // Inicializa o canal oficial do Protheus
+      conectarTWebChannel(port);
     };
+
+    function conectarTWebChannel(port) {
+      // 1. Tenta conectar via TWebChannel oficial se a biblioteca estiver presente
+      if (typeof TWebChannel !== "undefined") {
+        twebchannel = new TWebChannel(port, function() {
+          console.log("Conectado com sucesso ao TWebChannel!");
+        });
+      } else if (typeof QWebChannel !== "undefined" && typeof qt !== "undefined") {
+        // Fallback para WebView desktop
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+          twebchannel = channel.objects.advpl;
+        });
+      }
+    }
 
     function toggleGHS(field) {
       state[field] = !state[field];
@@ -229,7 +251,7 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
-   function fecharJanela() {
+    function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
       btn.innerText = "Gravando no Protheus...";
       btn.style.background = "#16a34a";
@@ -242,27 +264,30 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Pega a porta do canal passada pela URL (?wp=...)
-      const urlParams = new URLSearchParams(window.location.search);
-      const wp = urlParams.get('wp');
-
-      if (wp) {
-        // Envia via WebSocket nativo do TWebChannel do Protheus
-        try {
-          const ws = new WebSocket("ws://127.0.0.1:" + wp);
-          ws.onopen = function() {
-            ws.send(JSON.stringify({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }));
-            setTimeout(function() { ws.close(); }, 300);
-          };
-        } catch(e) {}
+      // 1. Envio nativo pelo objeto TWebChannel
+      if (twebchannel && typeof twebchannel.jsToAdvpl === "function") {
+        twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
+        return;
       }
 
-      // Fallback seguro via postMessage para o WebApp da nuvem (T-Cloud)
+      // 2. Fallback para Protheus WebApp (navegador / iframe)
+      // No WebApp, a tela roda embutida em um iframe. O evento via postMessage comunica diretamente com o frontend do WebApp.
+      const payload = {
+        event: "jsToAdvpl",
+        codeType: "SAVE_GHS",
+        content: cSelecionados
+      };
+
       if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }, "*");
-        window.parent.postMessage({ type: "TOTVS_WEBCHANNEL_JS_TO_ADVPL", codeType: "SAVE_GHS", content: cSelecionados }, "*");
+        window.parent.postMessage(payload, "*");
+        window.parent.postMessage(JSON.stringify(payload), "*");
       }
-    }
+
+      // Se existir window.chrome.webview (Microsoft Edge WebView2)
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage({ type: "SAVE_GHS", content: cSelecionados });
+      }
+    } 
   </script>
 </body>
 </html>
