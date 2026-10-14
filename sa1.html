@@ -184,89 +184,91 @@
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
- <!-- Biblioteca oficial de comunicação TOTVS WebChannel -->
-  <script src="twebchannel.js"></script>
+ <!-- Importa a biblioteca do WebChannel que se adapta tanto ao SmartClient Desktop quanto ao WebApp -->
+<script src="https://tds.totvs.com/webchannel/twebchannel.js"></script>
 
-  <script>
-    let state = {};
-    let twebchannel = null;
+<script>
+  let state = {};
+  let twebchannel = null;
 
-    window.onload = function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const cod  = urlParams.get('cod') || '';
-      const desc = urlParams.get('desc') || '';
-      const sel  = urlParams.get('sel') || '';
-      const port = urlParams.get('wp');
+  window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const cod  = urlParams.get('cod') || '';
+    const desc = urlParams.get('desc') || '';
+    const sel  = urlParams.get('sel') || '';
+    const port = urlParams.get('wp');
 
-      if (cod || desc) {
-        document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
-      }
-
-      if (sel) {
-        const aSel = sel.split(',');
-        aSel.forEach(field => {
-          if (field && field.trim() !== "") {
-            state[field.trim()] = true;
-          }
-        });
-      }
-      renderState();
-
-      // Inicializa o canal oficial do Protheus
-      conectarTWebChannel(port);
-    };
-
-    function conectarTWebChannel(port) {
-      // 1. Tenta conectar via TWebChannel oficial se a biblioteca estiver presente
-      if (typeof TWebChannel !== "undefined") {
-        twebchannel = new TWebChannel(port, function() {
-          console.log("Conectado com sucesso ao TWebChannel!");
-        });
-      } else if (typeof QWebChannel !== "undefined" && typeof qt !== "undefined") {
-        // Fallback para WebView desktop
-        new QWebChannel(qt.webChannelTransport, function(channel) {
-          twebchannel = channel.objects.advpl;
-        });
-      }
+    if (cod || desc) {
+      document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
     }
 
-    function toggleGHS(field) {
-      state[field] = !state[field];
-      renderState();
+    if (sel) {
+      const aSel = sel.split(',');
+      aSel.forEach(field => {
+        if (field && field.trim() !== "") {
+          state[field.trim()] = true;
+        }
+      });
     }
+    renderState();
 
-    function renderState() {
-      let count = 0;
-      for (let field in state) {
-        let card = document.getElementById("card_" + field);
-        if (card) {
-          if (state[field]) {
-            card.classList.add("selected");
-            count++;
-          } else {
-            card.classList.remove("selected");
-          }
+    // Inicialização do WebChannel TOTVS
+    if (typeof TWebChannel !== "undefined") {
+      // Passa a porta recebida via URL (wp)
+      twebchannel = new TWebChannel(port, function() {
+        console.log("TWebChannel conectado com sucesso no WebApp!");
+      });
+    }
+  };
+
+  function toggleGHS(field) {
+    state[field] = !state[field];
+    renderState();
+  }
+
+  function renderState() {
+    let count = 0;
+    for (let field in state) {
+      let card = document.getElementById("card_" + field);
+      if (card) {
+        if (state[field]) {
+          card.classList.add("selected");
+          count++;
+        } else {
+          card.classList.remove("selected");
         }
       }
-      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
-    function fecharJanela() {
-      const btn = document.getElementById("btnSalvar");
-      btn.innerText = "A gravar no Protheus...";
-      btn.style.background = "#16a34a";
-      btn.disabled = true;
+    document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
+  }
 
-      const aAtivos = [];
-      for (let field in state) {
-        if (state[field]) {
-          aAtivos.push(field);
-        } 
+  function fecharJanela() {
+    const btn = document.getElementById("btnSalvar");
+    btn.innerText = "Gravando no Protheus...";
+    btn.style.background = "#16a34a";
+    btn.disabled = true;
+
+    const aAtivos = [];
+    for (let field in state) {
+      if (state[field]) {
+        aAtivos.push(field);
       }
-      const cSelecionados = aAtivos.join(',');
-
-      // Dispara o sinal diretamente para o TWebEngine do AdvPL através da URL
-      window.location.href = "protheus://save_ghs?sel=" + encodeURIComponent(cSelecionados);
     }
-  </script>
+    const cSelecionados = aAtivos.join(',');
+
+    // Envio oficial TOTVS
+    if (twebchannel) {
+      twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
+    } else if (window.twebchannel) {
+      window.twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
+    } else {
+      // Disparo de evento pai para o iframe do WebApp
+      window.parent.postMessage({
+        codeType: "SAVE_GHS",
+        content: cSelecionados
+      }, "*");
+    }
+  }
+</script>
 </body>
 </html>
