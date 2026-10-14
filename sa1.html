@@ -184,91 +184,124 @@
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
- <!-- Importa a biblioteca do WebChannel que se adapta tanto ao SmartClient Desktop quanto ao WebApp -->
-<script src="https://github.com/totvs/twebchannel-js/blob/master/twebchannel.js"></script>
-
 <script>
-  let state = {};
-  let twebchannel = null;
+    // 1. Implementação nativa embutida do TWebChannel (dispensa arquivo .js externo)
+    function TWebChannel(port, onConnected) {
+      const self = this;
+      this.ws = null;
+      
+      // No WebApp, conecta no mesmo host (unimolbrasil...cloudtotvs.com.br)
+      // Se a página rodar em HTTPS, utiliza WSS seguro
+      const isHttps = window.location.protocol === "https:";
+      const protocol = isHttps ? "wss://" : "ws://";
+      const host = window.location.hostname || "127.0.0.1";
+      const url = protocol + host + ":" + port;
 
-  window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const cod  = urlParams.get('cod') || '';
-    const desc = urlParams.get('desc') || '';
-    const sel  = urlParams.get('sel') || '';
-    const port = urlParams.get('wp');
+      try {
+        this.ws = new WebSocket(url);
+        
+        this.ws.onopen = function() {
+          console.log("WebSocket TWebChannel conectado na porta " + port);
+          if (onConnected) onConnected();
+        };
 
-    if (cod || desc) {
-      document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
-    }
+        this.ws.onerror = function(err) {
+          console.warn("Falha na conexao direta WebSocket:", err);
+        };
+      } catch(e) {
+        console.warn("Excecao ao instanciar WebSocket:", e);
+      }
 
-    if (sel) {
-      const aSel = sel.split(',');
-      aSel.forEach(field => {
-        if (field && field.trim() !== "") {
-          state[field.trim()] = true;
-        }
-      });
-    }
-    renderState();
-
-    // Inicialização do WebChannel TOTVS
-    if (typeof TWebChannel !== "undefined") {
-      // Passa a porta recebida via URL (wp)
-      twebchannel = new TWebChannel(port, function() {
-        console.log("TWebChannel conectado com sucesso no WebApp!");
-      });
-    }
-  };
-
-  function toggleGHS(field) {
-    state[field] = !state[field];
-    renderState();
-  }
-
-  function renderState() {
-    let count = 0;
-    for (let field in state) {
-      let card = document.getElementById("card_" + field);
-      if (card) {
-        if (state[field]) {
-          card.classList.add("selected");
-          count++;
+      this.jsToAdvpl = function(codeType, content) {
+        const payload = JSON.stringify({ codeType: codeType, content: content });
+        
+        if (self.ws && self.ws.readyState === WebSocket.OPEN) {
+          self.ws.send(payload);
+          setTimeout(function() { self.ws.close(); }, 300);
         } else {
-          card.classList.remove("selected");
+          // Fallback para o frame pai do WebApp
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "jsToAdvpl", codeType: codeType, content: content }, "*");
+          }
+        }
+      };
+    }
+
+    // 2. Lógica da Aplicação GHS
+    let state = {};
+    let tChannel = null;
+
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const cod  = urlParams.get('cod') || '';
+      const desc = urlParams.get('desc') || '';
+      const sel  = urlParams.get('sel') || '';
+      const port = urlParams.get('wp');
+
+      if (cod || desc) {
+        document.getElementById("txtProd").innerText = "Produto: " + cod + " - " + decodeURIComponent(desc);
+      }
+
+      if (sel) {
+        const aSel = sel.split(',');
+        aSel.forEach(field => {
+          if (field && field.trim() !== "") {
+            state[field.trim()] = true;
+          }
+        });
+      }
+      renderState();
+
+      // Inicializa a escuta se houver porta informada
+      if (port) {
+        tChannel = new TWebChannel(port);
+      }
+    };
+
+    function toggleGHS(field) {
+      state[field] = !state[field];
+      renderState();
+    }
+
+    function renderState() {
+      let count = 0;
+      for (let field in state) {
+        let card = document.getElementById("card_" + field);
+        if (card) {
+          if (state[field]) {
+            card.classList.add("selected");
+            count++;
+          } else {
+            card.classList.remove("selected");
+          }
+        }
+      }
+      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
+    }
+
+    function fecharJanela() {
+      const btn = document.getElementById("btnSalvar");
+      btn.innerText = "Gravando no Protheus...";
+      btn.style.background = "#16a34a";
+      btn.disabled = true;
+
+      const aAtivos = [];
+      for (let field in state) {
+        if (state[field]) {
+          aAtivos.push(field);
+        }
+      }
+      const cSelecionados = aAtivos.join(',');
+
+      if (tChannel) {
+        tChannel.jsToAdvpl("SAVE_GHS", cSelecionados);
+      } else {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }, "*");
         }
       }
     }
-    document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
-  }
+  </script>
 
-  function fecharJanela() {
-    const btn = document.getElementById("btnSalvar");
-    btn.innerText = "Gravando no Protheus...";
-    btn.style.background = "#16a34a";
-    btn.disabled = true;
-
-    const aAtivos = [];
-    for (let field in state) {
-      if (state[field]) {
-        aAtivos.push(field);
-      }
-    }
-    const cSelecionados = aAtivos.join(',');
-
-    // Envio oficial TOTVS
-    if (twebchannel) {
-      twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
-    } else if (window.twebchannel) {
-      window.twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
-    } else {
-      // Disparo de evento pai para o iframe do WebApp
-      window.parent.postMessage({
-        codeType: "SAVE_GHS",
-        content: cSelecionados
-      }, "*");
-    }
-  }
-</script>
 </body>
 </html>
