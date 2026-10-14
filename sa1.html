@@ -281,25 +281,8 @@
 
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
-      btn.innerText = "Gravando no Protheus...";
-      btn.style.background = "#16a34a";
-      btn.disabled = true;
-
-      const aAtivos = [];
-      for (let field in state) {
-        if (state[field]) {
-          aAtivos.push(field);
-        }
-      }
-      const cSelecionados = aAtivos.join(',');
-
-      if (tChannel) {
-        tChannel.jsToAdvpl("SAVE_GHS", cSelecionados);
-      } else {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: "jsToAdvpl", codeType: "SAVE_GHS", content: cSelecionados }, "*");
-        }
-      }
+      btn.innerText = "Utilize o botão 'Confirmar e Gravar' abaixo";
+      btn.style.background = "#2563eb";
     }
   </script>
 
