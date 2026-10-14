@@ -301,41 +301,39 @@
       const urlParams = new URLSearchParams(window.location.search);
       const cod = urlParams.get('cod') || '';
 
-      const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/" + encodeURIComponent(cod);
+      const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
-      // Cria um iframe oculto para receber a resposta sem trocar de ecrã
-      let iframe = document.getElementById("hidden_save_frame");
-      if (!iframe) {
-        iframe = document.createElement("iframe");
-        iframe.id = "hidden_save_frame";
-        iframe.name = "hidden_save_frame";
-        iframe.style.display = "none";
-        document.body.appendChild(iframe);
-      }
-
-      // Cria um formulário invisível (envios de form padrão NÃO disparam preflight OPTIONS nem sofrem bloqueio CORS)
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = endpoint;
-      form.target = "hidden_save_frame";
-
-      const inputCampos = document.createElement("input");
-      inputCampos.type = "hidden";
-      inputCampos.name = "campos";
-      inputCampos.value = cSelecionados;
-      form.appendChild(inputCampos);
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-
-      // Feedback imediato ao utilizador
-      setTimeout(function() {
+      // Envio via FETCH para garantir os cabeçalhos corretos (Auth e tenantId)
+      fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "tenantId": "01,0101",
+          // Insira aqui o Basic Auth que usámos no Postman
+          "Authorization": "Basic cm9kcmlnby5hbWFyYWw6UmFxdWVsRWR1YXJkYTIwMTBA" 
+        },
+        body: JSON.stringify({ campos: cSelecionados })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Falha na resposta do servidor: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
         btn.innerText = "Gravado com sucesso!";
         btn.style.background = "#059669";
-        alert("Perigos GHS gravados no Protheus com sucesso! Pode fechar a janela no botão superior.");
-      }, 700);
+        alert("Perigos GHS gravados no Protheus com sucesso! Pode fechar a janela.");
+      })
+      .catch(error => {
+        console.error("Erro ao gravar:", error);
+        btn.innerText = "Erro na gravação!";
+        btn.style.background = "#dc2626";
+        btn.disabled = false;
+        alert("Ocorreu um erro ao comunicar com o Protheus. Verifique o console.");
+      });
     }
+    
   </script>
 
 </body>
