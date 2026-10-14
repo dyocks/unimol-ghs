@@ -250,44 +250,52 @@
       }
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
-
     function fecharJanela() {
-      const btn = document.getElementById("btnSalvar");
-      btn.innerText = "Gravando no Protheus...";
-      btn.style.background = "#16a34a";
+  const btn = document.getElementById("btnSalvar");
+  btn.innerText = "Gravando no Protheus...";
+  btn.style.background = "#16a34a";
+  btn.disabled = true;
 
-      const aAtivos = [];
-      for (let field in state) {
-        if (state[field]) {
-          aAtivos.push(field);
-        }
+  const aAtivos = [];
+  for (let field in state) {
+    if (state[field]) {
+      aAtivos.push(field);
+    }
+  }
+  const cSelecionados = aAtivos.join(',');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const cod = urlParams.get('cod') || '';
+
+  // Se você tiver o endpoint REST ou API no Protheus:
+  fetch('/rest/ghs/' + encodeURIComponent(cod), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ campos: cSelecionados })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error("Erro na gravação");
+    return response.json();
+  })
+  .then(data => {
+    btn.innerText = "Sucesso! Fechando...";
+    setTimeout(() => {
+      // Fecha a janela ou modal
+      if (window.parent && window.parent.closeModal) {
+        window.parent.closeModal();
+      } else {
+        window.close();
       }
-      const cSelecionados = aAtivos.join(',');
-
-      // 1. Envio nativo pelo objeto TWebChannel
-      if (twebchannel && typeof twebchannel.jsToAdvpl === "function") {
-        twebchannel.jsToAdvpl("SAVE_GHS", cSelecionados);
-        return;
-      }
-
-      // 2. Fallback para Protheus WebApp (navegador / iframe)
-      // No WebApp, a tela roda embutida em um iframe. O evento via postMessage comunica diretamente com o frontend do WebApp.
-      const payload = {
-        event: "jsToAdvpl",
-        codeType: "SAVE_GHS",
-        content: cSelecionados
-      };
-
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage(payload, "*");
-        window.parent.postMessage(JSON.stringify(payload), "*");
-      }
-
-      // Se existir window.chrome.webview (Microsoft Edge WebView2)
-      if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage({ type: "SAVE_GHS", content: cSelecionados });
-      }
-    } 
+    }, 600);
+  })
+  .catch(err => {
+    console.error("Falha ao salvar via REST:", err);
+    // Se a API não estiver configurada no momento, tente fechar o modal
+    alert("Dados selecionados: " + cSelecionados);
+  });
+} 
   </script>
 </body>
 </html>
