@@ -275,6 +275,38 @@
         // Tenta fechar nativamente
         window.close();
         
+        // CORREÇÃO: Envia a mensagem via alert nativo ou prompt, 
+        // que é interceptado pelo bMsgInfo do AdvPL
+        try {
+            // O TWebEngine intercepta mensagens que começam com um prefixo se for alert
+            // Porém a forma mais segura quando usamos bMsgInfo é usar a função protheus
+            if (typeof twebengine !== 'undefined') {
+                twebengine.msgInfo("FECHAR_TELA", "");
+            } else {
+                 // Fallback para enviar a mensagem via título (gambiarra clássica de TWebEngine antigo)
+                 document.title = "FECHAR_TELA";
+            }
+        } catch (e) {
+            console.error("Erro ao chamar o fechamento", e);
+        }
+      }, 2000);
+    }
+      const toast = document.getElementById('custom-toast');
+      toast.innerText = message;
+      
+      if (isError) {
+        toast.classList.add('error');
+      } else {
+        toast.classList.remove('error');
+      }
+      
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.opacity = '1', 10); 
+
+      setTimeout(() => {
+        // Tenta fechar nativamente
+        window.close();
+        
         // NOVO: Usa a injeção nativa do TWebEngine do Protheus
         try {
             if (typeof twebchannel !== 'undefined' && twebchannel.jsToAdvpl) {
