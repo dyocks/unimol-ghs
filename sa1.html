@@ -284,7 +284,7 @@
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
       btn.innerText = "A gravar no Protheus...";
-      btn.style.background = "#16a34a";
+      btn.style.background = "#059669";
       btn.disabled = true;
 
       const aAtivos = [];
@@ -297,7 +297,7 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
-      const auth = urlParams.get('auth') || ''; // Recolhe a credencial injetada pelo AdvPL
+      const auth = urlParams.get('auth') || '';
 
       const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
@@ -306,7 +306,7 @@
         headers: {
           "Content-Type": "application/json",
           "tenantId": "01,0101",
-          "Authorization": auth // Utiliza a credencial dinâmica recebida em segurança
+          "Authorization": auth
         },
         body: JSON.stringify({ campos: cSelecionados })
       })
@@ -317,9 +317,15 @@
         return response.json();
       })
       .then(data => {
-        btn.innerText = "Gravado com sucesso!";
+        // Transforma o botão num indicador de sucesso verde definitivo
+        btn.innerText = "✓ Gravado com Sucesso!";
         btn.style.background = "#059669";
-        alert("Perigos GHS gravados no Protheus com sucesso! Pode fechar a janela.");
+        btn.style.color = "#ffffff";
+        
+        // Destaca a mensagem de status no rodapé a verde
+        const txtCount = document.getElementById("txtCount");
+        txtCount.innerText = "Perigos GHS guardados na base de dados!";
+        txtCount.style.color = "#059669";
       })
       .catch(error => {
         console.error("Erro ao gravar:", error);
