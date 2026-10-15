@@ -272,23 +272,12 @@
       setTimeout(() => toast.style.opacity = '1', 10); 
 
       setTimeout(() => {
-        // Tenta fechar nativamente
-        window.close();
-        
-        // Dispara o evento capturado pelo bMsg no AdvPL do Protheus
         try {
-            if (typeof appserver_message !== 'undefined') {
-                 appserver_message("FECHAR_TELA", "");
-            } else if (typeof twebengine !== 'undefined' && twebengine.msgInfo) {
-                 twebengine.msgInfo("FECHAR_TELA", "");
-            } else if (window.twebchannel && window.twebchannel.jsToAdvpl) {
-                 window.twebchannel.jsToAdvpl("FECHAR_TELA", "");
-            } else {
-                 // Último recurso interceptado pelo kernel do SmartClient
-                 alert("appserver_message:FECHAR_TELA:");
-            }
+            // Hack universal para forçar o fechamento da janela (bypass da segurança do Chromium)
+            window.open('', '_self', '');
+            window.close();
         } catch (e) {
-            console.error("Falha ao enviar comando de fecho:", e);
+            console.error("Falha ao forçar o fecho:", e);
         }
       }, 2000);
     }
