@@ -207,42 +207,7 @@
 
   <div id="custom-toast" class="custom-toast"></div>
 
-<script>
-    function TWebChannel(port, onConnected) {
-      const self = this;
-      this.ws = null;
-      
-      const host = "127.0.0.1";
-      const url = "ws://" + host + ":" + port;
-
-      try {
-        this.ws = new WebSocket(url);
-        
-        this.ws.onopen = function() {
-          console.log("WebSocket TWebChannel conectado na porta " + port);
-          if (onConnected) onConnected();
-        };
-
-        this.ws.onerror = function(err) {
-          console.warn("Falha na conexao direta WebSocket:", err);
-        };
-      } catch(e) {
-        console.warn("Excecao ao instanciar WebSocket:", e);
-      }
-
-      this.jsToAdvpl = function(codeType, content) {
-        const payload = JSON.stringify({ codeType: codeType, content: content });
-        
-        if (self.ws && self.ws.readyState === WebSocket.OPEN) {
-          self.ws.send(payload);
-        } else {
-          console.warn("Falha: WebSocket nao esta conectado na porta.");
-        }
-      };
-    }
-
-    // Variável global para o canal
-    var myWebChannel = null;
+  <script>
     let state = {};
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -250,14 +215,6 @@
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
-      const port = urlParams.get('port') || ''; 
-
-      // Conecta o canal usando a porta fornecida pela URL (vinda do Protheus)
-      if (port) {
-          myWebChannel = new TWebChannel(port, function() {
-              console.log("Canal conectado ao Smartclient local.");
-          });
-      }
 
       if (cod || desc) {
         document.getElementById("txtProd").innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
@@ -318,11 +275,17 @@
         // Tenta fechar nativamente
         window.close();
         
-        // Manda comando para o Protheus via canal
-        if (myWebChannel) {
-            myWebChannel.jsToAdvpl("FECHAR_TELA", "");
-        } else {
-            console.error("TWebChannel nao conectado.");
+        // NOVO: Usa a injeção nativa do TWebEngine do Protheus
+        try {
+            if (typeof twebchannel !== 'undefined' && twebchannel.jsToAdvpl) {
+                twebchannel.jsToAdvpl("FECHAR_TELA", "");
+            } else if (window.twebchannel && window.twebchannel.jsToAdvpl) {
+                window.twebchannel.jsToAdvpl("FECHAR_TELA", "");
+            } else {
+                console.warn("TWebEngine: A função jsToAdvpl não está disponível nativamente.");
+            }
+        } catch (e) {
+            console.error("Erro ao chamar jsToAdvpl:", e);
         }
       }, 2000);
     }
@@ -374,6 +337,7 @@
         showToastAndClose("Erro ao gravar. Verifique a conexão com o Protheus.", true);
       });
     }
-  </script>
+</script>
+
 </body>
 </html>
