@@ -296,7 +296,8 @@
       const cSelecionados = aAtivos.join(',');
 
       const urlParams = new URLSearchParams(window.location.search);
-      const cod = urlParams.get('cod') || '';
+      const cod  = urlParams.get('cod') || '';
+      const auth = urlParams.get('auth') || ''; // Recolhe a credencial injetada pelo AdvPL
 
       const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
@@ -305,7 +306,7 @@
         headers: {
           "Content-Type": "application/json",
           "tenantId": "01,0101",
-          "Authorization": "Basic cm9kcmlnby5hbWFyYWw6UmFxdWVsRWR1YXJkYTIwMTBA" 
+          "Authorization": auth // Utiliza a credencial dinâmica recebida em segurança
         },
         body: JSON.stringify({ campos: cSelecionados })
       })
@@ -318,14 +319,14 @@
       .then(data => {
         btn.innerText = "Gravado com sucesso!";
         btn.style.background = "#059669";
-        showToastAndClose("Perigos GHS gravados com sucesso!");
+        alert("Perigos GHS gravados no Protheus com sucesso! Pode fechar a janela.");
       })
       .catch(error => {
         console.error("Erro ao gravar:", error);
         btn.innerText = "Erro na gravação!";
         btn.style.background = "#dc2626";
         btn.disabled = false;
-        showToastAndClose("Erro ao gravar. Verifique a conexão com o Protheus.", true);
+        alert("Ocorreu um erro ao comunicar com o Protheus. Verifique o console.");
       });
     }
 </script> 
