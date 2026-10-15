@@ -208,6 +208,9 @@
   <div id="custom-toast" class="custom-toast"></div>
 
 <script>
+    // 1. Variável global lida pelo TTimer do AdvPL para forçar o fechamento
+    window.ghs_fechar = "NAO";
+    
     let state = {};
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -272,14 +275,18 @@
       setTimeout(() => toast.style.opacity = '1', 10); 
 
       setTimeout(() => {
+        // Tenta fechar via HTML (pode falhar no WebApp, mas tentamos na mesma)
         try {
-            // Hack universal para forçar o fechamento da janela (bypass da segurança do Chromium)
             window.open('', '_self', '');
             window.close();
-        } catch (e) {
-            console.error("Falha ao forçar o fecho:", e);
+        } catch(e) {}
+        
+        // 2. A MAGIA ACONTECE AQUI: Altera a variável global. 
+        // No próximo segundo, o TTimer do AdvPL vai ler "SIM" e fará o oDlg:End() automático.
+        if (!isError) {
+            window.ghs_fechar = "SIM";
         }
-      }, 2000);
+      }, 2000); // Aguarda 2 segundos com o aviso verde antes de dar a ordem de fecho
     }
 
     function fecharJanela() {
