@@ -313,7 +313,7 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
-    // MODIFICAÇÃO 3: Função para mostrar Toast e Fechar a Janela
+   // MODIFICAÇÃO 3: Função para mostrar Toast e Fechar a Janela (Ajustada para o Protheus)
     function showToastAndClose(message, isError = false) {
       const toast = document.getElementById('custom-toast');
       toast.innerText = message;
@@ -327,11 +327,23 @@
       toast.style.display = 'block';
       setTimeout(() => toast.style.opacity = '1', 10); // Animação suave
 
-      // Aguarda 2 segundos e fecha a janela
+      // Aguarda 2 segundos e manda o comando para o AdvPL fechar a janela
       setTimeout(() => {
+        // Tenta o comando nativo primeiro
         window.close();
+        
+        // Se a classe TWebChannel estiver instanciada globalmente (como 'tWebChannel')
+        // Envia uma mensagem para o AdvPL interceptar e fechar a tela.
+        if (typeof tWebChannel !== 'undefined' && tWebChannel.jsToAdvpl) {
+           tWebChannel.jsToAdvpl("FECHAR_TELA", "");
+        } else {
+            // Instancia um canal temporário apenas para mandar a mensagem se necessário
+            const tempChannel = new TWebChannel(window.location.port || '8080');
+            tempChannel.jsToAdvpl("FECHAR_TELA", "");
+        }
       }, 2000);
     }
+    
 
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
