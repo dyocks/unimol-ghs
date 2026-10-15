@@ -208,9 +208,6 @@
   <div id="custom-toast" class="custom-toast"></div>
 
 <script>
-    // 1. Variável global lida pelo TTimer do AdvPL para forçar o fechamento
-    window.ghs_fechar = "NAO";
-    
     let state = {};
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -275,18 +272,15 @@
       setTimeout(() => toast.style.opacity = '1', 10); 
 
       setTimeout(() => {
-        // Tenta fechar via HTML (pode falhar no WebApp, mas tentamos na mesma)
-        try {
-            window.open('', '_self', '');
-            window.close();
-        } catch(e) {}
-        
-        // 2. A MAGIA ACONTECE AQUI: Altera a variável global. 
-        // No próximo segundo, o TTimer do AdvPL vai ler "SIM" e fará o oDlg:End() automático.
+        toast.style.opacity = '0';
+        setTimeout(() => toast.style.display = 'none', 300);
+
         if (!isError) {
-            window.ghs_fechar = "SIM";
+            const btn = document.getElementById("btnSalvar");
+            btn.innerText = "Gravado! Pode fechar no X da janela";
+            btn.style.background = "#059669"; 
         }
-      }, 2000); // Aguarda 2 segundos com o aviso verde antes de dar a ordem de fecho
+      }, 2500);
     }
 
     function fecharJanela() {
