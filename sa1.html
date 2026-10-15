@@ -60,10 +60,13 @@
     
     .card-ghs.selected { border-color: #dc2626; background: #fff5f5; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
     
-    .img-container { width: 62px; height: 62px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
+    /* MODIFICAÇÃO 1: Imagem maior, ocupando mais espaço do quadro */
+    .img-container { width: 85%; height: 95px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
     .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-    .card-ghs .code { font-size: 0.65rem; font-weight: 700; color: #64748b; margin-top: 2px; }
+    /* MODIFICAÇÃO 2: Ocultar o nome do campo da SB1 */
+    .card-ghs .code { display: none; }
+    
     .card-ghs .title { font-size: 0.80rem; font-weight: 700; color: #0f172a; margin: 1px 0; line-height: 1.1; }
     .card-ghs .desc { font-size: 0.65rem; color: #64748b; line-height: 1.15; }
 
@@ -83,6 +86,29 @@
     .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
+
+    /* MODIFICAÇÃO 3: CSS do Toast Centralizado */
+    .custom-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #059669; /* Verde sucesso */
+      color: white;
+      padding: 20px 40px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      z-index: 9999;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .custom-toast.error {
+      background-color: #dc2626; /* Vermelho erro */
+    }
   </style>
 </head>
 <body>
@@ -184,6 +210,9 @@
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
+  <!-- MODIFICAÇÃO 3: Div do Toast -->
+  <div id="custom-toast" class="custom-toast"></div>
+
 <script>
     // 1. Implementação nativa embutida do TWebChannel (dispensa arquivo .js externo)
     function TWebChannel(port, onConnected) {
@@ -284,6 +313,26 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
+    // MODIFICAÇÃO 3: Função para mostrar Toast e Fechar a Janela
+    function showToastAndClose(message, isError = false) {
+      const toast = document.getElementById('custom-toast');
+      toast.innerText = message;
+      
+      if (isError) {
+        toast.classList.add('error');
+      } else {
+        toast.classList.remove('error');
+      }
+      
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.opacity = '1', 10); // Animação suave
+
+      // Aguarda 2 segundos e fecha a janela
+      setTimeout(() => {
+        window.close();
+      }, 2000);
+    }
+
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
       btn.innerText = "A gravar no Protheus...";
@@ -323,14 +372,16 @@
       .then(data => {
         btn.innerText = "Gravado com sucesso!";
         btn.style.background = "#059669";
-        alert("Perigos GHS gravados no Protheus com sucesso! Pode fechar a janela.");
+        // MODIFICAÇÃO 3: Chama o Toast de sucesso
+        showToastAndClose("Perigos GHS gravados com sucesso!");
       })
       .catch(error => {
         console.error("Erro ao gravar:", error);
         btn.innerText = "Erro na gravação!";
         btn.style.background = "#dc2626";
         btn.disabled = false;
-        alert("Ocorreu um erro ao comunicar com o Protheus. Verifique o console.");
+        // MODIFICAÇÃO 3: Chama o Toast de erro
+        showToastAndClose("Erro ao gravar. Verifique a conexão com o Protheus.", true);
       });
     }
     
