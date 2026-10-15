@@ -271,16 +271,14 @@
       toast.style.display = 'block';
       setTimeout(() => toast.style.opacity = '1', 10); 
 
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.style.display = 'none', 300);
-
-        if (!isError) {
-            const btn = document.getElementById("btnSalvar");
-            btn.innerText = "Gravado! Pode fechar no X da janela";
-            btn.style.background = "#059669"; 
-        }
-      }, 2500);
+      // Se for sucesso, aguarda 1.5 segundos e envia o sinal para fechar a janela automaticamente
+      if (!isError) {
+        setTimeout(() => {
+            if (window.parent) {
+                window.parent.postMessage({ type: "jsToAdvpl", codeType: "FECHAR_TELA", content: "" }, "*");
+            }
+        }, 1500);
+      }
     }
 
     function fecharJanela() {
