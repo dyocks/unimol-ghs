@@ -159,13 +159,13 @@
       <div class="desc">Lesões cutâneas e oculares</div>
     </div>
 
-    <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
-      <div class="code">B1_XSTOXA</div>
-      <div class="title">Toxicidade Aguda</div>
-      <div class="desc">Fatal/tóxico por ingestão</div>
-    </div>
+      <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
+        <div class="check-box">&#10003;</div>
+        <div class="img-container"><img src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
+        <div class="code">B1_XSTOXA</div>
+        <div class="title">Toxicidade Aguda</div>
+        <div class="desc">Fatal/tóxico por ingestão</div>
+      </div>
 
     <div class="card-ghs" id="card_B1_XSIRRP" onclick="toggleGHS('B1_XSIRRP')">
       <div class="check-box">&#10003;</div>
@@ -291,7 +291,11 @@
       const cod  = urlParams.get('cod') || '';
       const auth = urlParams.get('auth') || '';
 
-      const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
+      //DEV
+      //const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
+
+      //PROD
+      const endpoint = "https://unimolbrasil207532.protheus.cloudtotvs.com.br:10257/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
       fetch(endpoint, {
         method: "POST",
