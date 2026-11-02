@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Classificação GHS e Mosaico</title>
+    <title>Classificação de Perigos GHS</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
         .container { max-width: 650px; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: auto; }
@@ -37,7 +37,7 @@
         <label><input type="checkbox" value="B1_XSMAQU"> Perigo aquático (B1_XSMAQU)</label>
     </div>
 
-    <!-- Canvas oculto fixado exatamente em 250px por 75px -->
+    <!-- Canvas fixado exatamente em 250px por 75px para gerar a imagem otimizada -->
     <canvas id="canvasMosaico" width="250" height="75" style="display:none;"></canvas>
 
     <button id="btnSalvar" onclick="gravarDados()">Gravar Classificação e Mosaico</button>
@@ -45,7 +45,6 @@
 </div>
 
 <script>
-    // Recupera parâmetros da URL (ex: sal.html?cod=101.12...&filial=01)
     const urlParams = new URLSearchParams(window.location.search);
     const codProd = urlParams.get('cod') || "000001";
     const filial = urlParams.get('filial') || "01";
@@ -62,32 +61,30 @@
 
     function gravarDados() {
         const btn = document.getElementById('btnSalvar');
-        btn.innerText = "A processar e gravar...";
+        btn.innerText = "A gravar...";
         btn.disabled = true;
 
-        // 1. Coleta os campos marcados
         const checkboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]:checked');
         const camposGHS = [];
         checkboxes.forEach(cb => camposGHS.push(cb.value));
 
-        // 2. Desenha o mosaico no canvas dimensionado estritamente para 250x75 px
+        // Configuração rigorosa do Canvas para 250x75 px
         const canvas = document.getElementById('canvasMosaico');
+        canvas.width = 250;
+        canvas.height = 75;
         const ctx = canvas.getContext('2d');
         
-        // Fundo branco limpo
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, 250, 75);
 
-        // Texto descritivo no mosaico
         ctx.fillStyle = "#333333";
         ctx.font = "bold 11px Arial";
         ctx.fillText(`GHS: ${codProd}`, 10, 18);
         
-        // Desenha indicadores visuais dos perigos selecionados
         let xPos = 10;
         let yPos = 28;
-        camposGHS.forEach((campo, index) => {
-            ctx.fillStyle = "#d9534f"; // Vermelho GHS
+        camposGHS.forEach((campo) => {
+            ctx.fillStyle = "#d9534f";
             ctx.fillRect(xPos, yPos, 14, 14);
             xPos += 18;
             if (xPos > 230) {
@@ -96,10 +93,9 @@
             }
         });
 
-        // 3. Converte para Base64 leve otimizado em JPEG qualidade 0.8 (tamanho final minúsculo)
+        // Converte para Base64 leve (JPEG com qualidade 0.8)
         const base64Reduzido = canvas.toDataURL('image/jpeg', 0.8);
 
-        // 4. Monta o payload JSON
         const payload = {
             campos: camposGHS,
             base64: base64Reduzido
@@ -107,7 +103,6 @@
 
         const endpoint = `https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/${filial}/${codProd}`;
 
-        // 5. Envia requisição POST para o Protheus
         fetch(endpoint, {
             method: "POST",
             headers: {
