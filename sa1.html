@@ -1,356 +1,142 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mosaico GHS - TOTVS Protheus</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    
-    html, body { 
-      height: 100vh; 
-      overflow: hidden; 
-      background: #f8fafc; 
-      color: #1e293b; 
-      padding: 10px 14px; 
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    
-    .header { 
-      background: #ffffff; 
-      border-radius: 6px; 
-      padding: 8px 14px; 
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      flex-shrink: 0;
-    }
-    .header h2 { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
-    .header .prod-info { font-size: 0.82rem; color: #64748b; }
-    .header .badge { background: #2563eb; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
-
-    .grid-ghs { 
-      display: grid; 
-      grid-template-columns: repeat(5, 1fr); 
-      grid-template-rows: repeat(2, 1fr);
-      gap: 10px; 
-      flex-grow: 1;
-      margin: 10px 0;
-    }
-    
-    .card-ghs { 
-      background: #ffffff; 
-      border: 2px solid #e2e8f0; 
-      border-radius: 6px; 
-      padding: 6px 8px; 
-      cursor: pointer; 
-      text-align: center; 
-      position: relative; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease; 
-    }
-    .card-ghs:hover { border-color: #94a3b8; transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.06); }
-    
-    .card-ghs.selected { border-color: #dc2626; background: #fff5f5; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
-    
-    .img-container { width: 85%; height: 95px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
-    .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-    .card-ghs .code { display: none; }
-    
-    .card-ghs .title { font-size: 0.80rem; font-weight: 700; color: #0f172a; margin: 1px 0; line-height: 1.1; }
-    .card-ghs .desc { font-size: 0.65rem; color: #64748b; line-height: 1.15; }
-
-    .check-box { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border: 2px solid #cbd5e1; border-radius: 3px; display: none; align-items: center; justify-content: center; background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; }
-    .card-ghs.selected .check-box { display: flex; }
-
-    .footer { 
-      background: #ffffff; 
-      border-radius: 6px; 
-      padding: 8px 14px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
-      flex-shrink: 0;
-    }
-    .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
-    .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
-    .btn:hover { background: #1d4ed8; }
-
-    .custom-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #059669; 
-      color: white;
-      padding: 20px 40px;
-      border-radius: 8px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      z-index: 9999;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-    .custom-toast.error {
-      background-color: #dc2626; 
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Classificação GHS e Mosaico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+        .container { max-width: 650px; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: auto; }
+        h2 { color: #333; margin-top: 0; }
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #444; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; transition: background 0.3s; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        #toast { margin-top: 15px; padding: 12px; border-radius: 4px; display: none; text-align: center; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info-box { background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; color: #333; }
+    </style>
 </head>
 <body>
 
-  <div class="header">
-    <div>
-      <h2>Classificação de Perigos GHS</h2>
-      <div class="prod-info" id="txtProd">Carregando produto...</div>
-    </div>
-    <span class="badge">ABNT NBR 14725</span>
-  </div>
+<div class="container">
+    <h2>Classificação GHS do Produto</h2>
+    <div id="info-prod" class="info-box">A carregar dados do produto...</div>
 
-  <div class="grid-ghs">
-    <div class="card-ghs" id="card_B1_XPEXPL" onclick="toggleGHS('B1_XPEXPL')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPEXPL.png" alt="Explosivo" /></div>
-      <div class="code">B1_XPEXPL</div>
-      <div class="title">Explosivo</div>
-      <div class="desc">Explosivos e peróxidos</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XPINFL" onclick="toggleGHS('B1_XPINFL')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPINFL.png" alt="Inflamável" /></div>
-      <div class="code">B1_XPINFL</div>
-      <div class="title">Inflamável</div>
-      <div class="desc">Gases, líquidos e sólidos</div>
+    <div class="checkbox-grid">
+        <label><input type="checkbox" value="B1_XPEXPL"> Explosivo (B1_XPEXPL)</label>
+        <label><input type="checkbox" value="B1_XPINFL"> Inflamável (B1_XPINFL)</label>
+        <label><input type="checkbox" value="B1_XPOXID"> Oxidante (B1_XPOXID)</label>
+        <label><input type="checkbox" value="B1_XPGASP"> Gás sob pressão (B1_XPGASP)</label>
+        <label><input type="checkbox" value="B1_XPCORM"> Corrosivo p/ metais (B1_XPCORM)</label>
+        <label><input type="checkbox" value="B1_XSCORP"> Corrosivo pele (B1_XSCORP)</label>
+        <label><input type="checkbox" value="B1_XSTOXA"> Toxicidade aguda (B1_XSTOXA)</label>
+        <label><input type="checkbox" value="B1_XSIRRP"> Irritação ocular (B1_XSIRRP)</label>
+        <label><input type="checkbox" value="B1_XSPERA"> Perigo aspiração (B1_XSPERA)</label>
+        <label><input type="checkbox" value="B1_XSMAQU"> Perigo aquático (B1_XSMAQU)</label>
     </div>
 
-    <div class="card-ghs" id="card_B1_XPOXID" onclick="toggleGHS('B1_XPOXID')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPOXID.png" alt="Oxidante" /></div>
-      <div class="code">B1_XPOXID</div>
-      <div class="title">Oxidante</div>
-      <div class="desc">Gases e líquidos comburentes</div>
-    </div>
+    <!-- Canvas oculto fixado exatamente em 250px por 75px -->
+    <canvas id="canvasMosaico" width="250" height="75" style="display:none;"></canvas>
 
-    <div class="card-ghs" id="card_B1_XPGASP" onclick="toggleGHS('B1_XPGASP')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPGASP.png" alt="Gás sob Pressão" /></div>
-      <div class="code">B1_XPGASP</div>
-      <div class="title">Gás Pressurizado</div>
-      <div class="desc">Comprimidos e liquefeitos</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XSCORP" onclick="toggleGHS('B1_XSCORP')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSCORP.png" alt="Corrosão" /></div>
-      <div class="code">B1_XSCORP</div>
-      <div class="title">Corrosão Dérmica/Olhos</div>
-      <div class="desc">Lesões cutâneas e oculares</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
-      <div class="code">B1_XSTOXA</div>
-      <div class="title">Toxicidade Aguda</div>
-      <div class="desc">Fatal/tóxico por ingestão</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XSIRRP" onclick="toggleGHS('B1_XSIRRP')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSIRRP.png" alt="Irritante" /></div>
-      <div class="code">B1_XSIRRP</div>
-      <div class="title">Nocivo / Irritante</div>
-      <div class="desc">Irritação dérmica e ocular</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XSPERA" onclick="toggleGHS('B1_XSPERA')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSPERA.png" alt="Perigo à Saúde" /></div>
-      <div class="code">B1_XSPERA</div>
-      <div class="title">Perigo à Saúde</div>
-      <div class="desc">Carcinogênico e aspiração</div>
-    </div>
-
-    <div class="card-ghs" id="card_B1_XSMAQU" onclick="toggleGHS('B1_XSMAQU')">
-      <div class="check-box">&#10003;</div>
-      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSMAQU.png" alt="Meio Ambiente" /></div>
-      <div class="code">B1_XSMAQU</div>
-      <div class="title">Meio Ambiente</div>
-      <div class="desc">Toxicidade ambiente aquático</div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
-    <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
-  </div>
-
-  <div id="custom-toast" class="custom-toast"></div>
+    <button id="btnSalvar" onclick="gravarDados()">Gravar Classificação e Mosaico</button>
+    <div id="toast"></div>
+</div>
 
 <script>
-    let state = {};
+    // Recupera parâmetros da URL (ex: sal.html?cod=101.12...&filial=01)
+    const urlParams = new URLSearchParams(window.location.search);
+    const codProd = urlParams.get('cod') || "000001";
+    const filial = urlParams.get('filial') || "01";
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const cod  = urlParams.get('cod') || '';
-      const desc = urlParams.get('desc') || '';
-      const sel  = urlParams.get('sel') || '';
+    document.getElementById('info-prod').innerText = `Produto: ${codProd} | Filial: ${filial}`;
 
-      const elProd = document.getElementById("txtProd");
-      if (elProd) {
-        elProd.innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
-      }
-
-      state = {
-        "B1_XPEXPL": false, "B1_XPINFL": false, "B1_XPOXID": false, "B1_XPGASP": false, "B1_XPCORM": false,
-        "B1_XSCORP": false, "B1_XSTOXA": false, "B1_XSIRRP": false, "B1_XSPERA": false, "B1_XSMAQU": false
-      };
-
-      if (sel) {
-        const selDecoded = decodeURIComponent(sel);
-        const aSel = selDecoded.split(',');
-        aSel.forEach(function(field) {
-          const cFld = field.trim();
-          if (cFld && state.hasOwnProperty(cFld)) {
-            state[cFld] = true;
-          }
-        });
-      }
-      renderState();
-    });
-
-    function toggleGHS(field) {
-      state[field] = !state[field];
-      renderState();
-    }
-
-    function renderState() {
-      let count = 0;
-      for (let field in state) {
-        let card = document.getElementById("card_" + field);
-        if (card) {
-          if (state[field]) {
-            card.classList.add("selected");
-            count++;
-          } else {
-            card.classList.remove("selected");
-          }
-        }
-      }
-      const elCount = document.getElementById("txtCount");
-      if (elCount) {
-        elCount.innerText = "Perigos selecionados: " + count + " de 10";
-      }
-    }
-
-    function showToastAndClose(message, isError = false) {
-      const toast = document.getElementById('custom-toast');
-      if (toast) {
-        toast.innerText = message;
-        toast.className = 'custom-toast' + (isError ? ' error' : '');
+    function mostrarMensagem(texto, ehErro) {
+        const toast = document.getElementById('toast');
+        toast.innerText = texto;
+        toast.className = ehErro ? 'error' : 'success';
         toast.style.display = 'block';
-        setTimeout(() => toast.style.opacity = '1', 10); 
-      }
-
-      if (!isError) {
-        setTimeout(() => {
-            window.close();
-        }, 1200);
-      }
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
     }
 
-    function gerarMosaicoGHS() {
-        try {
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            var imgSize = 64; 
-            var cols = 5; 
-            var images = document.querySelectorAll('.card-ghs.selected img'); 
-            
-            if (images.length === 0) return "";
-
-            canvas.width = cols * imgSize;
-            canvas.height = Math.ceil(images.length / cols) * imgSize;
-            
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            images.forEach(function(img, index) {
-                var x = (index % cols) * imgSize;
-                var y = Math.floor(index / cols) * imgSize;
-                if (img.complete && img.naturalWidth > 0) {
-                    ctx.drawImage(img, x, y, imgSize, imgSize);
-                }
-            });
-
-            var base64Full = canvas.toDataURL('image/jpeg', 0.85);
-            return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-        } catch (err) {
-            console.error("Erro ao gerar mosaico:", err);
-            return "";
-        }
-    }
-
-    function fecharJanela() {
-      const btn = document.getElementById("btnSalvar");
-      if (btn) {
-        btn.innerText = "A gravar no Protheus...";
-        btn.style.background = "#059669";
+    function gravarDados() {
+        const btn = document.getElementById('btnSalvar');
+        btn.innerText = "A processar e gravar...";
         btn.disabled = true;
-      }
 
-      const aAtivos = [];
-      for (let field in state) {
-        if (state[field]) { aAtivos.push(field); }
-      }
-      const cSelecionados = aAtivos.join(',');
-      const cBase64Mosaico = gerarMosaicoGHS();
+        // 1. Coleta os campos marcados
+        const checkboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]:checked');
+        const camposGHS = [];
+        checkboxes.forEach(cb => camposGHS.push(cb.value));
 
-      const payloadObj = { campos: cSelecionados, base64: cBase64Mosaico };
-      const payloadStr = JSON.stringify(payloadObj);
+        // 2. Desenha o mosaico no canvas dimensionado estritamente para 250x75 px
+        const canvas = document.getElementById('canvasMosaico');
+        const ctx = canvas.getContext('2d');
+        
+        // Fundo branco limpo
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, 250, 75);
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const cod  = urlParams.get('cod') || '';
-      const auth = urlParams.get('auth') || '';
-      const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
+        // Texto descritivo no mosaico
+        ctx.fillStyle = "#333333";
+        ctx.font = "bold 11px Arial";
+        ctx.fillText(`GHS: ${codProd}`, 10, 18);
+        
+        // Desenha indicadores visuais dos perigos selecionados
+        let xPos = 10;
+        let yPos = 28;
+        camposGHS.forEach((campo, index) => {
+            ctx.fillStyle = "#d9534f"; // Vermelho GHS
+            ctx.fillRect(xPos, yPos, 14, 14);
+            xPos += 18;
+            if (xPos > 230) {
+                xPos = 10;
+                yPos += 18;
+            }
+        });
 
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "tenantId": "01,0101", "Authorization": auth },
-        body: payloadStr
-      })
-      .then(response => {
-        if (!response.ok) { throw new Error('Falha no REST: ' + response.status); }
-        return response.json();
-      })
-      .then(data => {
-        if (btn) {
-          btn.innerText = "✓ Gravado com Sucesso!";
-        }
-        showToastAndClose("Gravado com sucesso!", false);
-      })
-      .catch(error => {
-        console.error("Erro ao gravar:", error);
-        if (btn) {
-          btn.innerText = "Erro na gravação!";
-          btn.style.background = "#dc2626";
-          btn.disabled = false;
-        }
-        showToastAndClose("Erro ao comunicar com o Protheus.", true);
-      });
+        // 3. Converte para Base64 leve otimizado em JPEG qualidade 0.8 (tamanho final minúsculo)
+        const base64Reduzido = canvas.toDataURL('image/jpeg', 0.8);
+
+        // 4. Monta o payload JSON
+        const payload = {
+            campos: camposGHS,
+            base64: base64Reduzido
+        };
+
+        const endpoint = `https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/${filial}/${codProd}`;
+
+        // 5. Envia requisição POST para o Protheus
+        fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "tenantId": "01,0101",
+                "Authorization": "Basic " // Insira suas credenciais se necessário
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Falha no REST: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Sucesso:", data);
+            mostrarMensagem("Gravado com sucesso!", false);
+            btn.innerText = "Gravar Classificação e Mosaico";
+            btn.disabled = false;
+        })
+        .catch(error => {
+            console.error("Erro ao gravar:", error);
+            mostrarMensagem("Erro ao comunicar com o Protheus.", true);
+            btn.innerText = "Gravar Classificação e Mosaico";
+            btn.disabled = false;
+        });
     }
-</script> 
+</script>
+
 </body>
 </html>
