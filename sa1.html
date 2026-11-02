@@ -366,7 +366,7 @@
         if (images.length === 0) return "";
 
         var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d', { alpha: false }); // Otimização de performance (sem canal alpha desnecessário)
+        var ctx = canvas.getContext('2d', { alpha: false });
         
         // Dimensões exatas: 200px de largura por 75px de altura
         canvas.width = 200;
@@ -400,8 +400,8 @@
         atualizarProgresso(75, "Compactando e extraindo Base64 raw...");
         await new Promise(r => setTimeout(r, 5));
 
-        // Qualidade otimizada para diminuir o peso e evitar travamento no campo MEMO do Protheus
-        var base64Full = canvas.toDataURL('image/jpeg', 0.75);
+        // Qualidade 0.60 mantém nitidez em 200x75px e garante string menor que 3500 chars para o SQL
+        var base64Full = canvas.toDataURL('image/jpeg', 0.60);
         
         atualizarProgresso(100, "Concluído!");
         await new Promise(r => setTimeout(r, 5));
@@ -497,8 +497,11 @@
         headers: { "Content-Type": "application/json", "tenantId": "01,0101", "Authorization": auth },
         body: payloadStr
       })
-      .then(response => {
-        if (!response.ok) { throw new Error('Falha no REST: ' + response.status); }
+      .then(async response => {
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error('Falha no REST (' + response.status + '): ' + errText);
+        }
         return response.json();
       })
       .then(data => {
@@ -509,13 +512,13 @@
         showToastAndClose("Gravado com sucesso!", false);
       })
       .catch(error => {
-        console.error("Erro ao gravar:", error);
+        console.error("Erro detalhado ao gravar:", error);
         if (btn) {
           btn.innerText = "Erro na gravação!";
           btn.style.background = "#dc2626";
           btn.disabled = false;
         }
-        showToastAndClose("Erro ao comunicar com o Protheus.", true);
+        showToastAndClose("Erro ao gravar. Veja o Console (F12).", true);
       });
     }
 </script> 
