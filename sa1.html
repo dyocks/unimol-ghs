@@ -85,6 +85,23 @@
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
 
+    /* Barra de Progresso customizada */
+    .progress-container {
+      width: 100%;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+      margin-top: 6px;
+      height: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #059669;
+      transition: width 0.1s linear;
+    }
+
     .custom-toast {
       position: fixed;
       top: 50%;
@@ -193,7 +210,12 @@
   </div>
 
   <div class="footer">
-    <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
+    <div style="flex-grow: 1; margin-right: 20px;">
+      <div class="status-count" id="txtCount">Perigos selecionados: 0 de 10</div>
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
     <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
   </div>
 
@@ -271,42 +293,66 @@
       }
     }
 
-    function gerarMosaicoGHS() {
-        try {
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            var imgSize = 64; 
-            var cols = 5; 
-            var images = document.querySelectorAll('.card-ghs.selected img'); 
-            
-            if (images.length === 0) return "";
-
-            canvas.width = cols * imgSize;
-            canvas.height = Math.ceil(images.length / cols) * imgSize;
-            
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            images.forEach(function(img, index) {
-                var x = (index % cols) * imgSize;
-                var y = Math.floor(index / cols) * imgSize;
-                if (img.complete && img.naturalWidth > 0) {
-                    ctx.drawImage(img, x, y, imgSize, imgSize);
-                }
-            });
-
-            var base64Full = canvas.toDataURL('image/jpeg', 0.85);
-            return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
-        } catch (err) {
-            console.error("Erro ao gerar mosaico:", err);
-            return "";
-        }
+    function atualizarProgresso(percent, textoStatus) {
+      const container = document.getElementById('progressContainer');
+      const bar = document.getElementById('progressBar');
+      const count = document.getElementById('txtCount');
+      
+      if (container) container.style.display = 'block';
+      if (bar) bar.style.width = percent + '%';
+      if (count && textoStatus) count.innerText = textoStatus;
     }
 
-    function fecharJanela() {
+    async function gerarMosaicoGHSAsync() {
+      try {
+        var images = document.querySelectorAll('.card-ghs.selected img');
+        if (images.length === 0) return "";
+
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        
+        // Dimensões exatas solicitadas: 200px de largura por 75px de altura
+        canvas.width = 200;
+        canvas.height = 75;
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Grid 5x2 (5 colunas, 2 linhas)
+        var cols = 5;
+        var cellWidth = canvas.width / cols;   // 200 / 5 = 40px
+        var cellHeight = canvas.height / 2;    // 75 / 2 = 37.5px
+
+        atualizarProgresso(10, "Iniciando processamento das imagens...");
+
+        for (let index = 0; index < images.length; index++) {
+          let img = images[index];
+          let x = (index % cols) * cellWidth;
+          let y = Math.floor(index / cols) * cellHeight;
+
+          if (img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, x, y, cellWidth, cellHeight);
+          }
+
+          let prog = Math.round(20 + ((index + 1) / images.length) * 50);
+          atualizarProgresso(prog, `Gerando mosaico (${index + 1}/${images.length}) - ${prog}%`);
+          await new Promise(resolve => setTimeout(resolve, 30));
+        }
+
+        atualizarProgresso(75, "Compactando imagem em Base64...");
+        var base64Full = canvas.toDataURL('image/jpeg', 0.85);
+        
+        return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+      } catch (err) {
+        console.error("Erro ao gerar mosaico:", err);
+        return "";
+      }
+    }
+
+    async function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
       if (btn) {
-        btn.innerText = "A gravar no Protheus...";
+        btn.innerText = "Processando...";
         btn.style.background = "#059669";
         btn.disabled = true;
       }
@@ -316,7 +362,8 @@
         if (state[field]) { aAtivos.push(field); }
       }
       const cSelecionados = aAtivos.join(',');
-      const cBase64Mosaico = gerarMosaicoGHS();
+      
+      const cBase64Mosaico = await gerarMosaicoGHSAsync();
 
       const payloadObj = { campos: cSelecionados, base64: cBase64Mosaico };
       const payloadStr = JSON.stringify(payloadObj);
@@ -325,6 +372,8 @@
       const cod  = urlParams.get('cod') || '';
       const auth = urlParams.get('auth') || '';
       const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
+
+      atualizarProgresso(90, "Transmitindo para o Protheus...");
 
       fetch(endpoint, {
         method: "POST",
@@ -336,6 +385,7 @@
         return response.json();
       })
       .then(data => {
+        atualizarProgresso(100, "Concluído com Sucesso!");
         if (btn) {
           btn.innerText = "✓ Gravado com Sucesso!";
         }
