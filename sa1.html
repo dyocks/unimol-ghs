@@ -6,106 +6,28 @@
   <title>Mosaico GHS - TOTVS Protheus</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    
-    html, body { 
-      height: 100vh; 
-      overflow: hidden; 
-      background: #f8fafc; 
-      color: #1e293b; 
-      padding: 10px 14px; 
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    
-    .header { 
-      background: #ffffff; 
-      border-radius: 6px; 
-      padding: 8px 14px; 
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      flex-shrink: 0;
-    }
+    html, body { height: 100vh; overflow: hidden; background: #f8fafc; color: #1e293b; padding: 10px 14px; user-select: none; display: flex; flex-direction: column; justify-content: space-between; }
+    .header { background: #ffffff; border-radius: 6px; padding: 8px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .header h2 { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
     .header .prod-info { font-size: 0.82rem; color: #64748b; }
     .header .badge { background: #2563eb; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
-
-    .grid-ghs { 
-      display: grid; 
-      grid-template-columns: repeat(5, 1fr); 
-      grid-template-rows: repeat(2, 1fr);
-      gap: 10px; 
-      flex-grow: 1;
-      margin: 10px 0;
-    }
-    
-    .card-ghs { 
-      background: #ffffff; 
-      border: 2px solid #e2e8f0; 
-      border-radius: 6px; 
-      padding: 6px 8px; 
-      cursor: pointer; 
-      text-align: center; 
-      position: relative; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease; 
-    }
+    .grid-ghs { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex-grow: 1; margin: 10px 0; }
+    .card-ghs { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; cursor: pointer; text-align: center; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.15s ease; }
     .card-ghs:hover { border-color: #94a3b8; transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.06); }
-    
     .card-ghs.selected { border-color: #dc2626; background: #fff5f5; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
-    
     .img-container { width: 85%; height: 95px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
     .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
     .card-ghs .code { display: none; }
-    
     .card-ghs .title { font-size: 0.80rem; font-weight: 700; color: #0f172a; margin: 1px 0; line-height: 1.1; }
     .card-ghs .desc { font-size: 0.65rem; color: #64748b; line-height: 1.15; }
-
     .check-box { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border: 2px solid #cbd5e1; border-radius: 3px; display: none; align-items: center; justify-content: center; background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; }
     .card-ghs.selected .check-box { display: flex; }
-
-    .footer { 
-      background: #ffffff; 
-      border-radius: 6px; 
-      padding: 8px 14px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06); 
-      flex-shrink: 0;
-    }
+    .footer { background: #ffffff; border-radius: 6px; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-shrink: 0; }
     .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
-
-    .custom-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #059669; 
-      color: white;
-      padding: 20px 40px;
-      border-radius: 8px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      z-index: 9999;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-    .custom-toast.error {
-      background-color: #dc2626; 
-    }
+    .custom-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #059669; color: white; padding: 20px 40px; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); font-size: 18px; font-weight: bold; text-align: center; z-index: 9999; display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+    .custom-toast.error { background-color: #dc2626; }
   </style>
 </head>
 <body>
@@ -203,7 +125,6 @@
     let state = {};
     let wsSocket = null;
 
-    // Inicializa a ponte WebSocket com o TWebChannel do Protheus (protocolo QtWebChannel)
     function initAdvplBridge() {
       const urlParams = new URLSearchParams(window.location.search);
       const port = urlParams.get('port');
@@ -211,18 +132,15 @@
         try {
           wsSocket = new WebSocket("ws://127.0.0.1:" + port);
           wsSocket.onopen = function() {
-            // Inicializa handshake QtWebChannel
             wsSocket.send(JSON.stringify({ type: 3, id: 1 }));
           };
         } catch (e) {
-          console.warn("WebSocket local indisponível:", e);
+          console.warn("WebSocket indisponível:", e);
         }
       }
     }
 
-    // Envia os dados de volta para o AdvPL (TWebChannel)
     function enviarParaAdvpl(codeType, content) {
-      // 1. Dispara via protocolo QtWebChannel (usado pelo TWebChannel do Protheus)
       if (wsSocket && wsSocket.readyState === 1) {
         wsSocket.send(JSON.stringify({
           type: 6,
@@ -232,11 +150,6 @@
           id: Math.floor(Math.random() * 10000)
         }));
       }
-      // 2. Caso twebchannel global esteja injetado
-      if (typeof twebchannel !== "undefined" && twebchannel.jsToAdvpl) {
-        twebchannel.jsToAdvpl(codeType, content);
-      }
-      // 3. PostMessage para containers WebApp
       if (window.parent) {
         window.parent.postMessage({ type: "jsToAdvpl", codeType: codeType, content: content }, "*");
       }
@@ -244,7 +157,6 @@
 
     document.addEventListener("DOMContentLoaded", function() {
       initAdvplBridge();
-
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
@@ -263,9 +175,7 @@
         const aSel = sel.split(',');
         aSel.forEach(function(field) {
           const cFld = field.trim();
-          if (cFld) {
-            state[cFld] = true;
-          }
+          if (cFld) { state[cFld] = true; }
         });
       }
       renderState();
@@ -295,32 +205,23 @@
     function showToastAndClose(message, payloadStr, isError = false) {
       const toast = document.getElementById('custom-toast');
       toast.innerText = message;
-      
-      if (isError) {
-        toast.classList.add('error');
-      } else {
-        toast.classList.remove('error');
-      }
-      
+      toast.className = 'custom-toast' + (isError ? ' error' : '');
       toast.style.display = 'block';
       setTimeout(() => toast.style.opacity = '1', 10); 
 
       if (!isError) {
         setTimeout(() => {
             enviarParaAdvpl("SALVAR_GHS", payloadStr);
-        }, 700);
+        }, 800);
       }
     }
 
-    // Monta o mosaico (5 colunas) e retorna a string Base64 otimizada
     function gerarMosaicoGHS() {
         try {
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
-            
             var imgSize = 64; 
             var cols = 5; 
-            
             var images = document.querySelectorAll('.card-ghs.selected img'); 
             
             if (images.length === 0) return "";
@@ -328,7 +229,6 @@
             canvas.width = cols * imgSize;
             canvas.height = Math.ceil(images.length / cols) * imgSize;
             
-            // Preenche fundo branco para JPEG compacto
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -340,7 +240,6 @@
                 }
             });
 
-            // Exporta em JPEG qualidade 0.85 (gera Base64 enxuto < 4000 chars para o Oracle)
             var base64Full = canvas.toDataURL('image/jpeg', 0.85);
             return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
         } catch (err) {
@@ -357,56 +256,35 @@
 
       const aAtivos = [];
       for (let field in state) {
-        if (state[field]) {
-          aAtivos.push(field);
-        }
+        if (state[field]) { aAtivos.push(field); }
       }
       const cSelecionados = aAtivos.join(',');
-
-      // Gera o Base64 do mosaico
       const cBase64Mosaico = gerarMosaicoGHS();
 
-      const payloadObj = { 
-          campos: cSelecionados,
-          base64: cBase64Mosaico 
-      };
+      const payloadObj = { campos: cSelecionados, base64: cBase64Mosaico };
       const payloadStr = JSON.stringify(payloadObj);
 
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const auth = urlParams.get('auth') || '';
-
       const endpoint = "https://unimolbrasil207532.protheus.cloudtotvs.com.br:10257/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
       fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "tenantId": "01,0101",
-          "Authorization": auth
-        },
+        headers: { "Content-Type": "application/json", "tenantId": "01,0101", "Authorization": auth },
         body: payloadStr
       })
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Falha na resposta do servidor: ' + response.status);
-        }
+        if (!response.ok) { throw new Error('Falha no REST: ' + response.status); }
         return response.json();
       })
       .then(data => {
         btn.innerText = "✓ Gravado com Sucesso!";
-        btn.style.background = "#059669";
-        btn.style.color = "#ffffff";
-        
-        const txtCount = document.getElementById("txtCount");
-        txtCount.innerText = "Perigos GHS e Mosaico guardados na base de dados!";
-        txtCount.style.color = "#059669";
-        
         showToastAndClose("Gravado com sucesso!", payloadStr, false);
       })
       .catch(error => {
-        console.error("Erro no REST, enviando direto ao MVC:", error);
-        showToastAndClose("Gravado no modelo local!", payloadStr, false);
+        console.warn("Aviso REST:", error);
+        showToastAndClose("Gravado via TWebChannel!", payloadStr, false);
       });
     }
 </script> 
