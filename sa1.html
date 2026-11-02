@@ -208,8 +208,9 @@
       const desc = urlParams.get('desc') || '';
       const sel  = urlParams.get('sel') || '';
 
-      if (cod || desc) {
-        document.getElementById("txtProd").innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
+      const elProd = document.getElementById("txtProd");
+      if (elProd) {
+        elProd.innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
       }
 
       state = {
@@ -248,15 +249,20 @@
           }
         }
       }
-      document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
+      const elCount = document.getElementById("txtCount");
+      if (elCount) {
+        elCount.innerText = "Perigos selecionados: " + count + " de 10";
+      }
     }
 
     function showToastAndClose(message, isError = false) {
       const toast = document.getElementById('custom-toast');
-      toast.innerText = message;
-      toast.className = 'custom-toast' + (isError ? ' error' : '');
-      toast.style.display = 'block';
-      setTimeout(() => toast.style.opacity = '1', 10); 
+      if (toast) {
+        toast.innerText = message;
+        toast.className = 'custom-toast' + (isError ? ' error' : '');
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.opacity = '1', 10); 
+      }
 
       if (!isError) {
         setTimeout(() => {
@@ -299,9 +305,11 @@
 
     function fecharJanela() {
       const btn = document.getElementById("btnSalvar");
-      btn.innerText = "A gravar no Protheus...";
-      btn.style.background = "#059669";
-      btn.disabled = true;
+      if (btn) {
+        btn.innerText = "A gravar no Protheus...";
+        btn.style.background = "#059669";
+        btn.disabled = true;
+      }
 
       const aAtivos = [];
       for (let field in state) {
@@ -328,14 +336,18 @@
         return response.json();
       })
       .then(data => {
-        btn.innerText = "✓ Gravado com Sucesso!";
+        if (btn) {
+          btn.innerText = "✓ Gravado com Sucesso!";
+        }
         showToastAndClose("Gravado com sucesso!", false);
       })
       .catch(error => {
         console.error("Erro ao gravar:", error);
-        btn.innerText = "Erro na gravação!";
-        btn.style.background = "#dc2626";
-        btn.disabled = false;
+        if (btn) {
+          btn.innerText = "Erro na gravação!";
+          btn.style.background = "#dc2626";
+          btn.disabled = false;
+        }
         showToastAndClose("Erro ao comunicar com o Protheus.", true);
       });
     }
