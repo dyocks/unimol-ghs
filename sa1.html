@@ -84,6 +84,8 @@
     .status-count { font-size: 0.82rem; font-weight: 600; color: #475569; }
     .btn { background: #2563eb; color: #fff; border: none; border-radius: 5px; padding: 7px 18px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
     .btn:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
 
     /* Barra de Progresso customizada */
     .progress-container {
@@ -100,6 +102,48 @@
       height: 100%;
       background-color: #059669;
       transition: width 0.1s linear;
+    }
+
+    /* Modal de Pré-visualização */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+    .modal-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 350px;
+      width: 100%;
+    }
+    .modal-card h3 { font-size: 1rem; margin-bottom: 12px; color: #0f172a; }
+    .preview-container {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-container img {
+      max-width: 200px;
+      height: auto;
+      border: 1px solid #cbd5e1;
+      image-rendering: pixelated;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
     }
 
     .custom-toast {
@@ -120,9 +164,7 @@
       opacity: 0;
       transition: opacity 0.3s ease-in-out;
     }
-    .custom-toast.error {
-      background-color: #dc2626; 
-    }
+    .custom-toast.error { background-color: #dc2626; }
   </style>
 </head>
 <body>
@@ -216,13 +258,29 @@
         <div class="progress-bar" id="progressBar"></div>
       </div>
     </div>
-    <button class="btn" id="btnSalvar" onclick="fecharJanela()">Concluir e Retornar ao Produto</button>
+    <button class="btn" id="btnSalvar" onclick="iniciarGeracaoPreview()">Pré-visualizar e Concluir</button>
+  </div>
+
+  <!-- Modal de Pré-visualização -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-card">
+      <h3>Pré-visualização do Mosaico (200x75px)</h3>
+      <div class="preview-container">
+        <img id="previewImg" src="" alt="Mosaico GHS" />
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="fecharModalPreview()">Voltar</button>
+        <button class="btn" id="btnConfirmarGravar" onclick="salvarNoProtheus()">Confirmar e Gravar</button>
+      </div>
+    </div>
   </div>
 
   <div id="custom-toast" class="custom-toast"></div>
 
 <script>
     let state = {};
+    let globalBase64Mosaico = "";
+    let globalCamposSelecionados = "";
 
     document.addEventListener("DOMContentLoaded", function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -320,10 +378,11 @@
 
         // Grid 5x2 (5 colunas, 2 linhas)
         var cols = 5;
-        var cellWidth = canvas.width / cols;   // 200 / 5 = 40px
-        var cellHeight = canvas.height / 2;    // 75 / 2 = 37.5px
+        var cellWidth = canvas.width / cols;   // 40px
+        var cellHeight = canvas.height / 2;    // 37.5px
 
         atualizarProgresso(10, "Iniciando processamento das imagens...");
+        await new Promise(r => setTimeout(r, 10));
 
         for (let index = 0; index < images.length; index++) {
           let img = images[index];
@@ -334,26 +393,26 @@
             ctx.drawImage(img, x, y, cellWidth, cellHeight);
           }
 
-          let prog = Math.round(20 + ((index + 1) / images.length) * 50);
+          let prog = Math.round(20 + ((index + 1) / images.length) * 60);
           atualizarProgresso(prog, `Gerando mosaico (${index + 1}/${images.length}) - ${prog}%`);
-          await new Promise(resolve => setTimeout(resolve, 30));
+          await new Promise(resolve => setTimeout(resolve, 15));
         }
 
-        atualizarProgresso(75, "Compactando imagem em Base64...");
+        atualizarProgresso(90, "Finalizando renderização...");
         var base64Full = canvas.toDataURL('image/jpeg', 0.85);
+        atualizarProgresso(100, "Concluído!");
         
-        return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+        return base64Full;
       } catch (err) {
         console.error("Erro ao gerar mosaico:", err);
         return "";
       }
     }
 
-    async function fecharJanela() {
+    async function iniciarGeracaoPreview() {
       const btn = document.getElementById("btnSalvar");
       if (btn) {
         btn.innerText = "Processando...";
-        btn.style.background = "#059669";
         btn.disabled = true;
       }
 
@@ -361,11 +420,64 @@
       for (let field in state) {
         if (state[field]) { aAtivos.push(field); }
       }
-      const cSelecionados = aAtivos.join(',');
-      
-      const cBase64Mosaico = await gerarMosaicoGHSAsync();
+      globalCamposSelecionados = aAtivos.join(',');
 
-      const payloadObj = { campos: cSelecionados, base64: cBase64Mosaico };
+      if (aAtivos.length === 0) {
+        showToastAndClose("Selecione pelo menos um perigo GHS.", true);
+        if (btn) {
+          btn.innerText = "Pré-visualizar e Concluir";
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      const dataUrlFull = await gerarMosaicoGHSAsync();
+      if (!dataUrlFull) {
+        showToastAndClose("Erro ao gerar imagem do mosaico.", true);
+        if (btn) {
+          btn.innerText = "Pré-visualizar e Concluir";
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      globalBase64Mosaico = dataUrlFull.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+
+      // Exibir modal de preview
+      const previewImg = document.getElementById("previewImg");
+      if (previewImg) {
+        previewImg.src = dataUrlFull;
+      }
+
+      const modal = document.getElementById("previewModal");
+      if (modal) {
+        modal.style.display = "flex";
+      }
+
+      if (btn) {
+        btn.innerText = "Pré-visualizar e Concluir";
+        btn.disabled = false;
+      }
+    }
+
+    function fecharModalPreview() {
+      const modal = document.getElementById("previewModal");
+      if (modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    function salvarNoProtheus() {
+      fecharModalPreview();
+
+      const btn = document.getElementById("btnSalvar");
+      if (btn) {
+        btn.innerText = "A gravar no Protheus...";
+        btn.style.background = "#059669";
+        btn.disabled = true;
+      }
+
+      const payloadObj = { campos: globalCamposSelecionados, base64: globalBase64Mosaico };
       const payloadStr = JSON.stringify(payloadObj);
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -385,7 +497,7 @@
         return response.json();
       })
       .then(data => {
-        atualizarProgresso(100, "Concluído com Sucesso!");
+        atualizarProgresso(100, "Gravado com Sucesso!");
         if (btn) {
           btn.innerText = "✓ Gravado com Sucesso!";
         }
