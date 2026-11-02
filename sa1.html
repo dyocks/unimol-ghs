@@ -263,7 +263,6 @@
       toast.style.display = 'block';
       setTimeout(() => toast.style.opacity = '1', 10); 
 
-      // Se for sucesso, aguarda 1.5 segundos e envia o sinal para fechar a janela automaticamente
       if (!isError) {
         setTimeout(() => {
             if (window.parent) {
@@ -271,6 +270,34 @@
             }
         }, 1500);
       }
+    }
+
+    // Função que cria o mosaico e retorna a string Base64
+    function gerarMosaicoGHS() {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        
+        var imgSize = 80; 
+        var cols = 5; 
+        
+        var images = document.querySelectorAll('.card-ghs.selected img'); 
+        
+        if(images.length === 0) return "";
+
+        canvas.width = cols * imgSize;
+        canvas.height = Math.ceil(images.length / cols) * imgSize;
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        images.forEach(function(img, index) {
+            var x = (index % cols) * imgSize;
+            var y = Math.floor(index / cols) * imgSize;
+            ctx.drawImage(img, x, y, imgSize, imgSize);
+        });
+
+        var base64Full = canvas.toDataURL('image/png');
+        return base64Full.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 
     function fecharJanela() {
@@ -287,14 +314,13 @@
       }
       const cSelecionados = aAtivos.join(',');
 
+      // Gera a imagem em base64 chamando a função
+      const cBase64Mosaico = gerarMosaicoGHS();
+
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const auth = urlParams.get('auth') || '';
 
-      //DEV
-      //const endpoint = "https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
-
-      //PROD
       const endpoint = "https://unimolbrasil207532.protheus.cloudtotvs.com.br:10257/rest/WSSALVAGHS/01/" + encodeURIComponent(cod);
 
       fetch(endpoint, {
@@ -304,7 +330,11 @@
           "tenantId": "01,0101",
           "Authorization": auth
         },
-        body: JSON.stringify({ campos: cSelecionados })
+        // Envia os campos e a imagem Base64 no Payload da requisição
+        body: JSON.stringify({ 
+            campos: cSelecionados,
+            base64: cBase64Mosaico 
+        })
       })
       .then(response => {
         if (!response.ok) {
@@ -313,22 +343,22 @@
         return response.json();
       })
       .then(data => {
-        // Transforma o botão num indicador de sucesso verde definitivo
         btn.innerText = "✓ Gravado com Sucesso!";
         btn.style.background = "#059669";
         btn.style.color = "#ffffff";
         
-        // Destaca a mensagem de status no rodapé a verde
         const txtCount = document.getElementById("txtCount");
         txtCount.innerText = "Perigos GHS guardados na base de dados!";
         txtCount.style.color = "#059669";
+        
+        showToastAndClose("Gravado com sucesso!");
       })
       .catch(error => {
         console.error("Erro ao gravar:", error);
         btn.innerText = "Erro na gravação!";
         btn.style.background = "#dc2626";
         btn.disabled = false;
-        alert("Ocorreu um erro ao comunicar com o Protheus. Verifique o console.");
+        showToastAndClose("Ocorreu um erro ao comunicar com o Protheus.", true);
       });
     }
 </script> 
