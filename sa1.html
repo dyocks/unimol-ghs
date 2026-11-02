@@ -498,13 +498,20 @@
         body: payloadStr
       })
       .then(async response => {
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error('Falha no REST (' + response.status + '): ' + errText);
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error('HTTP ' + response.status + ': ' + text);
         }
-        return response.json();
+        if (!response.ok || data.status === "ERRO") {
+          throw new Error('Falha (' + (data.step || response.status) + '): ' + (data.message || text));
+        }
+        return data;
       })
       .then(data => {
+        console.log("Sucesso Protheus:", data);
         atualizarProgresso(100, "Gravado com Sucesso!");
         if (btn) {
           btn.innerText = "✓ Gravado com Sucesso!";
