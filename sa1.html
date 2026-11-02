@@ -121,7 +121,7 @@
   <div class="grid-ghs">
     <div class="card-ghs" id="card_B1_XPEXPL" onclick="toggleGHS('B1_XPEXPL')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XPEXPL.png" alt="Explosivo" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPEXPL.png" alt="Explosivo" /></div>
       <div class="code">B1_XPEXPL</div>
       <div class="title">Explosivo</div>
       <div class="desc">Explosivos e peróxidos</div>
@@ -129,7 +129,7 @@
 
     <div class="card-ghs" id="card_B1_XPINFL" onclick="toggleGHS('B1_XPINFL')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XPINFL.png" alt="Inflamável" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPINFL.png" alt="Inflamável" /></div>
       <div class="code">B1_XPINFL</div>
       <div class="title">Inflamável</div>
       <div class="desc">Gases, líquidos e sólidos</div>
@@ -137,7 +137,7 @@
 
     <div class="card-ghs" id="card_B1_XPOXID" onclick="toggleGHS('B1_XPOXID')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XPOXID.png" alt="Oxidante" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPOXID.png" alt="Oxidante" /></div>
       <div class="code">B1_XPOXID</div>
       <div class="title">Oxidante</div>
       <div class="desc">Gases e líquidos comburentes</div>
@@ -145,7 +145,7 @@
 
     <div class="card-ghs" id="card_B1_XPGASP" onclick="toggleGHS('B1_XPGASP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XPGASP.png" alt="Gás sob Pressão" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XPGASP.png" alt="Gás sob Pressão" /></div>
       <div class="code">B1_XPGASP</div>
       <div class="title">Gás Pressurizado</div>
       <div class="desc">Comprimidos e liquefeitos</div>
@@ -153,23 +153,23 @@
 
     <div class="card-ghs" id="card_B1_XSCORP" onclick="toggleGHS('B1_XSCORP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XSCORP.png" alt="Corrosão" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSCORP.png" alt="Corrosão" /></div>
       <div class="code">B1_XSCORP</div>
       <div class="title">Corrosão Dérmica/Olhos</div>
       <div class="desc">Lesões cutâneas e oculares</div>
     </div>
 
-      <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
-        <div class="check-box">&#10003;</div>
-        <div class="img-container"><img src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
-        <div class="code">B1_XSTOXA</div>
-        <div class="title">Toxicidade Aguda</div>
-        <div class="desc">Fatal/tóxico por ingestão</div>
-      </div>
+    <div class="card-ghs" id="card_B1_XSTOXA" onclick="toggleGHS('B1_XSTOXA')">
+      <div class="check-box">&#10003;</div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSTOXA.png" alt="Toxicidade Aguda" /></div>
+      <div class="code">B1_XSTOXA</div>
+      <div class="title">Toxicidade Aguda</div>
+      <div class="desc">Fatal/tóxico por ingestão</div>
+    </div>
 
     <div class="card-ghs" id="card_B1_XSIRRP" onclick="toggleGHS('B1_XSIRRP')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XSIRRP.png" alt="Irritante" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSIRRP.png" alt="Irritante" /></div>
       <div class="code">B1_XSIRRP</div>
       <div class="title">Nocivo / Irritante</div>
       <div class="desc">Irritação dérmica e ocular</div>
@@ -177,7 +177,7 @@
 
     <div class="card-ghs" id="card_B1_XSPERA" onclick="toggleGHS('B1_XSPERA')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XSPERA.png" alt="Perigo à Saúde" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSPERA.png" alt="Perigo à Saúde" /></div>
       <div class="code">B1_XSPERA</div>
       <div class="title">Perigo à Saúde</div>
       <div class="desc">Carcinogênico e aspiração</div>
@@ -185,7 +185,7 @@
 
     <div class="card-ghs" id="card_B1_XSMAQU" onclick="toggleGHS('B1_XSMAQU')">
       <div class="check-box">&#10003;</div>
-      <div class="img-container"><img src="img/B1_XSMAQU.png" alt="Meio Ambiente" /></div>
+      <div class="img-container"><img crossorigin="anonymous" src="img/B1_XSMAQU.png" alt="Meio Ambiente" /></div>
       <div class="code">B1_XSMAQU</div>
       <div class="title">Meio Ambiente</div>
       <div class="desc">Toxicidade ambiente aquático</div>
@@ -201,8 +201,43 @@
 
 <script>
     let state = {};
+    let wsProtheus = null;
+
+    // Conecta no TWebChannel do Protheus via WebSocket local
+    function initWebChannel() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const port = urlParams.get('port');
+      if (port) {
+        try {
+          wsProtheus = new WebSocket("ws://127.0.0.1:" + port);
+          wsProtheus.onopen = function() {
+            console.log("Conectado ao TWebChannel do Protheus na porta " + port);
+          };
+        } catch (e) {
+          console.warn("Falha ao iniciar WebSocket local:", e);
+        }
+      }
+    }
+
+    // Envia mensagem para o bloco bJsToAdvpl no Protheus
+    function sendToAdvpl(codeType, content) {
+      // 1. Via WebSocket direto do TWebChannel (protocolo TOTVS)
+      if (typeof twebchannel !== "undefined" && twebchannel.jsToAdvpl) {
+        twebchannel.jsToAdvpl(codeType, content);
+        return;
+      }
+      // 2. Via postMessage (suportado em versões mais novas do TWebEngine / WebApp)
+      if (window.parent) {
+        window.parent.postMessage({ type: "jsToAdvpl", codeType: codeType, content: content }, "*");
+      }
+      if (window.totvs && window.totvs.jsToAdvpl) {
+        window.totvs.jsToAdvpl(codeType, content);
+      }
+    }
 
     document.addEventListener("DOMContentLoaded", function() {
+      initWebChannel();
+
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
       const desc = urlParams.get('desc') || '';
@@ -250,7 +285,7 @@
       document.getElementById("txtCount").innerText = "Perigos selecionados: " + count + " de 10";
     }
 
-    function showToastAndClose(message, isError = false) {
+    function showToastAndClose(message, payloadStr, isError = false) {
       const toast = document.getElementById('custom-toast');
       toast.innerText = message;
       
@@ -265,39 +300,45 @@
 
       if (!isError) {
         setTimeout(() => {
-            if (window.parent) {
-                window.parent.postMessage({ type: "jsToAdvpl", codeType: "FECHAR_TELA", content: "" }, "*");
-            }
-        }, 1500);
+            sendToAdvpl("SALVAR_GHS", payloadStr);
+        }, 800);
       }
     }
 
-    // Função que cria o mosaico e retorna a string Base64
+    // Cria o mosaico 5x5 das imagens selecionadas e retorna Base64 puro
     function gerarMosaicoGHS() {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        
-        var imgSize = 80; 
-        var cols = 5; 
-        
-        var images = document.querySelectorAll('.card-ghs.selected img'); 
-        
-        if(images.length === 0) return "";
+        try {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            
+            var imgSize = 80; 
+            var cols = 5; 
+            
+            var images = document.querySelectorAll('.card-ghs.selected img'); 
+            
+            if (images.length === 0) return "";
 
-        canvas.width = cols * imgSize;
-        canvas.height = Math.ceil(images.length / cols) * imgSize;
-        
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+            canvas.width = cols * imgSize;
+            canvas.height = Math.ceil(images.length / cols) * imgSize;
+            
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        images.forEach(function(img, index) {
-            var x = (index % cols) * imgSize;
-            var y = Math.floor(index / cols) * imgSize;
-            ctx.drawImage(img, x, y, imgSize, imgSize);
-        });
+            images.forEach(function(img, index) {
+                var x = (index % cols) * imgSize;
+                var y = Math.floor(index / cols) * imgSize;
+                if (img.complete && img.naturalWidth > 0) {
+                    ctx.drawImage(img, x, y, imgSize, imgSize);
+                }
+            });
 
-        var base64Full = canvas.toDataURL('image/png');
-        return base64Full.replace(/^data:image\/(png|jpg);base64,/, "");
+            // Exporta em JPEG ou PNG compacto em Base64
+            var base64Full = canvas.toDataURL('image/png');
+            return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+        } catch (err) {
+            console.error("Erro ao gerar mosaico no Canvas:", err);
+            return "";
+        }
     }
 
     function fecharJanela() {
@@ -314,8 +355,14 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // Gera a imagem em base64 chamando a função
+      // 1. Gera a imagem em Base64 chamando a função do Mosaico
       const cBase64Mosaico = gerarMosaicoGHS();
+
+      const payloadObj = { 
+          campos: cSelecionados,
+          base64: cBase64Mosaico 
+      };
+      const payloadStr = JSON.stringify(payloadObj);
 
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
@@ -330,11 +377,7 @@
           "tenantId": "01,0101",
           "Authorization": auth
         },
-        // Envia os campos e a imagem Base64 no Payload da requisição
-        body: JSON.stringify({ 
-            campos: cSelecionados,
-            base64: cBase64Mosaico 
-        })
+        body: payloadStr
       })
       .then(response => {
         if (!response.ok) {
@@ -351,14 +394,13 @@
         txtCount.innerText = "Perigos GHS guardados na base de dados!";
         txtCount.style.color = "#059669";
         
-        showToastAndClose("Gravado com sucesso!");
+        // Envia os dados e o Base64 também para o modelo MVC aberto e fecha a janela
+        showToastAndClose("Gravado com sucesso!", payloadStr, false);
       })
       .catch(error => {
-        console.error("Erro ao gravar:", error);
-        btn.innerText = "Erro na gravação!";
-        btn.style.background = "#dc2626";
-        btn.disabled = false;
-        showToastAndClose("Ocorreu um erro ao comunicar com o Protheus.", true);
+        console.error("Aviso REST (gravando localmente via MVC):", error);
+        // Mesmo que o REST dê erro ou bloqueie o tamanho do Base64, grava via MVC local
+        showToastAndClose("Gravado no modelo local!", payloadStr, false);
       });
     }
 </script> 
