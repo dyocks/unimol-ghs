@@ -166,20 +166,30 @@
         document.getElementById("txtProd").innerText = "Produto: " + cod + (desc ? " - " + decodeURIComponent(desc) : "");
       }
 
+      // Estado inicial de todos como false
       state = {
         "B1_XPEXPL": false, "B1_XPINFL": false, "B1_XPOXID": false, "B1_XPGASP": false, "B1_XPCORM": false,
         "B1_XSCORP": false, "B1_XSTOXA": false, "B1_XSIRRP": false, "B1_XSPERA": false, "B1_XSMAQU": false
       };
 
+      // Se recebeu a string de seleção (ex: "B1_XPEXPL,B1_XPINFL,B1_XSTOXA")
       if (sel) {
-        const aSel = sel.split(',');
+        // Decodifica caso venha com URL Encode (%2C)
+        const selDecoded = decodeURIComponent(sel);
+        const aSel = selDecoded.split(',');
+        
         aSel.forEach(function(field) {
           const cFld = field.trim();
-          if (cFld) { state[cFld] = true; }
+          if (cFld && state.hasOwnProperty(cFld)) {
+            state[cFld] = true; // Marca como selecionado
+          }
         });
       }
+      
+      // Renderiza as classes CSS na tela
       renderState();
     });
+    
 
     function toggleGHS(field) {
       state[field] = !state[field];
