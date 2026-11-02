@@ -101,7 +101,7 @@
       width: 0%;
       height: 100%;
       background-color: #059669;
-      transition: width 0.1s linear;
+      transition: width 0.05s linear;
     }
 
     /* Modal de Pré-visualização */
@@ -138,7 +138,6 @@
       max-width: 200px;
       height: auto;
       border: 1px solid #cbd5e1;
-      image-rendering: pixelated;
     }
     .modal-buttons {
       display: flex;
@@ -367,9 +366,9 @@
         if (images.length === 0) return "";
 
         var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d', { alpha: false }); // Otimização de performance (sem canal alpha desnecessário)
         
-        // Dimensões exatas solicitadas: 200px de largura por 75px de altura
+        // Dimensões exatas: 200px de largura por 75px de altura
         canvas.width = 200;
         canvas.height = 75;
         
@@ -381,8 +380,8 @@
         var cellWidth = canvas.width / cols;   // 40px
         var cellHeight = canvas.height / 2;    // 37.5px
 
-        atualizarProgresso(10, "Iniciando processamento das imagens...");
-        await new Promise(r => setTimeout(r, 10));
+        atualizarProgresso(15, "Iniciando processamento das imagens...");
+        await new Promise(r => setTimeout(r, 5));
 
         for (let index = 0; index < images.length; index++) {
           let img = images[index];
@@ -393,14 +392,19 @@
             ctx.drawImage(img, x, y, cellWidth, cellHeight);
           }
 
-          let prog = Math.round(20 + ((index + 1) / images.length) * 60);
-          atualizarProgresso(prog, `Gerando mosaico (${index + 1}/${images.length}) - ${prog}%`);
-          await new Promise(resolve => setTimeout(resolve, 15));
+          let prog = Math.round(20 + ((index + 1) / images.length) * 50);
+          atualizarProgresso(prog, `Desenhando ícone (${index + 1}/${images.length}) - ${prog}%`);
+          await new Promise(resolve => setTimeout(resolve, 5));
         }
 
-        atualizarProgresso(90, "Finalizando renderização...");
-        var base64Full = canvas.toDataURL('image/jpeg', 0.85);
+        atualizarProgresso(75, "Compactando e extraindo Base64 raw...");
+        await new Promise(r => setTimeout(r, 5));
+
+        // Qualidade otimizada para diminuir o peso e evitar travamento no campo MEMO do Protheus
+        var base64Full = canvas.toDataURL('image/jpeg', 0.75);
+        
         atualizarProgresso(100, "Concluído!");
+        await new Promise(r => setTimeout(r, 5));
         
         return base64Full;
       } catch (err) {
@@ -441,9 +445,10 @@
         return;
       }
 
+      // Extrai a string Base64 raw pura (removendo o cabeçalho data:image/jpeg;base64,)
       globalBase64Mosaico = dataUrlFull.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
 
-      // Exibir modal de preview
+      // Exibir modal de preview utilizando o DataURL completo
       const previewImg = document.getElementById("previewImg");
       if (previewImg) {
         previewImg.src = dataUrlFull;
