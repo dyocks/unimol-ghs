@@ -201,42 +201,49 @@
 
 <script>
     let state = {};
-    let wsProtheus = null;
+    let wsSocket = null;
 
-    // Conecta no TWebChannel do Protheus via WebSocket local
-    function initWebChannel() {
+    // Inicializa a ponte WebSocket com o TWebChannel do Protheus (protocolo QtWebChannel)
+    function initAdvplBridge() {
       const urlParams = new URLSearchParams(window.location.search);
       const port = urlParams.get('port');
       if (port) {
         try {
-          wsProtheus = new WebSocket("ws://127.0.0.1:" + port);
-          wsProtheus.onopen = function() {
-            console.log("Conectado ao TWebChannel do Protheus na porta " + port);
+          wsSocket = new WebSocket("ws://127.0.0.1:" + port);
+          wsSocket.onopen = function() {
+            // Inicializa handshake QtWebChannel
+            wsSocket.send(JSON.stringify({ type: 3, id: 1 }));
           };
         } catch (e) {
-          console.warn("Falha ao iniciar WebSocket local:", e);
+          console.warn("WebSocket local indisponível:", e);
         }
       }
     }
 
-    // Envia mensagem para o bloco bJsToAdvpl no Protheus
-    function sendToAdvpl(codeType, content) {
-      // 1. Via WebSocket direto do TWebChannel (protocolo TOTVS)
+    // Envia os dados de volta para o AdvPL (TWebChannel)
+    function enviarParaAdvpl(codeType, content) {
+      // 1. Dispara via protocolo QtWebChannel (usado pelo TWebChannel do Protheus)
+      if (wsSocket && wsSocket.readyState === 1) {
+        wsSocket.send(JSON.stringify({
+          type: 6,
+          object: "MainObject",
+          method: "jsToAdvpl",
+          args: [codeType, content],
+          id: Math.floor(Math.random() * 10000)
+        }));
+      }
+      // 2. Caso twebchannel global esteja injetado
       if (typeof twebchannel !== "undefined" && twebchannel.jsToAdvpl) {
         twebchannel.jsToAdvpl(codeType, content);
-        return;
       }
-      // 2. Via postMessage (suportado em versões mais novas do TWebEngine / WebApp)
+      // 3. PostMessage para containers WebApp
       if (window.parent) {
         window.parent.postMessage({ type: "jsToAdvpl", codeType: codeType, content: content }, "*");
-      }
-      if (window.totvs && window.totvs.jsToAdvpl) {
-        window.totvs.jsToAdvpl(codeType, content);
       }
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-      initWebChannel();
+      initAdvplBridge();
 
       const urlParams = new URLSearchParams(window.location.search);
       const cod  = urlParams.get('cod') || '';
@@ -300,18 +307,18 @@
 
       if (!isError) {
         setTimeout(() => {
-            sendToAdvpl("SALVAR_GHS", payloadStr);
-        }, 800);
+            enviarParaAdvpl("SALVAR_GHS", payloadStr);
+        }, 700);
       }
     }
 
-    // Cria o mosaico 5x5 das imagens selecionadas e retorna Base64 puro
+    // Monta o mosaico (5 colunas) e retorna a string Base64 otimizada
     function gerarMosaicoGHS() {
         try {
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
             
-            var imgSize = 80; 
+            var imgSize = 64; 
             var cols = 5; 
             
             var images = document.querySelectorAll('.card-ghs.selected img'); 
@@ -321,6 +328,7 @@
             canvas.width = cols * imgSize;
             canvas.height = Math.ceil(images.length / cols) * imgSize;
             
+            // Preenche fundo branco para JPEG compacto
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -332,11 +340,11 @@
                 }
             });
 
-            // Exporta em JPEG ou PNG compacto em Base64
-            var base64Full = canvas.toDataURL('image/png');
+            // Exporta em JPEG qualidade 0.85 (gera Base64 enxuto < 4000 chars para o Oracle)
+            var base64Full = canvas.toDataURL('image/jpeg', 0.85);
             return base64Full.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
         } catch (err) {
-            console.error("Erro ao gerar mosaico no Canvas:", err);
+            console.error("Erro ao gerar mosaico:", err);
             return "";
         }
     }
@@ -355,7 +363,7 @@
       }
       const cSelecionados = aAtivos.join(',');
 
-      // 1. Gera a imagem em Base64 chamando a função do Mosaico
+      // Gera o Base64 do mosaico
       const cBase64Mosaico = gerarMosaicoGHS();
 
       const payloadObj = { 
@@ -391,15 +399,13 @@
         btn.style.color = "#ffffff";
         
         const txtCount = document.getElementById("txtCount");
-        txtCount.innerText = "Perigos GHS guardados na base de dados!";
+        txtCount.innerText = "Perigos GHS e Mosaico guardados na base de dados!";
         txtCount.style.color = "#059669";
         
-        // Envia os dados e o Base64 também para o modelo MVC aberto e fecha a janela
         showToastAndClose("Gravado com sucesso!", payloadStr, false);
       })
       .catch(error => {
-        console.error("Aviso REST (gravando localmente via MVC):", error);
-        // Mesmo que o REST dê erro ou bloqueie o tamanho do Base64, grava via MVC local
+        console.error("Erro no REST, enviando direto ao MVC:", error);
         showToastAndClose("Gravado no modelo local!", payloadStr, false);
       });
     }
