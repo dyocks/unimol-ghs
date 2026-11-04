@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PCP Químico - Ordens de Produção Abertas</title>
+  <link rel="stylesheet" href="style-base.css">
+  <style>
+    .btn-assumir {
+      background: linear-gradient(135deg, #009ca6, #007a82);
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0, 156, 166, 0.3);
+      cursor: pointer;
+      border: none;
+      touch-action: manipulation;
+      transition: all 0.15s ease;
+    }
+    .btn-assumir:active {
+      transform: scale(0.96);
+    }
+    .loading-row {
+      text-align: center;
+      padding: 30px;
+      color: #64748b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- LATERAL FIXA -->
+  <aside class="sidebar">
+    <div class="brand-icon">PCP</div>
+
+    <a href="index.html" class="nav-link active" title="Ordens Abertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+
+    <a href="comigo.html" class="nav-link" title="Minhas Ordens">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Comigo</span>
+    </a>
+
+    <a href="historico.html" class="nav-link" title="Ordens Encerradas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Histórico</span>
+    </a>
+  </aside>
+
+  <!-- ÁREA DE CONTEÚDO -->
+  <div class="main-area">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="app-title">ORDENS DE PRODUÇÃO ABERTAS</span>
+        <span class="badge-online" id="statusBadge">ONLINE • PROTHEUS</span>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar" id="avatarUser">RA</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="nomeOperadorLogado">Rodrigo Amaral</div>
+          <div style="font-size: 0.72rem; color: #64748b;" id="loginOperadorLogado">rodrigo.amaral</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-scroll">
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-num" style="color: #0284c7;" id="kpiTotal">0</span>
+          <span class="kpi-label">Total OPs em Aberto</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" style="color: #ea580c;" id="kpiDisponiveis">0</span>
+          <span class="kpi-label">Disponíveis p/ Assumir</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" style="color: #16a34a;" id="kpiComigo">0</span>
+          <span class="kpi-label">Comigo</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" style="color: #dc2626;" id="kpiCriticas">0</span>
+          <span class="kpi-label">Em Andamento</span>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="filtroOP" placeholder="Pesquisar por OP, Produto ou Lote..." onkeyup="filtrarTabela()">
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button onclick="carregarOrdensAbertas()" style="background:#ffffff; border:1.5px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
+              🔄 Atualizar
+            </button>
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+              Origem: <code>SC2010</code> (Protheus)
+            </div>
+          </div>
+        </div>
+
+        <table id="tabelaOPs">
+          <thead>
+            <tr>
+              <th style="width: 30px;"></th>
+              <th>Número da OP</th>
+              <th style="text-align: center;">Item</th>
+              <th style="text-align: center;">Sequência</th>
+              <th>Produto</th>
+              <th>Desc. Produto</th>
+              <th style="text-align: center;">Armazém</th>
+              <th style="text-align: center;">Tipo OP</th>
+              <th>Lote UNIMOL</th>
+              <th>Responsável</th>
+              <th style="text-align: center;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyOPs">
+            <tr>
+              <td colspan="11" class="loading-row">Carregando ordens de produção do Protheus...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = '/rest/WSPCPQUIM';
+    const USUARIO_LOGADO = 'rodrigo.amaral';
+
+    async function carregarOrdensAbertas() {
+      const tbody = document.getElementById("tbodyOPs");
+      tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Consultando API Protheus...</td></tr>';
+
+      try {
+        const resp = await fetch(`${API_BASE}/ops`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'tenantId': '01,0101'
+          }
+        });
+
+        if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
+        const data = await resp.json();
+        const lista = data.ops || [];
+        renderizarTabela(lista);
+      } catch (err) {
+        console.warn("Falha na API Protheus, carregando dados locais:", err);
+        document.getElementById("statusBadge").textContent = "MODO DEMO • OFFLINE";
+        document.getElementById("statusBadge").style.color = "#ea580c";
+        document.getElementById("statusBadge").style.background = "#fff7ed";
+        renderizarMock();
+      }
+    }
+
+    function renderizarTabela(ops) {
+      const tbody = document.getElementById("tbodyOPs");
+      tbody.innerHTML = "";
+
+      let disponiveis = 0;
+      let comigo = 0;
+
+      if (ops.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Nenhuma ordem de produção em aberto encontrada.</td></tr>';
+        atualizarKPIs(0, 0, 0, 0);
+        return;
+      }
+
+      ops.forEach(op => {
+        const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
+        if (isMinha) comigo++;
+        if (!op.codOperador) disponiveis++;
+
+        const tr = document.createElement("tr");
+        if (isMinha) tr.style.background = "#f0fdf4";
+
+        const badgeResp = op.nomeOperador ? 
+          `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
+          `<span style="color:#94a3b8; font-size:0.82rem;">Disponível</span>`;
+
+        tr.innerHTML = `
+          <td><span class="badge-bullet ${isMinha ? 'bullet-green' : (op.codOperador ? 'bullet-orange' : 'bullet-red')}"></span></td>
+          <td><strong>${op.num}</strong></td>
+          <td style="text-align: center;">${op.item}</td>
+          <td style="text-align: center;">${op.seq}</td>
+          <td><code>${op.produto}</code></td>
+          <td>${op.desc}</td>
+          <td style="text-align: center;">${op.armazem}</td>
+          <td style="text-align: center;">${op.tipo === 'F' ? 'Firme' : op.tipo}</td>
+          <td>${op.lote || '—'}</td>
+          <td>${badgeResp}</td>
+          <td style="text-align: center;">
+            <button class="btn-assumir" onclick="assumirOP('${op.opCompleta}', '${op.produto}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Assumir
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      atualizarKPIs(ops.length, disponiveis, comigo, ops.length - disponiveis);
+    }
+
+    function atualizarKPIs(total, disp, com, crit) {
+      document.getElementById("kpiTotal").textContent = total;
+      document.getElementById("kpiDisponiveis").textContent = disp;
+      document.getElementById("kpiComigo").textContent = com;
+      document.getElementById("kpiCriticas").textContent = crit;
+    }
+
+    async function assumirOP(op, cod) {
+      if (!confirm(`Deseja assumir a Ordem de Produção ${op}?`)) return;
+
+      try {
+        const resp = await fetch(`${API_BASE}/assumir`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'tenantId': '01,0101'
+          },
+          body: JSON.stringify({
+            op: op,
+            novoOperador: USUARIO_LOGADO
+          })
+        });
+
+        const res = await resp.json();
+        if (resp.ok && res.status === 'OK') {
+          alert(`✓ OP ${op} assumida com sucesso pelo operador ${res.nomeOperador || USUARIO_LOGADO}!`);
+          window.location.href = `comigo.html?assumida=${op}`;
+        } else {
+          alert("Erro ao assumir OP: " + (res.mensagem || "Falha na comunicação com o Protheus"));
+        }
+      } catch (err) {
+        console.error(err);
+        // Fallback para teste off-line no tablet
+        alert(`✓ OP ${op} assumida em modo teste! Redirecionando para 'Comigo'...`);
+        window.location.href = `comigo.html?assumida=${op}&cod=${cod}`;
+      }
+    }
+
+    function filtrarTabela() {
+      const input = document.getElementById("filtroOP").value.toUpperCase();
+      const trs = document.getElementById("tbodyOPs").getElementsByTagName("tr");
+      for (let i = 0; i < trs.length; i++) {
+        const texto = trs[i].textContent || trs[i].innerText;
+        trs[i].style.display = texto.toUpperCase().indexOf(input) > -1 ? "" : "none";
+      }
+    }
+
+    function renderizarMock() {
+      const mock = [
+        { num: '000024', item: '01', seq: '001', opCompleta: '00002401001', produto: '14.37.0250.1.0001', desc: 'RESINA POLIÉSTER BASE ORTO', armazem: '01', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' },
+        { num: '000052', item: '01', seq: '001', opCompleta: '00005201001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '01', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' },
+        { num: '000062', item: '01', seq: '001', opCompleta: '00006201001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '03', tipo: 'F', lote: '0107228/2026', codOperador: 'RODRIGO.AMARAL', nomeOperador: 'Rodrigo Amaral' },
+        { num: '000067', item: '01', seq: '001', opCompleta: '00006701001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '03', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' }
+      ];
+      renderizarTabela(mock);
+    }
+
+    window.addEventListener('DOMContentLoaded', carregarOrdensAbertas);
+  </script>
+</body>
+</html>
