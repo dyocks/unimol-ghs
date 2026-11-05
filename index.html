@@ -60,13 +60,13 @@
     <header class="topbar">
       <div style="display: flex; align-items: center; gap: 14px;">
         <span class="app-title">ORDENS DE PRODUÇÃO ABERTAS</span>
-        <span class="badge-online" id="statusBadge">ONLINE • PROTHEUS</span>
+        <span class="badge-online" id="statusBadge">CONECTANDO...</span>
       </div>
       <div class="user-pill">
-        <div class="user-avatar" id="avatarUser">RA</div>
+        <div class="user-avatar" id="avatarUser">--</div>
         <div>
-          <div style="font-weight: 700; font-size: 0.82rem;" id="nomeOperadorLogado">Rodrigo Amaral</div>
-          <div style="font-size: 0.72rem; color: #64748b;" id="loginOperadorLogado">rodrigo.amaral</div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="nomeOperadorLogado">Carregando...</div>
+          <div style="font-size: 0.72rem; color: #64748b;" id="loginOperadorLogado">aguarde</div>
         </div>
       </div>
     </header>
@@ -135,7 +135,14 @@
 
   <script>
     const API_BASE = '/rest/WSPCPQUIM';
-    const USUARIO_LOGADO = 'rodrigo.amaral';
+    
+    // Credenciais para autenticação Basic Auth (Substitua por um prompt ou sistema de login em produção)
+    const USER_LOGIN = 'rodrigo.amaral';
+    const USER_PASS  = 'sua_senha_aqui'; 
+    const authHeader = 'Basic ' + btoa(USER_LOGIN + ':' + USER_PASS);
+
+    // Variável global dinâmica (preenchida pelo backend)
+    let USUARIO_LOGADO = '';
 
     async function carregarOrdensAbertas() {
       const tbody = document.getElementById("tbodyOPs");
@@ -146,20 +153,45 @@
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'tenantId': '01,0101'
+            'tenantId': '01,0101',
+            'Authorization': authHeader // Envio das credenciais
           }
         });
 
-        if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
+        if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
+        
         const data = await resp.json();
+        
+        // --- 1. Atualização dos Dados do Usuário na Interface ---
+        USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
+        const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
+        
+        document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
+        document.getElementById('nomeOperadorLogado').textContent = nomeCompleto;
+        
+        // Calcula iniciais para o Avatar (ex: "Rodrigo Amaral" -> "RA")
+        const partesNome = nomeCompleto.split(' ').filter(n => n.length > 0);
+        let iniciais = partesNome[0][0];
+        if(partesNome.length > 1) iniciais += partesNome[partesNome.length - 1][0];
+        document.getElementById('avatarUser').textContent = iniciais.toUpperCase();
+
+        document.getElementById("statusBadge").textContent = "ONLINE • PROTHEUS";
+        document.getElementById("statusBadge").style.color = "#059669";
+        document.getElementById("statusBadge").style.background = "#d1fae5";
+
+        // --- 2. Renderização da Tabela ---
         const lista = data.ops || [];
         renderizarTabela(lista);
+
       } catch (err) {
-        console.warn("Falha na API Protheus, carregando dados locais:", err);
-        document.getElementById("statusBadge").textContent = "MODO DEMO • OFFLINE";
-        document.getElementById("statusBadge").style.color = "#ea580c";
-        document.getElementById("statusBadge").style.background = "#fff7ed";
-        renderizarMock();
+        console.error("Falha na API Protheus:", err);
+        document.getElementById("statusBadge").textContent = "OFFLINE • ERRO";
+        document.getElementById("statusBadge").style.color = "#dc2626";
+        document.getElementById("statusBadge").style.background = "#fee2e2";
+        
+        // Sem valores mocados, exibe o erro diretamente
+        tbody.innerHTML = `<tr><td colspan="11" class="loading-row" style="color: #dc2626;">Erro de comunicação com o Protheus: ${err.message}</td></tr>`;
+        atualizarKPIs(0, 0, 0, 0);
       }
     }
 
@@ -177,6 +209,7 @@
       }
 
       ops.forEach(op => {
+        // Validação usando o USUARIO_LOGADO retornado pela API
         const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
         if (isMinha) comigo++;
         if (!op.codOperador) disponiveis++;
@@ -227,11 +260,12 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'tenantId': '01,0101'
+            'tenantId': '01,0101',
+            'Authorization': authHeader // Envio das credenciais
           },
           body: JSON.stringify({
             op: op,
-            novoOperador: USUARIO_LOGADO
+            novoOperador: USUARIO_LOGADO // Enviando o usuário retornado pela API
           })
         });
 
@@ -244,9 +278,7 @@
         }
       } catch (err) {
         console.error(err);
-        // Fallback para teste off-line no tablet
-        alert(`✓ OP ${op} assumida em modo teste! Redirecionando para 'Comigo'...`);
-        window.location.href = `comigo.html?assumida=${op}&cod=${cod}`;
+        alert(`Erro de comunicação ao tentar assumir OP: ${err.message}`);
       }
     }
 
@@ -257,16 +289,6 @@
         const texto = trs[i].textContent || trs[i].innerText;
         trs[i].style.display = texto.toUpperCase().indexOf(input) > -1 ? "" : "none";
       }
-    }
-
-    function renderizarMock() {
-      const mock = [
-        { num: '000024', item: '01', seq: '001', opCompleta: '00002401001', produto: '14.37.0250.1.0001', desc: 'RESINA POLIÉSTER BASE ORTO', armazem: '01', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' },
-        { num: '000052', item: '01', seq: '001', opCompleta: '00005201001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '01', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' },
-        { num: '000062', item: '01', seq: '001', opCompleta: '00006201001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '03', tipo: 'F', lote: '0107228/2026', codOperador: 'RODRIGO.AMARAL', nomeOperador: 'Rodrigo Amaral' },
-        { num: '000067', item: '01', seq: '001', opCompleta: '00006701001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '03', tipo: 'F', lote: '', codOperador: '', nomeOperador: '' }
-      ];
-      renderizarTabela(mock);
     }
 
     window.addEventListener('DOMContentLoaded', carregarOrdensAbertas);
