@@ -32,6 +32,136 @@
       color: #64748b;
       font-weight: 600;
     }
+
+    /* MODAL CENTRALIZADO */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 440px;
+      padding: 24px 28px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+      text-align: center;
+    }
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0284c7;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+    .modal-desc strong {
+      color: #0f172a;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn-modal-cancel {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      padding: 9px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-modal-cancel:hover {
+      background: #e2e8f0;
+    }
+    .btn-modal-confirm {
+      background: linear-gradient(135deg, #009ca6, #007a82);
+      color: #ffffff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 156, 166, 0.35);
+      transition: opacity 0.15s;
+    }
+    .btn-modal-confirm:hover {
+      opacity: 0.95;
+    }
+
+    /* TOAST CENTRALIZADO */
+    .toast-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 16px 28px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: none;
+      opacity: 0;
+      z-index: 10000;
+      transition: all 0.2s ease;
+      align-items: center;
+      gap: 12px;
+      max-width: 90%;
+    }
+    .toast-center.active {
+      display: inline-flex;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .toast-success {
+      background: #065f46;
+      border-left: 6px solid #10b981;
+    }
+    .toast-error {
+      background: #7f1d1d;
+      border-left: 6px solid #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -133,17 +263,63 @@
     </main>
   </div>
 
+  <!-- MODAL DE CONFIRMAÇÃO CENTRALIZADO -->
+  <div class="modal-overlay" id="modalConfirmar">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      </div>
+      <div class="modal-title">Assumir Ordem de Produção</div>
+      <div class="modal-desc" id="modalTexto">
+        Deseja assumir a responsabilidade pela OP <strong id="modalNumOP">---</strong>?
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-modal-confirm" id="btnModalConfirmar">Confirmar e Assumir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICAÇÃO CENTRALIZADA -->
+  <div class="toast-center" id="toastCenter"></div>
+
   <script>
-    // URL COM A PORTA :10307 (Igual ao WSSALVAGHS)
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
 
-    // Verifica se o Protheus enviou o header auth via URL (como no GHS), senão usa as credenciais diretas
     const urlParams  = new URLSearchParams(window.location.search);
     const USER_LOGIN = 'rodrigo.amaral';
     const USER_PASS  = 'RaquelEduarda2010@';
     const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     let USUARIO_LOGADO = '';
+    let opPendente = null;
+
+    function showToast(mensagem, tipo = 'success', tempo = 2200) {
+      const toast = document.getElementById("toastCenter");
+      toast.textContent = mensagem;
+      toast.className = `toast-center active ${tipo === 'success' ? 'toast-success' : 'toast-error'}`;
+      setTimeout(() => {
+        toast.className = "toast-center";
+      }, tempo);
+    }
+
+    function abrirModal(op) {
+      opPendente = op;
+      document.getElementById("modalNumOP").textContent = op;
+      document.getElementById("modalConfirmar").classList.add("active");
+    }
+
+    function fecharModal() {
+      opPendente = null;
+      document.getElementById("modalConfirmar").classList.remove("active");
+    }
+
+    document.getElementById("btnModalConfirmar").addEventListener("click", () => {
+      if (opPendente) {
+        executarAssumirOP(opPendente);
+      }
+      fecharModal();
+    });
 
     async function carregarOrdensAbertas() {
       const tbody = document.getElementById("tbodyOPs");
@@ -171,7 +347,6 @@
           throw new Error(data.mensagem || `Erro HTTP: ${resp.status}`);
         }
 
-        // --- 1. Atualiza o Usuário Logado no Topo com o retorno do Protheus ---
         USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
         const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
 
@@ -189,17 +364,16 @@
         document.getElementById("statusBadge").style.color = "#059669";
         document.getElementById("statusBadge").style.background = "#d1fae5";
 
-        // --- 2. Renderiza a Tabela com os dados reais da SC2010 ---
         const lista = data.ops || [];
         renderizarTabela(lista);
 
       } catch (err) {
-        console.error("Falha detalhada na API Protheus:", err);
+        console.error("Falha na API Protheus:", err);
         document.getElementById("statusBadge").textContent = "OFFLINE • ERRO";
         document.getElementById("statusBadge").style.color = "#dc2626";
         document.getElementById("statusBadge").style.background = "#fee2e2";
 
-        tbody.innerHTML = `<tr><td colspan="11" class="loading-row" style="color: #dc2626;">Erro de comunicação com o Protheus: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="loading-row" style="color: #dc2626;">Erro de comunicação: ${err.message}</td></tr>`;
         atualizarKPIs(0, 0, 0, 0);
       }
     }
@@ -241,7 +415,7 @@
           <td>${op.lote || '—'}</td>
           <td>${badgeResp}</td>
           <td style="text-align: center;">
-            <button class="btn-assumir" onclick="assumirOP('${op.opCompleta}', '${op.produto}')">
+            <button class="btn-assumir" onclick="abrirModal('${op.opCompleta}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               Assumir
             </button>
@@ -260,8 +434,8 @@
       document.getElementById("kpiCriticas").textContent = crit;
     }
 
-    async function assumirOP(op, cod) {
-      if (!confirm(`Deseja assumir a Ordem de Produção ${op}?`)) return;
+    async function executarAssumirOP(op) {
+      showToast(`Atribuindo OP ${op} no Protheus...`, 'success', 1500);
 
       try {
         const resp = await fetch(`${API_BASE}/assumir`, {
@@ -278,16 +452,25 @@
           })
         });
 
-        const res = await resp.json();
+        const text = await resp.text();
+        let res;
+        try {
+          res = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Resposta inválida do servidor: ${text}`);
+        }
+
         if (resp.ok && res.status === 'OK') {
-          alert(`✓ OP ${op} assumida com sucesso pelo operador ${res.nomeOperador || USUARIO_LOGADO}!`);
-          window.location.href = `comigo.html?assumida=${op}`;
+          showToast(`✓ OP ${op} assumida com sucesso! Redirecionando...`, 'success', 1400);
+          setTimeout(() => {
+            window.location.href = `comigo.html?assumida=${op}`;
+          }, 1400);
         } else {
-          alert("Erro ao assumir OP: " + (res.mensagem || "Falha na comunicação com o Protheus"));
+          showToast(`Erro: ${res.mensagem || res.detalhe || 'Falha ao assumir OP'}`, 'error', 3500);
         }
       } catch (err) {
         console.error("Erro ao assumir OP:", err);
-        alert(`Erro de comunicação ao tentar assumir OP: ${err.message}`);
+        showToast(`Erro de comunicação: ${err.message}`, 'error', 3500);
       }
     }
 
