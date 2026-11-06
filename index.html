@@ -134,15 +134,15 @@
   </div>
 
   <script>
-  const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br/rest/WSPCPQUIM';
+    // URL COM A PORTA :10307 (Igual ao WSSALVAGHS)
+    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
 
-    
-    // Credenciais para autenticação Basic Auth (Substitua por um prompt ou sistema de login em produção)
+    // Verifica se o Protheus enviou o header auth via URL (como no GHS), senão usa as credenciais diretas
+    const urlParams  = new URLSearchParams(window.location.search);
     const USER_LOGIN = 'rodrigo.amaral';
-    const USER_PASS  = 'RaquelEduarda2010@'; 
-    const authHeader = 'Basic ' + btoa(USER_LOGIN + ':' + USER_PASS);
+    const USER_PASS  = 'RaquelEduarda2010@';
+    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
-    // Variável global dinâmica (preenchida pelo backend)
     let USUARIO_LOGADO = '';
 
     async function carregarOrdensAbertas() {
@@ -155,42 +155,50 @@
           headers: {
             'Content-Type': 'application/json',
             'tenantId': '01,0101',
-            'Authorization': authHeader // Envio das credenciais
+            'Authorization': authHeader
           }
         });
 
-        if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
-        
-        const data = await resp.json();
-        
-        // --- 1. Atualização dos Dados do Usuário na Interface ---
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`HTTP ${resp.status}: ${text}`);
+        }
+
+        if (!resp.ok || data.status === 'ERRO' || data.status === 'ERRO_INTERNO') {
+          throw new Error(data.mensagem || `Erro HTTP: ${resp.status}`);
+        }
+
+        // --- 1. Atualiza o Usuário Logado no Topo com o retorno do Protheus ---
         USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
         const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
-        
+
         document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
         document.getElementById('nomeOperadorLogado').textContent = nomeCompleto;
-        
-        // Calcula iniciais para o Avatar (ex: "Rodrigo Amaral" -> "RA")
-        const partesNome = nomeCompleto.split(' ').filter(n => n.length > 0);
-        let iniciais = partesNome[0][0];
-        if(partesNome.length > 1) iniciais += partesNome[partesNome.length - 1][0];
+
+        const partesNome = nomeCompleto.trim().split(/\s+/).filter(n => n.length > 0);
+        let iniciais = partesNome[0] ? partesNome[0][0] : 'U';
+        if (partesNome.length > 1) {
+          iniciais += partesNome[partesNome.length - 1][0];
+        }
         document.getElementById('avatarUser').textContent = iniciais.toUpperCase();
 
         document.getElementById("statusBadge").textContent = "ONLINE • PROTHEUS";
         document.getElementById("statusBadge").style.color = "#059669";
         document.getElementById("statusBadge").style.background = "#d1fae5";
 
-        // --- 2. Renderização da Tabela ---
+        // --- 2. Renderiza a Tabela com os dados reais da SC2010 ---
         const lista = data.ops || [];
         renderizarTabela(lista);
 
       } catch (err) {
-        console.error("Falha na API Protheus:", err);
+        console.error("Falha detalhada na API Protheus:", err);
         document.getElementById("statusBadge").textContent = "OFFLINE • ERRO";
         document.getElementById("statusBadge").style.color = "#dc2626";
         document.getElementById("statusBadge").style.background = "#fee2e2";
-        
-        // Sem valores mocados, exibe o erro diretamente
+
         tbody.innerHTML = `<tr><td colspan="11" class="loading-row" style="color: #dc2626;">Erro de comunicação com o Protheus: ${err.message}</td></tr>`;
         atualizarKPIs(0, 0, 0, 0);
       }
@@ -204,13 +212,12 @@
       let comigo = 0;
 
       if (ops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Nenhuma ordem de produção em aberto encontrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Nenhuma ordem de produção em aberto encontrada na SC2010.</td></tr>';
         atualizarKPIs(0, 0, 0, 0);
         return;
       }
 
       ops.forEach(op => {
-        // Validação usando o USUARIO_LOGADO retornado pela API
         const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
         if (isMinha) comigo++;
         if (!op.codOperador) disponiveis++;
@@ -262,11 +269,12 @@
           headers: {
             'Content-Type': 'application/json',
             'tenantId': '01,0101',
-            'Authorization': authHeader // Envio das credenciais
+            'Authorization': authHeader
           },
           body: JSON.stringify({
+            acao: 'assumir',
             op: op,
-            novoOperador: USUARIO_LOGADO // Enviando o usuário retornado pela API
+            novoOperador: USUARIO_LOGADO
           })
         });
 
@@ -278,7 +286,7 @@
           alert("Erro ao assumir OP: " + (res.mensagem || "Falha na comunicação com o Protheus"));
         }
       } catch (err) {
-        console.error(err);
+        console.error("Erro ao assumir OP:", err);
         alert(`Erro de comunicação ao tentar assumir OP: ${err.message}`);
       }
     }
