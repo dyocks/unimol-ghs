@@ -401,7 +401,7 @@
     let USUARIO_LOGADO = '';
     let ID_USUARIO_LOGADO = ''; 
     let listaOPsGlobal = []; 
-    let listaUsuariosPCP = []; // Guardará os usuários para transferência
+    let listaUsuariosPCP = []; 
     
     let opPendenteAssumir = null;
     let opAtualTransferencia = '';
@@ -447,7 +447,7 @@
       fecharModalAssumir();
     });
 
-    // Função principal do Modal Transferir com Layout Bonito
+    // Função principal do Modal Transferir
     function abrirModalTransferir(op) {
       opAtualTransferencia = op;
       usuarioSelecionadoTransf = '';
@@ -461,7 +461,7 @@
          container.innerHTML = `<div class="loading-row">Nenhum usuário localizado. Verifique se existem usuários nos grupos 000000 e 000004.</div>`;
       } else {
          listaUsuariosPCP.forEach(u => {
-            // Ignora o próprio usuário logado (não faz sentido transferir para si mesmo)
+            // Ignora o próprio usuário logado
             if (u.id.trim() === ID_USUARIO_LOGADO.trim()) return;
 
             const partes = u.nome.trim().split(/\s+/);
@@ -473,7 +473,7 @@
               <div class="user-avatar-circle">${iniciais}</div>
               <div class="user-card-info">
                 <div class="user-card-name">${u.nome}</div>
-                <div class="user-card-login">${u.login.toLowerCase()}</div>
+                <div class="user-card-login">ID: ${u.login}</div>
               </div>
             `;
             card.onclick = () => {
@@ -604,7 +604,6 @@
 
         let botaoAcao = "";
         if (isMinha) {
-          // REDIRECIONAMENTO DIRETO PARA pa1.html VIA URL
           botaoAcao = `
             <div style="display: flex; gap: 8px; justify-content: center;">
               <button class="btn-assumir btn-transferir" onclick="abrirModalTransferir('${op.opCompleta}')" title="Repassar OP">
@@ -674,7 +673,7 @@
           body: JSON.stringify({ 
             acao: 'assumir', 
             op: opAtualTransferencia, 
-            novoOperador: usuarioSelecionadoTransf // Envia o ID de 6 chars que selecionamos
+            novoOperador: usuarioSelecionadoTransf 
           })
         });
         const res = await resp.json();
