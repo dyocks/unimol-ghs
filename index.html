@@ -313,7 +313,7 @@
     const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     let USUARIO_LOGADO = '';
-    let ID_USUARIO_LOGADO = ''; // Adicionado para comparar com o ID de 6 chars do Protheus
+    let ID_USUARIO_LOGADO = ''; 
     let opPendente = null;
     let listaOPsGlobal = []; 
 
@@ -358,12 +358,15 @@
           }
         });
 
-        const text = await resp.text();
+        // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
+        
         let data;
         try {
           data = JSON.parse(text);
         } catch (e) {
-          throw new Error(`HTTP ${resp.status}: ${text}`);
+          throw new Error(`HTTP ${resp.status}: Falha ao ler JSON`);
         }
 
         if (!resp.ok || data.status === 'ERRO' || data.status === 'ERRO_INTERNO') {
@@ -371,7 +374,7 @@
         }
 
         USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
-        ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; // Pegando o ID do JSON
+        ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; 
         
         const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
 
@@ -414,9 +417,7 @@
       let crit = 0;
 
       listaOPsGlobal.forEach(op => {
-        // Agora compara o codOperador da OP com o ID_USUARIO_LOGADO (ex: "000015")
         const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
-        
         if (!op.codOperador) {
           disp++;
         } else {
@@ -445,7 +446,6 @@
       } else if (tipo === 'disponiveis') {
         opsParaRenderizar = listaOPsGlobal.filter(op => !op.codOperador);
       } else if (tipo === 'comigo') {
-        // Comparação usando o ID em vez do nome de usuário
         opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
       } else if (tipo === 'criticas') { 
         opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador);
@@ -464,7 +464,6 @@
       }
 
       ops.forEach(op => {
-        // Comparação usando o ID em vez do nome de usuário
         const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
         
         const tr = document.createElement("tr");
@@ -514,19 +513,18 @@
             'tenantId': '01,0101',
             'Authorization': authHeader
           },
-          body: JSON.stringify({
-            acao: 'assumir',
-            op: op,
-            novoOperador: USUARIO_LOGADO
-          })
+          body: JSON.stringify({ acao: 'assumir', op: op, novoOperador: USUARIO_LOGADO })
         });
 
-        const text = await resp.text();
+        // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
+        
         let res;
         try {
           res = JSON.parse(text);
         } catch (e) {
-          throw new Error(`Resposta inválida do servidor: ${text}`);
+          throw new Error(`Resposta inválida do servidor`);
         }
 
         if (resp.ok && res.status === 'OK') {

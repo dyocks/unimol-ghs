@@ -423,7 +423,12 @@
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader }
         });
-        const data = await resp.json();
+        
+        // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
+        const data = JSON.parse(text);
+
         if (resp.ok && data.status === 'OK') {
            listaUsuariosPCP = data.usuarios || [];
         }
@@ -461,7 +466,6 @@
          container.innerHTML = `<div class="loading-row">Nenhum usuário localizado. Verifique se existem usuários nos grupos 000000 e 000004.</div>`;
       } else {
          listaUsuariosPCP.forEach(u => {
-            // Ignora o próprio usuário logado
             if (u.id.trim() === ID_USUARIO_LOGADO.trim()) return;
 
             const partes = u.nome.trim().split(/\s+/);
@@ -477,18 +481,14 @@
               </div>
             `;
             card.onclick = () => {
-              // Remove a seleção de todos os cards
               document.querySelectorAll('.user-card').forEach(c => c.classList.remove('selected'));
-              // Aplica no clicado
               card.classList.add('selected');
-              // Salva o ID (000015, etc) e libera o botão
               usuarioSelecionadoTransf = u.id;
               document.getElementById('btnConfirmarTransferencia').disabled = false;
             };
             container.appendChild(card);
          });
          
-         // Caso ele seja o único usuário do grupo
          if(container.innerHTML === "") {
              container.innerHTML = `<div class="loading-row">Você é o único usuário nos grupos PCP/Admin.</div>`;
          }
@@ -512,7 +512,9 @@
           headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader }
         });
 
-        const text = await resp.text();
+        // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
         let data = JSON.parse(text);
 
         if (!resp.ok || data.status === 'ERRO' || data.status === 'ERRO_INTERNO') {
@@ -649,7 +651,12 @@
           headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader },
           body: JSON.stringify({ acao: 'assumir', op: op, novoOperador: USUARIO_LOGADO })
         });
-        const res = await resp.json();
+        
+        // CORREÇÃO DE ENCODING
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
+        const res = JSON.parse(text);
+        
         if (resp.ok && res.status === 'OK') {
           showToast(`✓ OP ${op} assumida com sucesso!`, 'success');
           carregarOrdensAbertas();
@@ -676,7 +683,12 @@
             novoOperador: usuarioSelecionadoTransf 
           })
         });
-        const res = await resp.json();
+        
+        // CORREÇÃO DE ENCODING
+        const buffer = await resp.arrayBuffer();
+        const text = new TextDecoder('windows-1252').decode(buffer);
+        const res = JSON.parse(text);
+        
         if (resp.ok && res.status === 'OK') {
           showToast(`✓ OP transferida com sucesso!`, 'success');
           carregarOrdensAbertas();
@@ -697,7 +709,7 @@
       }
     }
 
-    // Inicialização (Busca lista de usuários do PCP em background)
+    // Inicialização
     window.addEventListener('DOMContentLoaded', () => {
        carregarUsuariosPCP();
        carregarOrdensAbertas();
