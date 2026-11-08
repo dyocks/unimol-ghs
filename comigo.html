@@ -6,11 +6,10 @@
   <title>PCP Químico - Minhas Ordens (Comigo)</title>
   <link rel="stylesheet" href="style-base.css">
   <style>
-    .btn-transferir {
-      background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      color: #334155;
-      padding: 7px 14px;
+    .btn-assumir {
+      background: linear-gradient(135deg, #009ca6, #007a82);
+      color: #ffffff;
+      padding: 8px 16px;
       border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 700;
@@ -18,28 +17,194 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 2px 6px rgba(0, 156, 166, 0.3);
       cursor: pointer;
+      border: none;
       touch-action: manipulation;
       transition: all 0.15s ease;
     }
-    .btn-transferir:hover {
-      background: #f8fafc;
-      border-color: #94a3b8;
-    }
-    .btn-transferir:active {
+    .btn-assumir:active:not(.btn-disabled) {
       transform: scale(0.96);
-      background: #f1f5f9;
     }
-    .action-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    .btn-apontar {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
     }
+    .btn-disabled {
+      background: #cbd5e1 !important;
+      color: #64748b !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+    }
+    
     .loading-row {
       text-align: center;
       padding: 30px;
       color: #64748b;
       font-weight: 600;
+    }
+
+    /* KPIs CLICÁVEIS */
+    .kpi-card {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+    .kpi-card.ativo {
+      border: 2px solid #009ca6;
+      background: #f0fdfa;
+    }
+
+    /* MODAL CENTRALIZADO */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px 28px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+      text-align: center;
+    }
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0284c7;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    .btn-modal-cancel {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      padding: 9px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-modal-confirm {
+      background: linear-gradient(135deg, #009ca6, #007a82);
+      color: #ffffff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 156, 166, 0.35);
+      transition: opacity 0.15s;
+    }
+    .btn-modal-confirm-green {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+    }
+
+    /* TOAST CENTRALIZADO */
+    .toast-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 16px 28px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: none;
+      opacity: 0;
+      z-index: 10000;
+      transition: all 0.2s ease;
+      align-items: center;
+      gap: 12px;
+      max-width: 90%;
+    }
+    .toast-center.active {
+      display: inline-flex;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .toast-success {
+      background: #065f46;
+      border-left: 6px solid #10b981;
+    }
+    .toast-error {
+      background: #7f1d1d;
+      border-left: 6px solid #ef4444;
+    }
+
+    /* Form Apontamento */
+    .form-grid {
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 12px; 
+      text-align: left;
+    }
+    .form-grid label {
+      font-size: 0.8rem; 
+      font-weight: 600; 
+      color: #475569;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .form-grid input {
+      width: 100%; 
+      padding: 8px; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
     }
   </style>
 </head>
@@ -53,6 +218,7 @@
       <span>Início</span>
     </a>
 
+    <!-- Ativo na página Comigo -->
     <a href="comigo.html" class="nav-link active" title="Minhas Ordens">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Comigo</span>
@@ -68,35 +234,35 @@
   <div class="main-area">
     <header class="topbar">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <span class="app-title">MINHAS ORDENS ASSUMIDAS (COMIGO)</span>
-        <span class="badge-online" id="statusBadge">ONLINE • PROTHEUS</span>
+        <span class="app-title">MINHAS ORDENS DE PRODUÇÃO</span>
+        <span class="badge-online" id="statusBadge">CONECTANDO...</span>
       </div>
       <div class="user-pill">
-        <div class="user-avatar" style="background:#0284c7; color:white;">RA</div>
+        <div class="user-avatar" id="avatarUser">--</div>
         <div>
-          <div style="font-weight: 700; font-size: 0.82rem;">Rodrigo Amaral</div>
-          <div style="font-size: 0.72rem; color: #0284c7; font-weight:700;">rodrigo.amaral</div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="nomeOperadorLogado">Carregando...</div>
+          <div style="font-size: 0.72rem; color: #64748b;" id="loginOperadorLogado">aguarde</div>
         </div>
       </div>
     </header>
 
     <main class="content-scroll">
       <div class="kpi-row">
-        <div class="kpi-card">
-          <span class="kpi-num" style="color: #0284c7;" id="kpiMinhas">0</span>
-          <span class="kpi-label">OPs Comigo</span>
+        <div class="kpi-card" id="kpiCardTotal" onclick="filtrarPorKPI('todos')">
+          <span class="kpi-num" style="color: #0284c7;" id="kpiTotal">0</span>
+          <span class="kpi-label">Total OPs em Aberto</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-num" style="color: #16a34a;" id="kpiEmReacao">0</span>
-          <span class="kpi-label">Em Monitoramento</span>
+        <div class="kpi-card" id="kpiCardDisponiveis" onclick="filtrarPorKPI('disponiveis')">
+          <span class="kpi-num" style="color: #ea580c;" id="kpiDisponiveis">0</span>
+          <span class="kpi-label">Disponíveis p/ Assumir</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-num" style="color: #ea580c;" id="kpiPesagem">0</span>
-          <span class="kpi-label">Prontas para Apontar</span>
+        <div class="kpi-card ativo" id="kpiCardComigo" onclick="filtrarPorKPI('comigo')">
+          <span class="kpi-num" style="color: #16a34a;" id="kpiComigo">0</span>
+          <span class="kpi-label">Comigo</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-num" style="color: #64748b;">Turno A</span>
-          <span class="kpi-label">Escala Ativa</span>
+        <div class="kpi-card" id="kpiCardCriticas" onclick="filtrarPorKPI('criticas')">
+          <span class="kpi-num" style="color: #dc2626;" id="kpiCriticas">0</span>
+          <span class="kpi-label">Em Andamento Geral</span>
         </div>
       </div>
 
@@ -104,15 +270,12 @@
         <div class="table-toolbar">
           <div class="search-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="filtroOP" placeholder="Filtrar minhas ordens..." onkeyup="filtrarTabela()">
+            <input type="text" id="filtroOP" placeholder="Pesquisar por OP, Produto ou Lote..." onkeyup="filtrarTabelaText()">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
-            <button onclick="carregarMinhasOrdens()" style="background:#ffffff; border:1.5px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
+            <button onclick="carregarOrdensAbertas()" style="background:#ffffff; border:1.5px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
               🔄 Atualizar
             </button>
-            <div style="font-size: 0.85rem; color: #15803d; font-weight: 700;" id="txtCount">
-              Filtrando campo C2_XOPERAD
-            </div>
           </div>
         </div>
 
@@ -126,14 +289,14 @@
               <th>Produto</th>
               <th>Desc. Produto</th>
               <th style="text-align: center;">Armazém</th>
-              <th style="text-align: center;">Tipo OP</th>
               <th>Lote UNIMOL</th>
-              <th style="text-align: center;">Ações</th>
+              <th>Responsável</th>
+              <th style="text-align: center;">Ação</th>
             </tr>
           </thead>
-          <tbody id="tbodyComigo">
+          <tbody id="tbodyOPs">
             <tr>
-              <td colspan="10" class="loading-row">Carregando ordens sob sua responsabilidade...</td>
+              <td colspan="10" class="loading-row">Carregando ordens de produção do Protheus...</td>
             </tr>
           </tbody>
         </table>
@@ -141,129 +304,349 @@
     </main>
   </div>
 
-  <script>
-    const API_BASE = '/rest/WSPCPQUIM';
-    const USUARIO_LOGADO = 'rodrigo.amaral';
+  <!-- MODAL DE APONTAMENTO -->
+  <div class="modal-overlay" id="modalApontar">
+    <div class="modal-box">
+      <div class="modal-title" style="margin-bottom: 5px;">Apontamento de Produção</div>
+      <div class="modal-desc" style="margin-bottom: 20px;">
+        OP: <strong id="apontNumOP">---</strong> | Produto: <strong id="apontCodProd">---</strong>
+      </div>
+      
+      <div class="form-grid">
+        <div>
+          <label>Operação</label>
+          <input type="text" id="iptOperacao" value="01" placeholder="Ex: 01">
+        </div>
+        <div>
+          <label>Recurso</label>
+          <input type="text" id="iptRecurso" placeholder="Ex: MAQ01">
+        </div>
+        <div>
+          <label>Hora Início</label>
+          <input type="time" id="iptHoraIni">
+        </div>
+        <div>
+          <label>Hora Fim</label>
+          <input type="time" id="iptHoraFim">
+        </div>
+        <div>
+          <label>Qtd. Produzida</label>
+          <input type="number" id="iptQtdProd" step="0.01" placeholder="0.00">
+        </div>
+        <div>
+          <label>Qtd. Perda</label>
+          <input type="number" id="iptQtdPerda" value="0" step="0.01">
+        </div>
+      </div>
 
-    async function carregarMinhasOrdens() {
-      const tbody = document.getElementById("tbodyComigo");
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="fecharModalApontar()">Cancelar</button>
+        <button class="btn-modal-confirm btn-modal-confirm-green" onclick="executarApontamento()">Salvar Apontamento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO (Assumir - Caso o usuário mude o filtro) -->
+  <div class="modal-overlay" id="modalConfirmar">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      </div>
+      <div class="modal-title">Assumir Ordem de Produção</div>
+      <div class="modal-desc">
+        Deseja assumir a responsabilidade pela OP <strong id="modalNumOP">---</strong>?
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="fecharModalAssumir()">Cancelar</button>
+        <button class="btn-modal-confirm" id="btnModalConfirmar">Confirmar e Assumir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICAÇÃO -->
+  <div class="toast-center" id="toastCenter"></div>
+
+  <script>
+    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
+
+    const urlParams  = new URLSearchParams(window.location.search);
+    const USER_LOGIN = 'rodrigo.amaral';
+    const USER_PASS  = 'RaquelEduarda2010@';
+    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+
+    let USUARIO_LOGADO = '';
+    let ID_USUARIO_LOGADO = ''; 
+    let listaOPsGlobal = []; 
+    
+    let opPendenteAssumir = null;
+    let opAtualApontamento = '';
+    let prodAtualApontamento = '';
+
+    function showToast(mensagem, tipo = 'success', tempo = 2200) {
+      const toast = document.getElementById("toastCenter");
+      toast.textContent = mensagem;
+      toast.className = `toast-center active ${tipo === 'success' ? 'toast-success' : 'toast-error'}`;
+      setTimeout(() => {
+        toast.className = "toast-center";
+      }, tempo);
+    }
+
+    // Modal Assumir
+    function abrirModalAssumir(op) {
+      opPendenteAssumir = op;
+      document.getElementById("modalNumOP").textContent = op;
+      document.getElementById("modalConfirmar").classList.add("active");
+    }
+    function fecharModalAssumir() {
+      opPendenteAssumir = null;
+      document.getElementById("modalConfirmar").classList.remove("active");
+    }
+    document.getElementById("btnModalConfirmar").addEventListener("click", () => {
+      if (opPendenteAssumir) executarAssumirOP(opPendenteAssumir);
+      fecharModalAssumir();
+    });
+
+    // Modal Apontamento
+    function abrirModalApontar(op, produto, qtdPrevista) {
+      opAtualApontamento = op;
+      prodAtualApontamento = produto;
+      document.getElementById('apontNumOP').textContent = op;
+      document.getElementById('apontCodProd').textContent = produto;
+      document.getElementById('iptQtdProd').value = qtdPrevista || '';
+      
+      // Auto-preenche a hora inicial com agora (para facilitar o preenchimento)
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('iptHoraFim').value = `${hh}:${mm}`;
+      
+      document.getElementById('modalApontar').classList.add("active");
+    }
+    function fecharModalApontar() {
+      document.getElementById('modalApontar').classList.remove("active");
+    }
+
+    async function carregarOrdensAbertas() {
+      const tbody = document.getElementById("tbodyOPs");
       tbody.innerHTML = '<tr><td colspan="10" class="loading-row">Consultando API Protheus...</td></tr>';
 
       try {
-        const resp = await fetch(`${API_BASE}/comigo?usuario=${encodeURIComponent(USUARIO_LOGADO)}`, {
+        const resp = await fetch(`${API_BASE}/ops`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'tenantId': '01,0101'
+            'tenantId': '01,0101',
+            'Authorization': authHeader
           }
         });
 
-        if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
-        const data = await resp.json();
-        const lista = data.ops || [];
-        renderizarTabela(lista);
+        const text = await resp.text();
+        let data = JSON.parse(text);
+
+        if (!resp.ok || data.status === 'ERRO' || data.status === 'ERRO_INTERNO') {
+          throw new Error(data.mensagem || `Erro HTTP: ${resp.status}`);
+        }
+
+        USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
+        ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; 
+        
+        const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
+
+        document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
+        document.getElementById('nomeOperadorLogado').textContent = nomeCompleto;
+
+        const partesNome = nomeCompleto.trim().split(/\s+/).filter(n => n.length > 0);
+        let iniciais = partesNome[0] ? partesNome[0][0] : 'U';
+        if (partesNome.length > 1) {
+          iniciais += partesNome[partesNome.length - 1][0];
+        }
+        document.getElementById('avatarUser').textContent = iniciais.toUpperCase();
+
+        document.getElementById("statusBadge").textContent = "ONLINE • PROTHEUS";
+        document.getElementById("statusBadge").style.color = "#059669";
+        document.getElementById("statusBadge").style.background = "#d1fae5";
+
+        listaOPsGlobal = data.ops || [];
+        atualizarContadoresGlobais();
+        
+        // NOVIDADE: Na página comigo, o filtro padrão ao carregar é 'comigo'
+        filtrarPorKPI('comigo');
+
       } catch (err) {
-        console.warn("Falha na API Protheus, carregando dados locais:", err);
-        document.getElementById("statusBadge").textContent = "MODO DEMO • OFFLINE";
-        document.getElementById("statusBadge").style.color = "#ea580c";
-        document.getElementById("statusBadge").style.background = "#fff7ed";
-        renderizarMock();
+        document.getElementById("statusBadge").textContent = "OFFLINE • ERRO";
+        document.getElementById("statusBadge").style.color = "#dc2626";
+        document.getElementById("statusBadge").style.background = "#fee2e2";
+        tbody.innerHTML = `<tr><td colspan="10" class="loading-row" style="color: #dc2626;">Erro: ${err.message}</td></tr>`;
       }
     }
 
+    function atualizarContadoresGlobais() {
+      let disp = 0; let com = 0; let crit = 0;
+      listaOPsGlobal.forEach(op => {
+        const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
+        if (!op.codOperador) {
+          disp++;
+        } else {
+          crit++;
+          if (isMinha) com++;
+        }
+      });
+      document.getElementById("kpiTotal").textContent = listaOPsGlobal.length;
+      document.getElementById("kpiDisponiveis").textContent = disp;
+      document.getElementById("kpiComigo").textContent = com;
+      document.getElementById("kpiCriticas").textContent = crit;
+    }
+
+    function filtrarPorKPI(tipo) {
+      document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('ativo'));
+      if (tipo === 'todos') document.getElementById('kpiCardTotal').classList.add('ativo');
+      if (tipo === 'disponiveis') document.getElementById('kpiCardDisponiveis').classList.add('ativo');
+      if (tipo === 'comigo') document.getElementById('kpiCardComigo').classList.add('ativo');
+      if (tipo === 'criticas') document.getElementById('kpiCardCriticas').classList.add('ativo');
+
+      let opsParaRenderizar = [];
+      if (tipo === 'todos') {
+        opsParaRenderizar = listaOPsGlobal;
+      } else if (tipo === 'disponiveis') {
+        opsParaRenderizar = listaOPsGlobal.filter(op => !op.codOperador);
+      } else if (tipo === 'comigo') {
+        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
+      } else if (tipo === 'criticas') { 
+        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador);
+      }
+      renderizarTabela(opsParaRenderizar);
+    }
+
     function renderizarTabela(ops) {
-      const tbody = document.getElementById("tbodyComigo");
+      const tbody = document.getElementById("tbodyOPs");
       tbody.innerHTML = "";
 
-      document.getElementById("kpiMinhas").textContent = ops.length;
-      document.getElementById("kpiEmReacao").textContent = ops.length > 0 ? 1 : 0;
-      document.getElementById("kpiPesagem").textContent = ops.length;
-      document.getElementById("txtCount").textContent = `✓ ${ops.length} Ordem(ns) atribuída(s) a você`;
-
       if (ops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="loading-row">Você não possui nenhuma Ordem de Produção assumida no momento. Acesse "Início" para assumir.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="loading-row">Nenhuma OP encontrada para este filtro.</td></tr>';
         return;
       }
 
       ops.forEach(op => {
+        const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
         const tr = document.createElement("tr");
-        tr.style.background = "#f0fdf4";
+        if (isMinha) tr.style.background = "#f0fdf4";
+
+        const badgeResp = op.nomeOperador ? 
+          `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
+          `<span style="color:#94a3b8; font-size:0.82rem;">Disponível</span>`;
+
+        // Lógica de botões adaptada
+        let botaoAcao = "";
+        if (isMinha) {
+          // Se for dele, libera botão verde de Apontar
+          botaoAcao = `<button class="btn-assumir btn-apontar" onclick="abrirModalApontar('${op.opCompleta}', '${op.produto}', '${op.qtdPrev}')">
+                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                         Apontar
+                       </button>`;
+        } else if (op.codOperador) {
+          // Se for de outro, exibe inativo
+          botaoAcao = `<button class="btn-assumir btn-disabled" disabled title="Responsável: ${op.nomeOperador}">Assumida</button>`;
+        } else {
+          // Se estiver vazia (caso o usuário mude o filtro para Todos) exibe assumir
+          botaoAcao = `<button class="btn-assumir" onclick="abrirModalAssumir('${op.opCompleta}')">Assumir</button>`;
+        }
 
         tr.innerHTML = `
-          <td><span class="badge-bullet bullet-green"></span></td>
+          <td><span class="badge-bullet ${isMinha ? 'bullet-green' : (op.codOperador ? 'bullet-orange' : 'bullet-red')}"></span></td>
           <td><strong>${op.num}</strong></td>
           <td style="text-align: center;">${op.item}</td>
           <td style="text-align: center;">${op.seq}</td>
           <td><code>${op.produto}</code></td>
           <td>${op.desc}</td>
           <td style="text-align: center;">${op.armazem}</td>
-          <td style="text-align: center;">${op.tipo === 'F' ? 'Firme' : op.tipo}</td>
           <td>${op.lote || '—'}</td>
+          <td>${badgeResp}</td>
           <td style="text-align: center;">
-            <div class="action-group">
-              <button class="btn-transferir" onclick="transferirOP('${op.opCompleta}')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
-                Transferir OP
-              </button>
-              <a href="pa1.html?op=${op.opCompleta}&cod=${op.produto}" class="btn-apontar" style="background: linear-gradient(135deg, #16a34a, #15803d);">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Apontar
-              </a>
-            </div>
+            ${botaoAcao}
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    async function transferirOP(op) {
-      const novoOperador = prompt(`Transferir a OP ${op} para qual login de operador/químico? (Ex: jose.quimico, marcelo.franco)`);
-      if (!novoOperador || novoOperador.trim() === "") return;
-
+    // AÇÃO 1: ASSUMIR (Se ele clicar em "Disponíveis" dentro da página Comigo)
+    async function executarAssumirOP(op) {
+      showToast(`Atribuindo OP ${op} no Protheus...`, 'success', 1500);
       try {
         const resp = await fetch(`${API_BASE}/assumir`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'tenantId': '01,0101'
-          },
-          body: JSON.stringify({
-            op: op,
-            novoOperador: novoOperador.trim().toLowerCase()
-          })
+          headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader },
+          body: JSON.stringify({ acao: 'assumir', op: op, novoOperador: USUARIO_LOGADO })
         });
-
         const res = await resp.json();
         if (resp.ok && res.status === 'OK') {
-          alert(`✓ OP ${op} transferida para ${res.nomeOperador || novoOperador} com sucesso!`);
-          carregarMinhasOrdens();
+          showToast(`✓ OP ${op} assumida com sucesso!`, 'success');
+          carregarOrdensAbertas(); // Recarrega e volta pro filtro "Comigo"
         } else {
-          alert("Erro ao transferir OP: " + (res.mensagem || "Falha"));
+          showToast(`Erro: ${res.mensagem}`, 'error', 3500);
         }
       } catch (err) {
-        console.error(err);
-        alert(`✓ OP ${op} transferida em modo demonstração.`);
-        carregarMinhasOrdens();
+        showToast(`Erro de comunicação: ${err.message}`, 'error', 3500);
       }
     }
 
-    function filtrarTabela() {
+    // AÇÃO 2: APONTAR (Para OPs já Assumidas)
+    async function executarApontamento() {
+      const operacao = document.getElementById('iptOperacao').value;
+      const recurso = document.getElementById('iptRecurso').value;
+      const horaIni = document.getElementById('iptHoraIni').value;
+      const horaFim = document.getElementById('iptHoraFim').value;
+      const qtdProd = document.getElementById('iptQtdProd').value;
+      const qtdPerda = document.getElementById('iptQtdPerda').value;
+
+      if(!horaIni || !horaFim || !qtdProd || !recurso || !operacao) {
+        showToast("Preencha todos os campos obrigatórios!", "error");
+        return;
+      }
+
+      showToast(`Enviando apontamento da OP ${opAtualApontamento}...`, 'success');
+      fecharModalApontar();
+
+      try {
+        const resp = await fetch(`${API_BASE}/apontar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader },
+          body: JSON.stringify({
+            acao: 'apontar',
+            op: opAtualApontamento,
+            codProduto: prodAtualApontamento,
+            operacao: operacao,
+            recurso: recurso,
+            horaIni: horaIni, 
+            horaFim: horaFim,
+            qtdProduzida: parseFloat(qtdProd),
+            qtdPerda: parseFloat(qtdPerda)
+          })
+        });
+        
+        const text = await resp.text();
+        const res = JSON.parse(text);
+        if (resp.ok && res.status === 'OK') {
+          showToast(`✓ Apontamento MATA681 registrado!`, 'success');
+          carregarOrdensAbertas();
+        } else {
+          showToast(`Erro do ERP: ${res.detalhe || res.mensagem}`, 'error', 4500);
+        }
+      } catch(err) {
+        showToast(`Erro na integração: ${err.message}`, 'error', 3500);
+      }
+    }
+
+    function filtrarTabelaText() {
       const input = document.getElementById("filtroOP").value.toUpperCase();
-      const trs = document.getElementById("tbodyComigo").getElementsByTagName("tr");
+      const trs = document.getElementById("tbodyOPs").getElementsByTagName("tr");
       for (let i = 0; i < trs.length; i++) {
         const texto = trs[i].textContent || trs[i].innerText;
         trs[i].style.display = texto.toUpperCase().indexOf(input) > -1 ? "" : "none";
       }
     }
 
-    function renderizarMock() {
-      const mock = [
-        { num: '000062', item: '01', seq: '001', opCompleta: '00006201001', produto: '888.10.002000.23.0.0001', desc: 'UNIMOL EBSA-A - SC 20KG', armazem: '03', tipo: 'F', lote: '0107228/2026', codOperador: 'RODRIGO.AMARAL', nomeOperador: 'Rodrigo Amaral' }
-      ];
-      renderizarTabela(mock);
-    }
-
-    window.addEventListener('DOMContentLoaded', carregarMinhasOrdens);
+    window.addEventListener('DOMContentLoaded', carregarOrdensAbertas);
   </script>
 </body>
 </html>
