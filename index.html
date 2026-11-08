@@ -313,8 +313,9 @@
     const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     let USUARIO_LOGADO = '';
+    let ID_USUARIO_LOGADO = ''; // Adicionado para comparar com o ID de 6 chars do Protheus
     let opPendente = null;
-    let listaOPsGlobal = []; // Array global para manter todas as OPs
+    let listaOPsGlobal = []; 
 
     function showToast(mensagem, tipo = 'success', tempo = 2200) {
       const toast = document.getElementById("toastCenter");
@@ -370,6 +371,8 @@
         }
 
         USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
+        ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; // Pegando o ID do JSON
+        
         const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
 
         document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
@@ -387,8 +390,8 @@
         document.getElementById("statusBadge").style.background = "#d1fae5";
 
         listaOPsGlobal = data.ops || [];
-        atualizarContadoresGlobais(); // Atualiza os números dos KPIs apenas 1x
-        filtrarPorKPI('todos'); // Renderiza inicial exibindo tudo
+        atualizarContadoresGlobais();
+        filtrarPorKPI('todos');
 
       } catch (err) {
         console.error("Falha na API Protheus:", err);
@@ -411,7 +414,9 @@
       let crit = 0;
 
       listaOPsGlobal.forEach(op => {
-        const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
+        // Agora compara o codOperador da OP com o ID_USUARIO_LOGADO (ex: "000015")
+        const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
+        
         if (!op.codOperador) {
           disp++;
         } else {
@@ -427,14 +432,12 @@
     }
 
     function filtrarPorKPI(tipo) {
-      // 1. Atualizar visual do card ativo
       document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('ativo'));
       if (tipo === 'todos') document.getElementById('kpiCardTotal').classList.add('ativo');
       if (tipo === 'disponiveis') document.getElementById('kpiCardDisponiveis').classList.add('ativo');
       if (tipo === 'comigo') document.getElementById('kpiCardComigo').classList.add('ativo');
       if (tipo === 'criticas') document.getElementById('kpiCardCriticas').classList.add('ativo');
 
-      // 2. Filtrar o array global
       let opsParaRenderizar = [];
       
       if (tipo === 'todos') {
@@ -442,12 +445,12 @@
       } else if (tipo === 'disponiveis') {
         opsParaRenderizar = listaOPsGlobal.filter(op => !op.codOperador);
       } else if (tipo === 'comigo') {
-        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
-      } else if (tipo === 'criticas') { // "Em Andamento" = Qualquer OP que já tenha alguém
+        // Comparação usando o ID em vez do nome de usuário
+        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
+      } else if (tipo === 'criticas') { 
         opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador);
       }
 
-      // 3. Renderizar Tabela
       renderizarTabela(opsParaRenderizar);
     }
 
@@ -461,7 +464,9 @@
       }
 
       ops.forEach(op => {
-        const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
+        // Comparação usando o ID em vez do nome de usuário
+        const isMinha = (op.codOperador && op.codOperador.trim() === ID_USUARIO_LOGADO.trim());
+        
         const tr = document.createElement("tr");
         if (isMinha) tr.style.background = "#f0fdf4";
 
@@ -469,7 +474,6 @@
           `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
           `<span style="color:#94a3b8; font-size:0.82rem;">Disponível</span>`;
 
-        // Regra para desativar botão caso já exista um operador
         const botaoAssumir = op.codOperador 
           ? `<button class="btn-assumir btn-disabled" disabled title="Já atribuída">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -528,7 +532,6 @@
         if (resp.ok && res.status === 'OK') {
           showToast(`✓ OP ${op} assumida com sucesso! Atualizando...`, 'success', 1400);
           setTimeout(() => {
-            // Em vez de mudar de página, apenas recarrega os dados fresquinhos do ERP
             carregarOrdensAbertas(); 
           }, 1400);
         } else {
