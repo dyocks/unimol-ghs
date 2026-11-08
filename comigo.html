@@ -30,6 +30,10 @@
       background: linear-gradient(135deg, #16a34a, #15803d);
       box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
     }
+    .btn-transferir {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
+    }
     .btn-disabled {
       background: #cbd5e1 !important;
       color: #64748b !important;
@@ -144,9 +148,14 @@
       box-shadow: 0 2px 6px rgba(0, 156, 166, 0.35);
       transition: opacity 0.15s;
     }
-    .btn-modal-confirm-green {
-      background: linear-gradient(135deg, #16a34a, #15803d);
-      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+    .btn-modal-confirm-blue {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+    }
+    .btn-modal-confirm-blue:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
     }
 
     /* TOAST CENTRALIZADO */
@@ -184,27 +193,68 @@
       border-left: 6px solid #ef4444;
     }
 
-    /* Form Apontamento */
-    .form-grid {
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 12px; 
+    /* LISTA DE USUARIOS - MODAL TRANSFERENCIA */
+    .user-list-container {
+      max-height: 280px;
+      overflow-y: auto;
+      margin: 15px 0;
+      padding: 2px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .user-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .user-list-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .user-card {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8fafc;
+    }
+    .user-card:hover {
+      border-color: #38bdf8;
+      background: #f0f9ff;
+    }
+    .user-card.selected {
+      border-color: #0284c7;
+      background: #e0f2fe;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15);
+    }
+    .user-avatar-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 14px;
+      font-size: 1.1rem;
+    }
+    .user-card-info {
       text-align: left;
+      flex: 1;
     }
-    .form-grid label {
-      font-size: 0.8rem; 
-      font-weight: 600; 
-      color: #475569;
-      display: block;
-      margin-bottom: 4px;
+    .user-card-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
     }
-    .form-grid input {
-      width: 100%; 
-      padding: 8px; 
-      border: 1px solid #cbd5e1; 
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-family: inherit;
+    .user-card-login {
+      font-size: 0.75rem;
+      color: #64748b;
     }
   </style>
 </head>
@@ -212,18 +262,14 @@
   <!-- LATERAL FIXA -->
   <aside class="sidebar">
     <div class="brand-icon">PCP</div>
-
     <a href="index.html" class="nav-link" title="Ordens Abertas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Início</span>
     </a>
-
-    <!-- Ativo na página Comigo -->
     <a href="comigo.html" class="nav-link active" title="Minhas Ordens">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Comigo</span>
     </a>
-
     <a href="historico.html" class="nav-link" title="Ordens Encerradas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span>Histórico</span>
@@ -291,7 +337,7 @@
               <th style="text-align: center;">Armazém</th>
               <th>Lote UNIMOL</th>
               <th>Responsável</th>
-              <th style="text-align: center;">Ação</th>
+              <th style="text-align: center;">Ações</th>
             </tr>
           </thead>
           <tbody id="tbodyOPs">
@@ -304,49 +350,27 @@
     </main>
   </div>
 
-  <!-- MODAL DE APONTAMENTO -->
-  <div class="modal-overlay" id="modalApontar">
-    <div class="modal-box">
-      <div class="modal-title" style="margin-bottom: 5px;">Apontamento de Produção</div>
-      <div class="modal-desc" style="margin-bottom: 20px;">
-        OP: <strong id="apontNumOP">---</strong> | Produto: <strong id="apontCodProd">---</strong>
+  <!-- MODAL DE TRANSFERÊNCIA -->
+  <div class="modal-overlay" id="modalTransferir">
+    <div class="modal-box" style="max-width: 460px;">
+      <div class="modal-title" style="margin-bottom: 5px;">Transferir OP <span id="transfNumOP" style="color:#0ea5e9;"></span></div>
+      <div class="modal-desc" style="margin-bottom: 5px;">
+        Selecione o operador do grupo <strong>PCP</strong> ou <strong>Administradores</strong>:
       </div>
       
-      <div class="form-grid">
-        <div>
-          <label>Operação</label>
-          <input type="text" id="iptOperacao" value="01" placeholder="Ex: 01">
-        </div>
-        <div>
-          <label>Recurso</label>
-          <input type="text" id="iptRecurso" placeholder="Ex: MAQ01">
-        </div>
-        <div>
-          <label>Hora Início</label>
-          <input type="time" id="iptHoraIni">
-        </div>
-        <div>
-          <label>Hora Fim</label>
-          <input type="time" id="iptHoraFim">
-        </div>
-        <div>
-          <label>Qtd. Produzida</label>
-          <input type="number" id="iptQtdProd" step="0.01" placeholder="0.00">
-        </div>
-        <div>
-          <label>Qtd. Perda</label>
-          <input type="number" id="iptQtdPerda" value="0" step="0.01">
-        </div>
+      <!-- Container dinâmico da lista de usuários -->
+      <div class="user-list-container" id="listaUsuariosContainer">
+         <div class="loading-row">Carregando usuários...</div>
       </div>
 
       <div class="modal-actions">
-        <button class="btn-modal-cancel" onclick="fecharModalApontar()">Cancelar</button>
-        <button class="btn-modal-confirm btn-modal-confirm-green" onclick="executarApontamento()">Salvar Apontamento</button>
+        <button class="btn-modal-cancel" onclick="fecharModalTransferir()">Cancelar</button>
+        <button class="btn-modal-confirm btn-modal-confirm-blue" id="btnConfirmarTransferencia" onclick="executarTransferencia()" disabled>Confirmar Transferência</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO (Assumir - Caso o usuário mude o filtro) -->
+  <!-- MODAL DE CONFIRMAÇÃO (Assumir OP - Caso o usuário mude o filtro) -->
   <div class="modal-overlay" id="modalConfirmar">
     <div class="modal-box">
       <div class="modal-icon">
@@ -377,10 +401,11 @@
     let USUARIO_LOGADO = '';
     let ID_USUARIO_LOGADO = ''; 
     let listaOPsGlobal = []; 
+    let listaUsuariosPCP = []; // Guardará os usuários para transferência
     
     let opPendenteAssumir = null;
-    let opAtualApontamento = '';
-    let prodAtualApontamento = '';
+    let opAtualTransferencia = '';
+    let usuarioSelecionadoTransf = '';
 
     function showToast(mensagem, tipo = 'success', tempo = 2200) {
       const toast = document.getElementById("toastCenter");
@@ -391,7 +416,23 @@
       }, tempo);
     }
 
-    // Modal Assumir
+    // --- CARREGAMENTO INICIAL DE USUÁRIOS (PCP e ADMIN) ---
+    async function carregarUsuariosPCP() {
+      try {
+        const resp = await fetch(`${API_BASE}/usuarios`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader }
+        });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'OK') {
+           listaUsuariosPCP = data.usuarios || [];
+        }
+      } catch (e) {
+        console.error("Falha ao buscar usuários do PCP:", e);
+      }
+    }
+
+    // --- MODAIS ---
     function abrirModalAssumir(op) {
       opPendenteAssumir = op;
       document.getElementById("modalNumOP").textContent = op;
@@ -406,26 +447,61 @@
       fecharModalAssumir();
     });
 
-    // Modal Apontamento
-    function abrirModalApontar(op, produto, qtdPrevista) {
-      opAtualApontamento = op;
-      prodAtualApontamento = produto;
-      document.getElementById('apontNumOP').textContent = op;
-      document.getElementById('apontCodProd').textContent = produto;
-      document.getElementById('iptQtdProd').value = qtdPrevista || '';
+    // Função principal do Modal Transferir com Layout Bonito
+    function abrirModalTransferir(op) {
+      opAtualTransferencia = op;
+      usuarioSelecionadoTransf = '';
+      document.getElementById('transfNumOP').textContent = op;
+      document.getElementById('btnConfirmarTransferencia').disabled = true;
       
-      // Auto-preenche a hora inicial com agora (para facilitar o preenchimento)
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('iptHoraFim').value = `${hh}:${mm}`;
-      
-      document.getElementById('modalApontar').classList.add("active");
+      const container = document.getElementById("listaUsuariosContainer");
+      container.innerHTML = "";
+
+      if(listaUsuariosPCP.length === 0) {
+         container.innerHTML = `<div class="loading-row">Nenhum usuário localizado. Verifique se existem usuários nos grupos 000000 e 000004.</div>`;
+      } else {
+         listaUsuariosPCP.forEach(u => {
+            // Ignora o próprio usuário logado (não faz sentido transferir para si mesmo)
+            if (u.id.trim() === ID_USUARIO_LOGADO.trim()) return;
+
+            const partes = u.nome.trim().split(/\s+/);
+            const iniciais = (partes[0][0] + (partes.length > 1 ? partes[partes.length-1][0] : "")).toUpperCase();
+
+            const card = document.createElement("div");
+            card.className = "user-card";
+            card.innerHTML = `
+              <div class="user-avatar-circle">${iniciais}</div>
+              <div class="user-card-info">
+                <div class="user-card-name">${u.nome}</div>
+                <div class="user-card-login">${u.login.toLowerCase()}</div>
+              </div>
+            `;
+            card.onclick = () => {
+              // Remove a seleção de todos os cards
+              document.querySelectorAll('.user-card').forEach(c => c.classList.remove('selected'));
+              // Aplica no clicado
+              card.classList.add('selected');
+              // Salva o ID (000015, etc) e libera o botão
+              usuarioSelecionadoTransf = u.id;
+              document.getElementById('btnConfirmarTransferencia').disabled = false;
+            };
+            container.appendChild(card);
+         });
+         
+         // Caso ele seja o único usuário do grupo
+         if(container.innerHTML === "") {
+             container.innerHTML = `<div class="loading-row">Você é o único usuário nos grupos PCP/Admin.</div>`;
+         }
+      }
+
+      document.getElementById('modalTransferir').classList.add("active");
     }
-    function fecharModalApontar() {
-      document.getElementById('modalApontar').classList.remove("active");
+    
+    function fecharModalTransferir() {
+      document.getElementById('modalTransferir').classList.remove("active");
     }
 
+    // --- CARREGAMENTO API DE OPs ---
     async function carregarOrdensAbertas() {
       const tbody = document.getElementById("tbodyOPs");
       tbody.innerHTML = '<tr><td colspan="10" class="loading-row">Consultando API Protheus...</td></tr>';
@@ -433,11 +509,7 @@
       try {
         const resp = await fetch(`${API_BASE}/ops`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'tenantId': '01,0101',
-            'Authorization': authHeader
-          }
+          headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader }
         });
 
         const text = await resp.text();
@@ -449,7 +521,6 @@
 
         USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
         ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; 
-        
         const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
 
         document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
@@ -457,9 +528,7 @@
 
         const partesNome = nomeCompleto.trim().split(/\s+/).filter(n => n.length > 0);
         let iniciais = partesNome[0] ? partesNome[0][0] : 'U';
-        if (partesNome.length > 1) {
-          iniciais += partesNome[partesNome.length - 1][0];
-        }
+        if (partesNome.length > 1) iniciais += partesNome[partesNome.length - 1][0];
         document.getElementById('avatarUser').textContent = iniciais.toUpperCase();
 
         document.getElementById("statusBadge").textContent = "ONLINE • PROTHEUS";
@@ -468,8 +537,6 @@
 
         listaOPsGlobal = data.ops || [];
         atualizarContadoresGlobais();
-        
-        // NOVIDADE: Na página comigo, o filtro padrão ao carregar é 'comigo'
         filtrarPorKPI('comigo');
 
       } catch (err) {
@@ -535,19 +602,24 @@
           `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
           `<span style="color:#94a3b8; font-size:0.82rem;">Disponível</span>`;
 
-        // Lógica de botões adaptada
         let botaoAcao = "";
         if (isMinha) {
-          // Se for dele, libera botão verde de Apontar
-          botaoAcao = `<button class="btn-assumir btn-apontar" onclick="abrirModalApontar('${op.opCompleta}', '${op.produto}', '${op.qtdPrev}')">
-                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                         Apontar
-                       </button>`;
+          // REDIRECIONAMENTO DIRETO PARA pa1.html VIA URL
+          botaoAcao = `
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button class="btn-assumir btn-transferir" onclick="abrirModalTransferir('${op.opCompleta}')" title="Repassar OP">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3v4"/><path d="M21 7h-4"/><path d="M3 13h4"/><path d="M7 17v-4"/><path d="M14 14.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"/><path d="M21 21v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/></svg>
+                Transferir
+              </button>
+              <button class="btn-assumir btn-apontar" onclick="window.location.href='pa1.html?op=${op.opCompleta}&produto=${op.produto}'" title="Abrir Tela de Apontamento">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Apontar
+              </button>
+            </div>
+          `;
         } else if (op.codOperador) {
-          // Se for de outro, exibe inativo
           botaoAcao = `<button class="btn-assumir btn-disabled" disabled title="Responsável: ${op.nomeOperador}">Assumida</button>`;
         } else {
-          // Se estiver vazia (caso o usuário mude o filtro para Todos) exibe assumir
           botaoAcao = `<button class="btn-assumir" onclick="abrirModalAssumir('${op.opCompleta}')">Assumir</button>`;
         }
 
@@ -569,7 +641,7 @@
       });
     }
 
-    // AÇÃO 1: ASSUMIR (Se ele clicar em "Disponíveis" dentro da página Comigo)
+    // --- FUNÇÕES DE INTEGRAÇÃO (POST) ---
     async function executarAssumirOP(op) {
       showToast(`Atribuindo OP ${op} no Protheus...`, 'success', 1500);
       try {
@@ -581,7 +653,7 @@
         const res = await resp.json();
         if (resp.ok && res.status === 'OK') {
           showToast(`✓ OP ${op} assumida com sucesso!`, 'success');
-          carregarOrdensAbertas(); // Recarrega e volta pro filtro "Comigo"
+          carregarOrdensAbertas();
         } else {
           showToast(`Erro: ${res.mensagem}`, 'error', 3500);
         }
@@ -590,50 +662,30 @@
       }
     }
 
-    // AÇÃO 2: APONTAR (Para OPs já Assumidas)
-    async function executarApontamento() {
-      const operacao = document.getElementById('iptOperacao').value;
-      const recurso = document.getElementById('iptRecurso').value;
-      const horaIni = document.getElementById('iptHoraIni').value;
-      const horaFim = document.getElementById('iptHoraFim').value;
-      const qtdProd = document.getElementById('iptQtdProd').value;
-      const qtdPerda = document.getElementById('iptQtdPerda').value;
-
-      if(!horaIni || !horaFim || !qtdProd || !recurso || !operacao) {
-        showToast("Preencha todos os campos obrigatórios!", "error");
-        return;
-      }
-
-      showToast(`Enviando apontamento da OP ${opAtualApontamento}...`, 'success');
-      fecharModalApontar();
+    async function executarTransferencia() {
+      if (!usuarioSelecionadoTransf) return;
+      showToast(`Transferindo OP ${opAtualTransferencia}...`, 'success', 1500);
+      fecharModalTransferir();
 
       try {
-        const resp = await fetch(`${API_BASE}/apontar`, {
+        const resp = await fetch(`${API_BASE}/assumir`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader },
-          body: JSON.stringify({
-            acao: 'apontar',
-            op: opAtualApontamento,
-            codProduto: prodAtualApontamento,
-            operacao: operacao,
-            recurso: recurso,
-            horaIni: horaIni, 
-            horaFim: horaFim,
-            qtdProduzida: parseFloat(qtdProd),
-            qtdPerda: parseFloat(qtdPerda)
+          body: JSON.stringify({ 
+            acao: 'assumir', 
+            op: opAtualTransferencia, 
+            novoOperador: usuarioSelecionadoTransf // Envia o ID de 6 chars que selecionamos
           })
         });
-        
-        const text = await resp.text();
-        const res = JSON.parse(text);
+        const res = await resp.json();
         if (resp.ok && res.status === 'OK') {
-          showToast(`✓ Apontamento MATA681 registrado!`, 'success');
+          showToast(`✓ OP transferida com sucesso!`, 'success');
           carregarOrdensAbertas();
         } else {
-          showToast(`Erro do ERP: ${res.detalhe || res.mensagem}`, 'error', 4500);
+          showToast(`Erro na transferência: ${res.mensagem || res.detalhe}`, 'error', 4500);
         }
-      } catch(err) {
-        showToast(`Erro na integração: ${err.message}`, 'error', 3500);
+      } catch (err) {
+        showToast(`Erro de comunicação: ${err.message}`, 'error', 3500);
       }
     }
 
@@ -646,7 +698,11 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', carregarOrdensAbertas);
+    // Inicialização (Busca lista de usuários do PCP em background)
+    window.addEventListener('DOMContentLoaded', () => {
+       carregarUsuariosPCP();
+       carregarOrdensAbertas();
+    });
   </script>
 </body>
 </html>
