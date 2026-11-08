@@ -23,14 +23,35 @@
       touch-action: manipulation;
       transition: all 0.15s ease;
     }
-    .btn-assumir:active {
+    .btn-assumir:active:not(.btn-disabled) {
       transform: scale(0.96);
     }
+    .btn-disabled {
+      background: #cbd5e1 !important;
+      color: #64748b !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+    }
+    
     .loading-row {
       text-align: center;
       padding: 30px;
       color: #64748b;
       font-weight: 600;
+    }
+
+    /* KPIs CLICÁVEIS */
+    .kpi-card {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+    .kpi-card.ativo {
+      border: 2px solid #009ca6;
+      background: #f0fdfa;
     }
 
     /* MODAL CENTRALIZADO */
@@ -203,19 +224,19 @@
 
     <main class="content-scroll">
       <div class="kpi-row">
-        <div class="kpi-card">
+        <div class="kpi-card ativo" id="kpiCardTotal" onclick="filtrarPorKPI('todos')">
           <span class="kpi-num" style="color: #0284c7;" id="kpiTotal">0</span>
           <span class="kpi-label">Total OPs em Aberto</span>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card" id="kpiCardDisponiveis" onclick="filtrarPorKPI('disponiveis')">
           <span class="kpi-num" style="color: #ea580c;" id="kpiDisponiveis">0</span>
           <span class="kpi-label">Disponíveis p/ Assumir</span>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card" id="kpiCardComigo" onclick="filtrarPorKPI('comigo')">
           <span class="kpi-num" style="color: #16a34a;" id="kpiComigo">0</span>
           <span class="kpi-label">Comigo</span>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card" id="kpiCardCriticas" onclick="filtrarPorKPI('criticas')">
           <span class="kpi-num" style="color: #dc2626;" id="kpiCriticas">0</span>
           <span class="kpi-label">Em Andamento</span>
         </div>
@@ -225,7 +246,7 @@
         <div class="table-toolbar">
           <div class="search-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="filtroOP" placeholder="Pesquisar por OP, Produto ou Lote..." onkeyup="filtrarTabela()">
+            <input type="text" id="filtroOP" placeholder="Pesquisar por OP, Produto ou Lote..." onkeyup="filtrarTabelaText()">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <button onclick="carregarOrdensAbertas()" style="background:#ffffff; border:1.5px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
@@ -293,6 +314,7 @@
 
     let USUARIO_LOGADO = '';
     let opPendente = null;
+    let listaOPsGlobal = []; // Array global para manter todas as OPs
 
     function showToast(mensagem, tipo = 'success', tempo = 2200) {
       const toast = document.getElementById("toastCenter");
@@ -364,8 +386,9 @@
         document.getElementById("statusBadge").style.color = "#059669";
         document.getElementById("statusBadge").style.background = "#d1fae5";
 
-        const lista = data.ops || [];
-        renderizarTabela(lista);
+        listaOPsGlobal = data.ops || [];
+        atualizarContadoresGlobais(); // Atualiza os números dos KPIs apenas 1x
+        filtrarPorKPI('todos'); // Renderiza inicial exibindo tudo
 
       } catch (err) {
         console.error("Falha na API Protheus:", err);
@@ -374,34 +397,88 @@
         document.getElementById("statusBadge").style.background = "#fee2e2";
 
         tbody.innerHTML = `<tr><td colspan="11" class="loading-row" style="color: #dc2626;">Erro de comunicação: ${err.message}</td></tr>`;
-        atualizarKPIs(0, 0, 0, 0);
+        
+        document.getElementById("kpiTotal").textContent = 0;
+        document.getElementById("kpiDisponiveis").textContent = 0;
+        document.getElementById("kpiComigo").textContent = 0;
+        document.getElementById("kpiCriticas").textContent = 0;
       }
+    }
+
+    function atualizarContadoresGlobais() {
+      let disp = 0;
+      let com = 0;
+      let crit = 0;
+
+      listaOPsGlobal.forEach(op => {
+        const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
+        if (!op.codOperador) {
+          disp++;
+        } else {
+          crit++;
+          if (isMinha) com++;
+        }
+      });
+
+      document.getElementById("kpiTotal").textContent = listaOPsGlobal.length;
+      document.getElementById("kpiDisponiveis").textContent = disp;
+      document.getElementById("kpiComigo").textContent = com;
+      document.getElementById("kpiCriticas").textContent = crit;
+    }
+
+    function filtrarPorKPI(tipo) {
+      // 1. Atualizar visual do card ativo
+      document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('ativo'));
+      if (tipo === 'todos') document.getElementById('kpiCardTotal').classList.add('ativo');
+      if (tipo === 'disponiveis') document.getElementById('kpiCardDisponiveis').classList.add('ativo');
+      if (tipo === 'comigo') document.getElementById('kpiCardComigo').classList.add('ativo');
+      if (tipo === 'criticas') document.getElementById('kpiCardCriticas').classList.add('ativo');
+
+      // 2. Filtrar o array global
+      let opsParaRenderizar = [];
+      
+      if (tipo === 'todos') {
+        opsParaRenderizar = listaOPsGlobal;
+      } else if (tipo === 'disponiveis') {
+        opsParaRenderizar = listaOPsGlobal.filter(op => !op.codOperador);
+      } else if (tipo === 'comigo') {
+        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
+      } else if (tipo === 'criticas') { // "Em Andamento" = Qualquer OP que já tenha alguém
+        opsParaRenderizar = listaOPsGlobal.filter(op => op.codOperador);
+      }
+
+      // 3. Renderizar Tabela
+      renderizarTabela(opsParaRenderizar);
     }
 
     function renderizarTabela(ops) {
       const tbody = document.getElementById("tbodyOPs");
       tbody.innerHTML = "";
 
-      let disponiveis = 0;
-      let comigo = 0;
-
       if (ops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Nenhuma ordem de produção em aberto encontrada na SC2010.</td></tr>';
-        atualizarKPIs(0, 0, 0, 0);
+        tbody.innerHTML = '<tr><td colspan="11" class="loading-row">Nenhuma OP encontrada para este filtro.</td></tr>';
         return;
       }
 
       ops.forEach(op => {
         const isMinha = (op.codOperador && op.codOperador.toUpperCase() === USUARIO_LOGADO.toUpperCase());
-        if (isMinha) comigo++;
-        if (!op.codOperador) disponiveis++;
-
         const tr = document.createElement("tr");
         if (isMinha) tr.style.background = "#f0fdf4";
 
         const badgeResp = op.nomeOperador ? 
           `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
           `<span style="color:#94a3b8; font-size:0.82rem;">Disponível</span>`;
+
+        // Regra para desativar botão caso já exista um operador
+        const botaoAssumir = op.codOperador 
+          ? `<button class="btn-assumir btn-disabled" disabled title="Já atribuída">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+               Assumida
+             </button>`
+          : `<button class="btn-assumir" onclick="abrirModal('${op.opCompleta}')">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+               Assumir
+             </button>`;
 
         tr.innerHTML = `
           <td><span class="badge-bullet ${isMinha ? 'bullet-green' : (op.codOperador ? 'bullet-orange' : 'bullet-red')}"></span></td>
@@ -415,23 +492,11 @@
           <td>${op.lote || '—'}</td>
           <td>${badgeResp}</td>
           <td style="text-align: center;">
-            <button class="btn-assumir" onclick="abrirModal('${op.opCompleta}')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Assumir
-            </button>
+            ${botaoAssumir}
           </td>
         `;
         tbody.appendChild(tr);
       });
-
-      atualizarKPIs(ops.length, disponiveis, comigo, ops.length - disponiveis);
-    }
-
-    function atualizarKPIs(total, disp, com, crit) {
-      document.getElementById("kpiTotal").textContent = total;
-      document.getElementById("kpiDisponiveis").textContent = disp;
-      document.getElementById("kpiComigo").textContent = com;
-      document.getElementById("kpiCriticas").textContent = crit;
     }
 
     async function executarAssumirOP(op) {
@@ -461,9 +526,10 @@
         }
 
         if (resp.ok && res.status === 'OK') {
-          showToast(`✓ OP ${op} assumida com sucesso! Redirecionando...`, 'success', 1400);
+          showToast(`✓ OP ${op} assumida com sucesso! Atualizando...`, 'success', 1400);
           setTimeout(() => {
-            window.location.href = `comigo.html?assumida=${op}`;
+            // Em vez de mudar de página, apenas recarrega os dados fresquinhos do ERP
+            carregarOrdensAbertas(); 
           }, 1400);
         } else {
           showToast(`Erro: ${res.mensagem || res.detalhe || 'Falha ao assumir OP'}`, 'error', 3500);
@@ -474,7 +540,7 @@
       }
     }
 
-    function filtrarTabela() {
+    function filtrarTabelaText() {
       const input = document.getElementById("filtroOP").value.toUpperCase();
       const trs = document.getElementById("tbodyOPs").getElementsByTagName("tr");
       for (let i = 0; i < trs.length; i++) {
