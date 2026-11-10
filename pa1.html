@@ -58,6 +58,27 @@
     /* Botões Padrões */
     .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
     .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
+  
+    /* Modal de Alerta Customizado */
+    .alert-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px;
+    }
+    .alert-card {
+      background: #ffffff; border-radius: 12px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column;
+    }
+    .alert-header {
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      font-weight: 800; font-size: 1.05rem;
+    }
+    .alert-header.error { background: #fef2f2; color: #991b1b; border-bottom: 1.5px solid #fca5a5; }
+    .alert-header.success { background: #f0fdf4; color: #166534; border-bottom: 1.5px solid #86efac; }
+    .alert-body { padding: 20px; font-size: 0.95rem; color: #334155; line-height: 1.5; font-weight: 500; }
+    .alert-footer {
+      padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end;
+    }
+  
   </style>
 </head>
 <body>
@@ -198,7 +219,15 @@
     </main>
 
   </div>
-
+  <div class="alert-overlay" id="customAlertModal">
+    <div class="alert-card">
+      <div class="alert-header error" id="customAlertHeader">Atenção</div>
+      <div class="alert-body" id="customAlertMessage"></div>
+      <div class="alert-footer">
+        <button class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155; height: 38px;" onclick="fecharAlerta()">OK</button>
+      </div>
+    </div>
+  </div>
 <script>
     // 1. CONFIGURAÇÕES DE API E AUTENTICAÇÃO
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
