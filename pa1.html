@@ -565,7 +565,7 @@
       else card.classList.remove('checked-ok');
     }
 
-    // ========================================================================
+   // ========================================================================
     // FINALIZAR CHECKLIST
     // ========================================================================
     async function finalizarChecklist() {
@@ -588,7 +588,6 @@
 
       if(checklistItens.length === 0) return;
       
-      // Bloqueia caso tenha pendências e mostra o Modal Customizado
       if(!todoSim) {
         mostrarAlerta("O Checklist não está completo ou possui não-conformidades.", "error");
         return;
@@ -601,12 +600,18 @@
           body: JSON.stringify({ op: currentOP, itens: checklistItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
-        if(res.status !== 'OK') throw new Error(res.mensagem);
+        
+        // Se o Protheus devolver erro, lança exceção para parar a execução
+        if(res.status !== 'OK') {
+            throw new Error(res.mensagem || "Erro desconhecido no Protheus");
+        }
       } catch(e) {
-        console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
+        console.error("Falha na gravação REST:", e);
+        mostrarAlerta("Falha ao gravar no Protheus: " + e.message, "error");
+        return; // PÁRA A EXECUÇÃO AQUI! Não tranca o ecrã.
       }
 
-      // Bloqueia a edição visual do Checklist
+      // Se passou pelo catch sem erros, bloqueia a edição visual do Checklist
       document.getElementById('checklistForm').style.pointerEvents = 'none';
       document.getElementById('checklistForm').style.opacity = '0.7';
       
@@ -657,7 +662,6 @@
         });
       });
 
-      // Bloqueia caso tenha pendências e mostra o Modal Customizado
       if(!valido) {
         mostrarAlerta("Preencha todos os pesos e confirme todos os lotes (Confirmação Dupla).", "error");
         return;
@@ -670,12 +674,17 @@
           body: JSON.stringify({ op: currentOP, itens: pesagemItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
-        if(res.status !== 'OK') throw new Error(res.mensagem);
+        
+        if(res.status !== 'OK') {
+            throw new Error(res.mensagem || "Erro desconhecido no Protheus");
+        }
       } catch(e) {
-        console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
+        console.error("Falha na gravação REST:", e);
+        mostrarAlerta("Falha ao gravar pesagem no Protheus: " + e.message, "error");
+        return; // PÁRA A EXECUÇÃO AQUI!
       }
 
-      // Bloqueia a edição visual da tabela
+      // Se gravou com sucesso, bloqueia a edição visual da tabela
       document.getElementById('pesagemTbody').style.pointerEvents = 'none';
       const btnSalvar = document.getElementById('btnSalvarPesagemContainer');
       if (btnSalvar) btnSalvar.style.display = 'none';
