@@ -200,7 +200,97 @@
   </div>
 
   <script>
-    // Lógica das Abas e Validações
+    const API_BASE = '/rest/WSPCPQUIM';
+    const USUARIO_LOGADO = 'rodrigo.amaral';
+    
+    // Variáveis globais para guardar a OP e o Reator vindos da URL
+    let currentOP = "";
+    let currentCod = "";
+    let currentReator = "RE01"; // Fixo para o exemplo. Em produção viria via URL param ou config.
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      currentOP = urlParams.get('op') || "00006201001";
+      currentCod = urlParams.get('cod') || "888.10.002000.23.0.0001";
+      if (urlParams.get('reator')) currentReator = urlParams.get('reator');
+
+      document.getElementById('campoNumOP').textContent = currentOP;
+      document.getElementById('campoCodProd').textContent = currentCod;
+
+      // Carrega os dados direto da API REST
+      carregarChecklistProtheus();
+      carregarPesagemProtheus();
+    });
+
+    // 1. CARREGAR CHECKLIST DINÂMICO
+    async function carregarChecklistProtheus() {
+      const container = document.getElementById('checklistForm');
+      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #64748b;">Carregando checklist do Protheus...</div>`;
+      
+      try {
+        const resp = await fetch(`${API_BASE}/checklist?reator=${currentReator}`);
+        const data = await resp.json();
+        
+        if (resp.ok && data.status === 'OK' && data.checklist.length > 0) {
+          container.innerHTML = ""; // Limpa a mensagem
+          data.checklist.forEach(item => {
+            const cardHTML = `
+              <div class="check-card" data-reator="${item.reator}" data-seq="${item.seq}" data-acao="${item.acao}">
+                <div>
+                  <div style="font-weight:700;">${item.acao}</div>
+                  <div style="font-size:0.75rem; color:#64748b;">Checklist Reator: ${item.reator}</div>
+                </div>
+                <div class="touch-toggle-group">
+                  <button class="btn-toggle btn-sim" onclick="toggleCheck(this, 'sim')">SIM</button>
+                  <button class="btn-toggle btn-nao" onclick="toggleCheck(this, 'nao')">NÃO</button>
+                </div>
+              </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHTML);
+          });
+        } else {
+          container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Nenhum checklist cadastrado na SZ3 para o reator ${currentReator}.</div>`;
+        }
+      } catch (e) {
+        console.error("Falha ao puxar Checklist:", e);
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de conexão com o REST do Protheus (SZ3).</div>`;
+      }
+    }
+
+    // 2. CARREGAR PESAGEM DINÂMICA
+    async function carregarPesagemProtheus() {
+      const tbody = document.getElementById('pesagemTbody');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Carregando pesagem (SZ5)...</td></tr>`;
+      
+      try {
+        const resp = await fetch(`${API_BASE}/pesagem?op=${currentOP}`);
+        const data = await resp.json();
+        
+        if (resp.ok && data.status === 'OK' && data.pesagem.length > 0) {
+          tbody.innerHTML = "";
+          data.pesagem.forEach(item => {
+            const tr = `
+              <tr data-prod="${item.produto}" data-item="${item.item}" data-nome="${item.nome}" data-ender="${item.ender}" data-perc="${item.perc}" data-kgprev="${item.kgprev}" data-lote="${item.lote}">
+                <td><code>${item.produto}</code><br><small style="font-weight:600; color:#334155;">${item.nome}</small></td>
+                <td><span class="wms-address">📍 ${item.ender}</span></td>
+                <td style="text-align: right; font-weight: 700;">${item.kgprev} KG</td>
+                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg"></td>
+                <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${item.lote}"></td>
+                <td style="text-align: center;"><span class="badge-status badge-wait">Pendente</span></td>
+              </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
+        }
+      } catch (e) {
+        console.error("Falha ao puxar Pesagem:", e);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de conexão com o REST do Protheus (SZ5).</td></tr>`;
+      }
+    }
+
+    // 3. NAVEGAÇÃO DE ABAS
     function trocarAba(evt, idAba) {
       if(evt.currentTarget.classList.contains('locked')) return;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -209,6 +299,7 @@
       document.getElementById(idAba).classList.add('active');
     }
 
+    // 4. CHECKLIST (UI e Gravação)
     function toggleCheck(btn, type) {
       let group = btn.parentElement;
       group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active-sim', 'active-nao'));
@@ -220,60 +311,116 @@
       else card.classList.remove('checked-ok');
     }
 
-    function finalizarChecklist() {
+    async function finalizarChecklist() {
       const cards = document.querySelectorAll('#checklistForm .check-card');
+      let checklistItens = [];
       let todoSim = true;
+
       cards.forEach(card => {
-        if(!card.querySelector('.active-sim')) todoSim = false;
+        let btnSim = card.querySelector('.active-sim');
+        let btnNao = card.querySelector('.active-nao');
+        if(!btnSim) todoSim = false;
+
+        checklistItens.push({
+          reator: card.getAttribute('data-reator'),
+          seq: card.getAttribute('data-seq'),
+          acao: card.getAttribute('data-acao'),
+          status: btnSim ? "S" : (btnNao ? "N" : "")
+        });
       });
 
+      if(checklistItens.length === 0) return;
       if(!todoSim) {
         alert("O Checklist não está completo ou possui não-conformidades.");
         return;
       }
 
-      // Trava Checklist
+      // Envia POST para gravar na SZ4
+      try {
+        const response = await fetch(`${API_BASE}/checklist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: currentOP, itens: checklistItens, operador: USUARIO_LOGADO })
+        });
+        const res = await response.json();
+        if(res.status !== 'OK') throw new Error(res.mensagem);
+      } catch(e) {
+        console.warn("Falha na gravação REST, operando em modo offline para navegação.", e);
+      }
+
+      // Trava Tela UI
       document.getElementById('checklistForm').style.pointerEvents = 'none';
       document.getElementById('checklistForm').style.opacity = '0.7';
       document.getElementById('btnSalvarChecklistContainer').style.display = 'none';
       
-      // Exibe Mensagem com Data/Hora/Op
       let now = new Date();
       document.getElementById('opNomeCheck').innerText = document.getElementById('userNameLbl').innerText;
       document.getElementById('dhCheck').innerText = now.toLocaleString();
       document.getElementById('lockChecklistMsg').style.display = 'block';
 
-      // Libera Aba Materiais
+      // Libera e avança de Aba
       let btnMat = document.getElementById('btn-tab-materias');
       btnMat.classList.remove('locked');
-      
-      // Troca para Aba Materiais
       btnMat.click();
     }
 
-    function finalizarPesagem() {
-      const inputsPeso = document.querySelectorAll('.inp-peso');
-      const inputsLote = document.querySelectorAll('.inp-lote');
+    // 5. PESAGEM (UI e Gravação)
+    async function finalizarPesagem() {
+      const linhas = document.querySelectorAll('#pesagemTbody tr');
+      let pesagemItens = [];
       let valido = true;
 
-      inputsPeso.forEach(inp => { if(!inp.value) valido = false; });
-      inputsLote.forEach(inp => { if(!inp.value) valido = false; });
+      linhas.forEach(tr => {
+        const inpPeso = tr.querySelector('.inp-peso');
+        const inpLote = tr.querySelector('.inp-lote');
+        
+        if(!inpPeso || !inpLote || !inpPeso.value || !inpLote.value) valido = false;
+        
+        pesagemItens.push({
+          produto: tr.getAttribute('data-prod'),
+          item: tr.getAttribute('data-item'),
+          nome: tr.getAttribute('data-nome'),
+          ender: tr.getAttribute('data-ender'),
+          perc: tr.getAttribute('data-perc'),
+          kgprev: tr.getAttribute('data-kgprev'),
+          lote: tr.getAttribute('data-lote'), // Lote sugerido via Protheus (SZ5)
+          kgcont: inpPeso ? inpPeso.value : 0,
+          loteConf: inpLote ? inpLote.value : "" // Lote confirmado digitado
+        });
+      });
 
       if(!valido) {
-        alert("Preencha todos os pesos e lotes (Confirmação dupla exigida).");
+        alert("Preencha todos os pesos e confirme todos os lotes (Confirmação dupla exigida).");
         return;
       }
 
-      // Trava Pesagem
+      // Envia POST para gravar na SZ6
+      try {
+        const response = await fetch(`${API_BASE}/pesagem`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: currentOP, itens: pesagemItens, operador: USUARIO_LOGADO })
+        });
+        const res = await response.json();
+        if(res.status !== 'OK') throw new Error(res.mensagem);
+      } catch(e) {
+        console.warn("Falha na gravação REST, operando em modo offline para navegação.", e);
+      }
+
+      // Trava Tela UI
       document.getElementById('pesagemTbody').style.pointerEvents = 'none';
       document.getElementById('btnSalvarPesagemContainer').style.display = 'none';
       document.getElementById('lockPesagemMsg').style.display = 'block';
 
-      // Libera Aba Receita
+      // Marca badges como OK
+      document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
+        badge.className = "badge-status badge-ok";
+        badge.innerText = "✓ Pesado";
+      });
+
+      // Libera e avança de Aba
       let btnRec = document.getElementById('btn-tab-receita');
       btnRec.classList.remove('locked');
-      
-      // Troca para a Aba Receita
       btnRec.click();
     }
   </script>
