@@ -199,57 +199,113 @@
 
   </div>
 
-  <script>
-    const API_BASE = '/rest/WSPCPQUIM';
-    const USUARIO_LOGADO = 'rodrigo.amaral';
+<script>
+    // 1. CONFIGURAÇÕES DE API E AUTENTICAÇÃO
+    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
+    const urlParams = new URLSearchParams(window.location.search);
+    const USER_LOGIN = 'rodrigo.amaral';
+    const USER_PASS = 'RaquelEduarda2010@';
+    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+
+    // Cabeçalhos padrão para todas as requisições
+    const reqHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+        'tenantId': '01,0101'
+    };
     
-    // Variáveis globais para guardar a OP e o Reator vindos da URL
+    // Variáveis globais
+    let USUARIO_LOGADO = ''; 
     let currentOP = "";
     let currentCod = "";
-    let currentReator = "RE01"; // Fixo para o exemplo. Em produção viria via URL param ou config.
+    let currentReator = "";
 
     window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      // Pega os valores ESTRITAMENTE da URL da tela anterior (sem valores fixos)
-      currentOP = urlParams.get('op');
-      currentCod = urlParams.get('produto') || urlParams.get('cod');
-      currentReator = urlParams.get('reator') || ""; 
+      // Lê os parâmetros da URL
+      currentOP = urlParams.get('op') || "";
+      currentCod = urlParams.get('produto') || urlParams.get('cod') || "";
+      currentReator = urlParams.get('reator') || "";
 
-      if (!currentOP) {
-          console.warn("Nenhuma OP foi passada na URL.");
-      }
-
-      // Proteção para injetar na tela apenas se os elementos existirem
-      let elNumOP = document.getElementById('campoNumOP');
-      let elCodProd = document.getElementById('campoCodProd');
-      
-      if (elNumOP && currentOP) {
-          elNumOP.textContent = currentOP;
-      }
-      
-      if (elCodProd && currentCod) {
+      const elCodProd = document.getElementById('campoCodProd');
+      if (elCodProd && currentCod !== "") {
           elCodProd.textContent = currentCod;
       }
 
-      // Só dispara as requisições para a API REST se a OP existir na URL
-      if (currentOP) {
-          carregarChecklistProtheus();
-          carregarPesagemProtheus();
+      const elNumOP = document.getElementById('campoNumOP');
+      if (elNumOP && currentOP !== "") {
+          elNumOP.textContent = currentOP;
+      }
+
+      // Dispara as chamadas da API REST se houver uma OP
+      if (currentOP !== "") {
+          carregarDetalhesOP(currentOP);
+          carregarChecklistProtheus(currentReator);
+          carregarPesagemProtheus(currentOP);
+      } else {
+          console.warn("Nenhuma OP informada na URL.");
       }
     });
 
+    // ========================================================================
+    // Busca detalhes da OP para preencher Operador logado e Descrição
+    // ========================================================================
+    async function carregarDetalhesOP(opCompleta) {
+      try {
+        const resp = await fetch(`${API_BASE}/ops`, { headers: reqHeaders });
+        const data = await resp.json();
+        
+        if (resp.ok && data.status === 'OK') {
+          USUARIO_LOGADO = data.usuarioLogado || data.idUsuarioLogado || "";
+
+          const opDados = data.ops.find(o => o.opCompleta === opCompleta || (o.num + o.item + o.seq) === opCompleta);
+          
+          if (opDados) {
+            const elNomeOperador = document.getElementById('userNameLbl');
+            if (elNomeOperador) {
+                elNomeOperador.textContent = opDados.nomeOperador || opDados.codOperador || data.nomeUsuarioLogado || "Não Atribuído";
+                
+                const avatar = document.querySelector('.user-avatar');
+                let nomeParaAvatar = opDados.nomeOperador || data.nomeUsuarioLogado;
+                
+                if (avatar && nomeParaAvatar) {
+                    let partes = nomeParaAvatar.trim().split(" ");
+                    let iniciais = "OP";
+                    if (partes.length > 1) {
+                        iniciais = partes[0][0] + partes[partes.length-1][0];
+                    } else {
+                        iniciais = partes[0].substring(0, 2);
+                    }
+                    avatar.textContent = iniciais.toUpperCase();
+                }
+            }
+
+            const elDesc = document.getElementById('campoDescProd');
+            if (elDesc) elDesc.textContent = opDados.desc;
+
+            const elQtd = document.getElementById('campoQtdPrev');
+            if (elQtd) elQtd.textContent = opDados.qtdPrev + " KG";
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao buscar detalhes do Operador/OP:", e);
+      }
+    }
+
+    // ========================================================================
     // 1. CARREGAR CHECKLIST DINÂMICO
-    async function carregarChecklistProtheus() {
+    // ========================================================================
+    async function carregarChecklistProtheus(reator) {
       const container = document.getElementById('checklistForm');
-      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #64748b;">Carregando checklist do Protheus...</div>`;
+      if(!container) return;
+
+      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #64748b;">A carregar checklist do Protheus...</div>`;
       
       try {
-        const resp = await fetch(`${API_BASE}/checklist?reator=${currentReator}`);
+        const resp = await fetch(`${API_BASE}/checklist?reator=${reator}`, { headers: reqHeaders });
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK' && data.checklist.length > 0) {
-          container.innerHTML = ""; // Limpa a mensagem
+          container.innerHTML = ""; 
           data.checklist.forEach(item => {
             const cardHTML = `
               <div class="check-card" data-reator="${item.reator}" data-seq="${item.seq}" data-acao="${item.acao}">
@@ -266,21 +322,25 @@
             container.insertAdjacentHTML('beforeend', cardHTML);
           });
         } else {
-          container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Nenhum checklist cadastrado na SZ3 para o reator ${currentReator}.</div>`;
+          container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Nenhum checklist cadastrado na SZ3 para o reator.</div>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Checklist:", e);
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de conexão com o REST do Protheus (SZ3).</div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de ligação com o REST do Protheus (SZ3).</div>`;
       }
     }
 
+    // ========================================================================
     // 2. CARREGAR PESAGEM DINÂMICA
-    async function carregarPesagemProtheus() {
+    // ========================================================================
+    async function carregarPesagemProtheus(op) {
       const tbody = document.getElementById('pesagemTbody');
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Carregando pesagem (SZ5)...</td></tr>`;
+      if(!tbody) return;
+
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">A carregar pesagem (SZ5)...</td></tr>`;
       
       try {
-        const resp = await fetch(`${API_BASE}/pesagem?op=${currentOP}`);
+        const resp = await fetch(`${API_BASE}/pesagem?op=${op}`, { headers: reqHeaders });
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK' && data.pesagem.length > 0) {
@@ -303,11 +363,13 @@
         }
       } catch (e) {
         console.error("Falha ao puxar Pesagem:", e);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de conexão com o REST do Protheus (SZ5).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5).</td></tr>`;
       }
     }
 
-    // 3. NAVEGAÇÃO DE ABAS
+    // ========================================================================
+    // 3. NAVEGAÇÃO DE ABAS E BOTÕES TOUCH
+    // ========================================================================
     function trocarAba(evt, idAba) {
       if(evt.currentTarget.classList.contains('locked')) return;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -316,7 +378,6 @@
       document.getElementById(idAba).classList.add('active');
     }
 
-    // 4. CHECKLIST (UI e Gravação)
     function toggleCheck(btn, type) {
       let group = btn.parentElement;
       group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active-sim', 'active-nao'));
@@ -328,6 +389,9 @@
       else card.classList.remove('checked-ok');
     }
 
+    // ========================================================================
+    // 4. FINALIZAR CHECKLIST
+    // ========================================================================
     async function finalizarChecklist() {
       const cards = document.querySelectorAll('#checklistForm .check-card');
       let checklistItens = [];
@@ -352,36 +416,44 @@
         return;
       }
 
-      // Envia POST para gravar na SZ4
       try {
         const response = await fetch(`${API_BASE}/checklist`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: reqHeaders, // Usa os cabeçalhos com auth
           body: JSON.stringify({ op: currentOP, itens: checklistItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
         if(res.status !== 'OK') throw new Error(res.mensagem);
       } catch(e) {
-        console.warn("Falha na gravação REST, operando em modo offline para navegação.", e);
+        console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
       }
 
-      // Trava Tela UI
       document.getElementById('checklistForm').style.pointerEvents = 'none';
       document.getElementById('checklistForm').style.opacity = '0.7';
-      document.getElementById('btnSalvarChecklistContainer').style.display = 'none';
+      
+      const btnSalvar = document.getElementById('btnSalvarChecklistContainer');
+      if (btnSalvar) btnSalvar.style.display = 'none';
       
       let now = new Date();
-      document.getElementById('opNomeCheck').innerText = document.getElementById('userNameLbl').innerText;
-      document.getElementById('dhCheck').innerText = now.toLocaleString();
-      document.getElementById('lockChecklistMsg').style.display = 'block';
+      const elOpNome = document.getElementById('opNomeCheck');
+      if(elOpNome) elOpNome.innerText = document.getElementById('userNameLbl').innerText;
+      
+      const elDhCheck = document.getElementById('dhCheck');
+      if(elDhCheck) elDhCheck.innerText = now.toLocaleString();
+      
+      const elLockMsg = document.getElementById('lockChecklistMsg');
+      if(elLockMsg) elLockMsg.style.display = 'block';
 
-      // Libera e avança de Aba
       let btnMat = document.getElementById('btn-tab-materias');
-      btnMat.classList.remove('locked');
-      btnMat.click();
+      if(btnMat) {
+          btnMat.classList.remove('locked');
+          btnMat.click();
+      }
     }
 
-    // 5. PESAGEM (UI e Gravação)
+    // ========================================================================
+    // 5. FINALIZAR PESAGEM
+    // ========================================================================
     async function finalizarPesagem() {
       const linhas = document.querySelectorAll('#pesagemTbody tr');
       let pesagemItens = [];
@@ -400,45 +472,47 @@
           ender: tr.getAttribute('data-ender'),
           perc: tr.getAttribute('data-perc'),
           kgprev: tr.getAttribute('data-kgprev'),
-          lote: tr.getAttribute('data-lote'), // Lote sugerido via Protheus (SZ5)
+          lote: tr.getAttribute('data-lote'), 
           kgcont: inpPeso ? inpPeso.value : 0,
-          loteConf: inpLote ? inpLote.value : "" // Lote confirmado digitado
+          loteConf: inpLote ? inpLote.value : ""
         });
       });
 
       if(!valido) {
-        alert("Preencha todos os pesos e confirme todos os lotes (Confirmação dupla exigida).");
+        alert("Preencha todos os pesos e confirme todos os lotes.");
         return;
       }
 
-      // Envia POST para gravar na SZ6
       try {
         const response = await fetch(`${API_BASE}/pesagem`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: reqHeaders, // Usa os cabeçalhos com auth
           body: JSON.stringify({ op: currentOP, itens: pesagemItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
         if(res.status !== 'OK') throw new Error(res.mensagem);
       } catch(e) {
-        console.warn("Falha na gravação REST, operando em modo offline para navegação.", e);
+        console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
       }
 
-      // Trava Tela UI
       document.getElementById('pesagemTbody').style.pointerEvents = 'none';
-      document.getElementById('btnSalvarPesagemContainer').style.display = 'none';
-      document.getElementById('lockPesagemMsg').style.display = 'block';
+      
+      const btnSalvar = document.getElementById('btnSalvarPesagemContainer');
+      if (btnSalvar) btnSalvar.style.display = 'none';
+      
+      const lockMsg = document.getElementById('lockPesagemMsg');
+      if (lockMsg) lockMsg.style.display = 'block';
 
-      // Marca badges como OK
       document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
         badge.className = "badge-status badge-ok";
         badge.innerText = "✓ Pesado";
       });
 
-      // Libera e avança de Aba
       let btnRec = document.getElementById('btn-tab-receita');
-      btnRec.classList.remove('locked');
-      btnRec.click();
+      if(btnRec) {
+          btnRec.classList.remove('locked');
+          btnRec.click();
+      }
     }
   </script>
 </body>
