@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PCP UNIMOL - Apontamento da Ordem de Produção</title>
+  <title>PCP Químico - Apontamento da Ordem de Produção</title>
   <link rel="stylesheet" href="style-base.css">
   <style>
-    /* Estilos basecidos na tela original */
+    /* Estilos base da tela original */
     .op-banner-card { background: var(--surface); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); border: 1px solid var(--border); padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
     .op-header-grid { display: grid; grid-template-columns: 2fr 3.5fr 1.6fr 1.6fr 1.6fr; gap: 12px; }
     .info-field { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
@@ -22,6 +22,7 @@
     .epi-circle { width: 40px; height: 40px; background-color: #0077b6; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0, 119, 182, 0.35); display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer; }
     .epi-circle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
     
+    /* Abas */
     .tabs-header { display: flex; border-bottom: 2px solid #e2e8f0; gap: 28px; margin-top: 4px; }
     .tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 700; color: #64748b; padding: 10px 4px; cursor: pointer; position: relative; display: flex; align-items: center; gap: 8px; transition: opacity 0.3s;}
     .tab-btn.active { color: var(--teal-primary); }
@@ -31,7 +32,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Outros Estilos (Alertas, Tabelas, etc) */
+    /* Alertas e Tabelas */
     .alert-banner { background: #fef2f2; border: 1.5px solid #fca5a5; border-left: 6px solid #dc2626; border-radius: 10px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
     .alert-banner svg { width: 26px; height: 26px; color: #dc2626; flex-shrink: 0; margin-top: 2px; }
     .alert-content h4 { color: #991b1b; font-size: 0.90rem; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; }
@@ -52,61 +53,128 @@
     .btn-toggle { min-width: 48px; height: 40px; border: 1.5px solid #cbd5e1; background: #ffffff; border-radius: 6px; font-weight: 700; font-size: 0.85rem; color: #475569; cursor: pointer; }
     .btn-toggle.active-sim { background: #16a34a; border-color: #16a34a; color: #ffffff; }
     .btn-toggle.active-nao { background: #dc2626; border-color: #dc2626; color: #ffffff; }
-    
     .lock-msg { display: none; background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; font-weight: 700; border: 1px solid #bbf7d0; text-align: center; }
 
-    /* Botões Padrões */
+    /* Botões Padrões e Barra Inferior */
     .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
     .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
-  
-    /* Modal de Alerta Customizado */
-    .alert-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px;
-    }
-    .alert-card {
-      background: #ffffff; border-radius: 12px; width: 100%; max-width: 420px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column;
-    }
-    .alert-header {
-      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-      font-weight: 800; font-size: 1.05rem;
-    }
+    
+    /* Modal de Apontamento Touch (MATA681) */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 800px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; }
+    .grid-modal-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .modal-input-group { display: flex; flex-direction: column; gap: 4px; }
+    .modal-input-group label { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+    .modal-input-group input { height: 44px; border: 2px solid #cbd5e1; border-radius: 6px; padding: 0 12px; font-size: 1rem; font-weight: 700; color: #0f172a; }
+
+    /* Modal de Alerta Customizado (Novo) */
+    .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .alert-card { background: #ffffff; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; }
+    .alert-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.05rem; }
     .alert-header.error { background: #fef2f2; color: #991b1b; border-bottom: 1.5px solid #fca5a5; }
     .alert-header.success { background: #f0fdf4; color: #166534; border-bottom: 1.5px solid #86efac; }
     .alert-body { padding: 20px; font-size: 0.95rem; color: #334155; line-height: 1.5; font-weight: 500; }
-    .alert-footer {
-      padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end;
-    }
-  
+    .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; }
   </style>
 </head>
 <body>
-  <!-- ASIDE / TOPBAR - mantidos iguais à base original -->
-  <aside class="sidebar">...</aside>
+
+  <!-- LATERAL FIXA -->
+  <aside class="sidebar">
+    <div class="brand-icon">PCP</div>
+    <a href="index.html" class="nav-link" title="Ordens Abertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+    <a href="comigo.html" class="nav-link" title="Minhas Ordens">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Comigo</span>
+    </a>
+    <a href="historico.html" class="nav-link" title="Ordens Encerradas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Histórico</span>
+    </a>
+  </aside>
+
+  <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
   <div class="main-area">
     <header class="topbar">
-      <!-- ... -->
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="index.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#0284c7; font-weight:700; font-size:0.85rem; padding:6px 12px; background:#eff6ff; border-radius:6px; border:1px solid #bfdbfe;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar às OPs
+        </a>
+        <span class="app-title" style="font-size: 1rem;">APONTAMENTO DA ORDEM DE PRODUÇÃO</span>
+        <span class="badge-online">ONLINE • PROTHEUS TCLOUD</span>
+      </div>
+
       <div class="user-pill">
-        <div class="user-avatar" style="background:#0284c7; color:white;">JQ</div>
+        <div class="user-avatar" style="background:#0284c7; color:white;">--</div>
         <div>
-          <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">José Químico</div>
-          <div style="font-size: 0.72rem; color: #64748b;">Reator 02 • Turno A</div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">A carregar...</div>
+          <div style="font-size: 0.72rem; color: #64748b;">Produção</div>
         </div>
       </div>
     </header>
 
     <main class="content-scroll" style="padding-bottom: 90px;">
-      <!-- BANNER SUPERIOR INTACTO -->
+      <!-- BANNER DADOS DA OP + GHS + EPIS -->
       <div class="op-banner-card">
-         <!-- Campos da OP e EPIs (conteúdo preservado) -->
-         <div class="op-header-grid">
-          <div class="info-field"><label>Código do Produto</label><div class="val" id="campoCodProd">888.10.002000.23.0.0001</div></div>
-          <!-- (restante dos cabeçalhos preservados) -->
+        <div class="op-header-grid">
+          <div class="info-field">
+            <label>Código do Produto</label>
+            <div class="val" id="campoCodProd">---</div>
+          </div>
+          <div class="info-field">
+            <label>Descrição do Produto</label>
+            <div class="val" id="campoDescProd">A carregar...</div>
+          </div>
+          <div class="info-field">
+            <label>Nº da OP</label>
+            <div class="val" id="campoNumOP" style="color: #0284c7;">---</div>
+          </div>
+          <div class="info-field">
+            <label>Quantidade Prevista</label>
+            <div class="val" id="campoQtdPrev">--- KG</div>
+          </div>
+          <div class="info-field">
+            <label>Lote Produção</label>
+            <div class="val" id="campoLoteProd" style="color: #b45309;">Automático</div>
+          </div>
+        </div>
+
+        <div class="safety-strip">
+          <div class="safety-group">
+            <span class="safety-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Pictogramas GHS:
+            </span>
+            <div class="ghs-icons">
+              <div class="ghs-diamond" title="Inflamável"><span class="ghs-inner">🔥</span></div>
+              <div class="ghs-diamond" title="Corrosivo"><span class="ghs-inner">🧪</span></div>
+              <div class="ghs-diamond" title="Toxicidade Aguda"><span class="ghs-inner">☠️</span></div>
+              <div class="ghs-diamond" title="Perigo à Saúde"><span class="ghs-inner">🫁</span></div>
+              <div class="ghs-diamond" title="Perigo Ambiental"><span class="ghs-inner">🐟</span></div>
+            </div>
+          </div>
+
+          <div class="safety-group">
+            <span class="safety-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0077b6" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              EPIs Obrigatórios:
+            </span>
+            <div class="epi-icons">
+              <div class="epi-circle" title="Capacete de Proteção"><svg viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0v2H3v-2z"/><path d="M2 17h20v2H2z"/></svg></div>
+              <div class="epi-circle" title="Óculos de Proteção"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M11 12h2"/></svg></div>
+              <div class="epi-circle" title="Luvas Químicas"><svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v5"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 10a2 2 0 0 1 2 2v5a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-3a2 2 0 0 1 2-2h1"/></svg></div>
+              <div class="epi-circle" title="Botas de Segurança"><svg viewBox="0 0 24 24"><path d="M4 18h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-6l-3-4H4v10z"/></svg></div>
+              <div class="epi-circle" title="Máscara com Filtro Químico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 15h6"/><path d="M9 12h6"/><path d="M12 9v6"/></svg></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- TABS (REORDENADAS) -->
+      <!-- ABAS NAVEGÁVEIS -->
       <div>
         <div class="tabs-header">
           <!-- 1. CHECKLIST -->
@@ -128,44 +196,20 @@
           </button>
         </div>
 
-        <!-- CONTEUDO ABA 1: CHECKLIST -->
+        <!-- ABA 1: CHECKLIST -->
         <div id="aba-checklist" class="tab-content active" style="margin-top: 14px;">
           <div class="checklist-container" id="checklistForm">
-            <!-- Item 1 -->
-            <div class="check-card">
-              <div>
-                <div style="font-weight:700;">Reator vazio, limpo e seco?</div>
-                <div style="font-size:0.75rem; color:#64748b;">Inspeção visual interna e dreno</div>
-              </div>
-              <div class="touch-toggle-group">
-                <button class="btn-toggle" onclick="toggleCheck(this, 'sim')">SIM</button>
-                <button class="btn-toggle" onclick="toggleCheck(this, 'nao')">NÃO</button>
-              </div>
-            </div>
-            <!-- Item 2 -->
-            <div class="check-card">
-              <div>
-                <div style="font-weight:700;">Linhas e derivações estanques?</div>
-                <div style="font-size:0.75rem; color:#64748b;">Sem vazamento em flanges</div>
-              </div>
-              <div class="touch-toggle-group">
-                <button class="btn-toggle" onclick="toggleCheck(this, 'sim')">SIM</button>
-                <button class="btn-toggle" onclick="toggleCheck(this, 'nao')">NÃO</button>
-              </div>
-            </div>
-            <!-- Item 3 e 4 repetidos na mesma estrutura... -->
+            <!-- Preenchido via JS -->
           </div>
-
           <div id="lockChecklistMsg" class="lock-msg">
-            Checklist bloqueado e finalizado por <span id="opNomeCheck"></span> em <span id="dhCheck"></span>.
+            Checklist bloqueado e finalizado por <span id="opNomeCheck"></span> em <span id="dhCheck"></span>. Aba de Pesagem Liberada!
           </div>
-
           <div style="text-align: right;" id="btnSalvarChecklistContainer">
             <button class="btn-action-tablet" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#ffffff;" onclick="finalizarChecklist()">Salvar e Travar Checklist</button>
           </div>
         </div>
 
-        <!-- CONTEUDO ABA 2: MATERIAIS / PESAGEM -->
+        <!-- ABA 2: PESAGEM -->
         <div id="aba-materias" class="tab-content" style="margin-top: 14px;">
           <div class="table-card">
             <table>
@@ -180,45 +224,122 @@
                 </tr>
               </thead>
               <tbody id="pesagemTbody">
-                <tr>
-                  <td><code>888.20.000000.33.0.0163</code></td>
-                  <td><span class="wms-address">📍 P1:R1:C5:A2</span></td>
-                  <td style="text-align: right; font-weight: 700;">3.216,00</td>
-                  <!-- Inputs para o Operador Confirmar -->
-                  <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg"></td>
-                  <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote"></td>
-                  <td style="text-align: center;"><span class="badge-status badge-wait">Pendente</span></td>
-                </tr>
+                <!-- Preenchido via JS -->
               </tbody>
             </table>
           </div>
-          
           <div id="lockPesagemMsg" class="lock-msg" style="margin-top: 14px;">
             Pesagem confirmada e travada. Aba Receita Liberada!
           </div>
-
           <div style="text-align: right; margin-top: 14px;" id="btnSalvarPesagemContainer">
             <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="finalizarPesagem()">Confirmar e Travar Pesagem</button>
           </div>
         </div>
 
-        <!-- CONTEUDO ABA 3: RECEITA (Mantido Inalterado) -->
+        <!-- ABA 3: RECEITA (Mantido o Layout Original Fixo por Enquanto) -->
         <div id="aba-receita" class="tab-content" style="margin-top: 14px;">
-          <!-- AVISOS E TABELAS INTACTOS CONFORME ARQUIVO ORIGINAL -->
           <div class="alert-banner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div class="alert-content">
               <h4>Atenção Crítica da Etapa 1006 - Reação Exotérmica</h4>
-              <p>Adicionar a <strong>Etilenodiamina</strong>...</p>
+              <p>Adicionar a <strong>Etilenodiamina</strong> de forma fracionada e lenta mantendo o agitador a 24 Hz. Ocorre liberação intensa de calor. Não permita a temperatura de topo ultrapassar <strong>140 °C</strong>. Mantenha o sistema de resfriamento em plena carga.</p>
             </div>
           </div>
-          <!-- Conteúdo da tabela de receita original aqui -->
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 70px; text-align: center;">Seq.</th>
+                  <th>Etapa do Processo de Fabricação</th>
+                  <th style="text-align: center;">H. Início</th>
+                  <th style="text-align: center;">H. Fim</th>
+                  <th style="text-align: center;">Total</th>
+                  <th style="text-align: right;">Topo (°C)</th>
+                  <th style="text-align: right;">Fundo (°C)</th>
+                  <th style="text-align: right;">Pressão</th>
+                  <th style="text-align: right;">Veloc. (Hz)</th>
+                  <th style="text-align: right;">Corrente (A)</th>
+                  <th style="text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="text-align: center; font-weight: 700;">1001</td>
+                  <td><strong>Adicionar 30% do Sebo Hidrogenado</strong> (Reator limpo e seco, não ligar agitador)</td>
+                  <td style="text-align: center;">06:30</td><td style="text-align: center;">06:50</td><td style="text-align: center;">00:20</td>
+                  <td style="text-align: right;">25.0</td><td style="text-align: right;">25.0</td><td style="text-align: right;">0.00</td><td style="text-align: right;">0.0</td><td style="text-align: right;">0.0</td>
+                  <td style="text-align: center;"><span class="badge-status badge-ok">Finalizado</span></td>
+                </tr>
+                <tr>
+                  <td style="text-align: center; font-weight: 700;">1002</td>
+                  <td><strong>Aquecer e ao fundir, ligar agitador 12 Hz</strong></td>
+                  <td style="text-align: center;">06:50</td><td style="text-align: center;">07:30</td><td style="text-align: center;">00:40</td>
+                  <td style="text-align: right;">65.0</td><td style="text-align: right;">70.0</td><td style="text-align: right;">0.00</td><td style="text-align: right;">12.0</td><td style="text-align: right;">4.2</td>
+                  <td style="text-align: center;"><span class="badge-status badge-ok">Finalizado</span></td>
+                </tr>
+                <tr style="background: #f0fdfa; border-left: 4px solid var(--teal-primary); cursor: pointer;" onclick="abrirModalApontamento()">
+                  <td style="text-align: center; font-weight: 800; color: #dc2626;">1006</td>
+                  <td>
+                    <div style="font-weight: 800; color: #0f172a;">Adicionar Etilenodiamina - OCORRE EXOTERMIA</div>
+                    <div style="font-size: 0.78rem; color: #b91c1c;">Etapa química crítica sob monitoração rigorosa</div>
+                  </td>
+                  <td style="text-align: center; font-weight: 700;">08:45</td><td style="text-align: center;">--:--</td><td style="text-align: center;">--:--</td>
+                  <td style="text-align: right; font-weight: 700; color: #dc2626;">135.0</td><td style="text-align: right; font-weight: 700; color: #dc2626;">138.0</td><td style="text-align: right; font-weight: 700;">0.80</td><td style="text-align: right; font-weight: 700;">24.0</td><td style="text-align: right; font-weight: 700;">6.5</td>
+                  <td style="text-align: center;"><span class="badge-status badge-high">EXOTERMIA</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
     </main>
 
+    <!-- BARRA INFERIOR DE APONTAMENTO -->
+    <footer class="bottom-action-bar">
+      <div style="display: flex; gap: 20px;">
+        <div class="summary-item">
+          <span class="s-label">Etapa Selecionada</span>
+          <span class="s-val" style="color: #0284c7;">Seq. 1006</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="comigo.html" class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;">Cancelar / Voltar</a>
+        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="abrirModalApontamento()">+ Apontar Parâmetros</button>
+      </div>
+    </footer>
   </div>
+
+  <!-- MODAL DE APONTAMENTO TOUCH (MATA681) -->
+  <div class="modal-overlay" id="modalApontamento">
+    <div class="modal-card">
+      <div style="background:#0f172a; color:#ffffff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h3 style="font-size:1.1rem; font-weight:800;">Apontamento de Variáveis Físico-Químicas</h3>
+          <div style="font-size:0.78rem; color:#94a3b8;">Sequência: 1006 - Adicionar Etilenodiamina</div>
+        </div>
+        <button style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;" onclick="fecharModalApontamento()">&times;</button>
+      </div>
+      <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+        <div class="grid-modal-inputs">
+          <div class="modal-input-group"><label>Hora Inicial</label><input type="time" value="08:45"></div>
+          <div class="modal-input-group"><label>Hora Final</label><input type="time" value="09:15"></div>
+          <div class="modal-input-group"><label>Tempo Real</label><input type="text" value="00:30" readonly style="background:#f1f5f9;"></div>
+        </div>
+        <div class="grid-modal-inputs">
+          <div class="modal-input-group"><label>Temperatura Topo (°C)</label><input type="number" step="0.1" value="135.0" style="color:#dc2626;"></div>
+          <div class="modal-input-group"><label>Temperatura Fundo (°C)</label><input type="number" step="0.1" value="138.0" style="color:#dc2626;"></div>
+          <div class="modal-input-group"><label>Pressão (Kgf/cm² ou Bar)</label><input type="number" step="0.01" value="0.80"></div>
+        </div>
+      </div>
+      <div style="padding:14px 20px; background:#f8fafc; border-top:1.5px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-action-tablet" style="height:40px; background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;" onclick="fecharModalApontamento()">Voltar</button>
+        <button class="btn-action-tablet" style="height:40px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="executarApontamentoMATA681()">Confirmar e Gravar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE ALERTA CUSTOMIZADO (Substitui o alert() nativo) -->
   <div class="alert-overlay" id="customAlertModal">
     <div class="alert-card">
       <div class="alert-header error" id="customAlertHeader">Atenção</div>
@@ -228,42 +349,46 @@
       </div>
     </div>
   </div>
-<script>
-    // 1. CONFIGURAÇÕES DE API E AUTENTICAÇÃO
+
+  <!-- SCRIPT CONSOLIDADO -->
+  <script>
+    // ========================================================================
+    // CONFIGURAÇÕES DE API E AUTENTICAÇÃO
+    // ========================================================================
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
     const urlParams = new URLSearchParams(window.location.search);
     const USER_LOGIN = 'rodrigo.amaral';
     const USER_PASS = 'RaquelEduarda2010@';
+    
+    // Auth Basic T-Cloud
     const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
-    // Cabeçalhos padrão para todas as requisições
     const reqHeaders = {
         'Content-Type': 'application/json',
         'Authorization': authHeader,
         'tenantId': '01,0101'
     };
     
-    // Variáveis globais
+    // Variáveis Globais
     let USUARIO_LOGADO = ''; 
     let currentOP = "";
     let currentCod = "";
     let currentReator = "";
 
+    // ========================================================================
+    // INICIALIZAÇÃO DA PÁGINA
+    // ========================================================================
     window.addEventListener('DOMContentLoaded', () => {
-      // Lê os parâmetros da URL
       currentOP = urlParams.get('op') || "";
       currentCod = urlParams.get('produto') || urlParams.get('cod') || "";
       currentReator = urlParams.get('reator') || "";
 
+      // Injeta Valores se existirem
       const elCodProd = document.getElementById('campoCodProd');
-      if (elCodProd && currentCod !== "") {
-          elCodProd.textContent = currentCod;
-      }
+      if (elCodProd && currentCod !== "") elCodProd.textContent = currentCod;
 
       const elNumOP = document.getElementById('campoNumOP');
-      if (elNumOP && currentOP !== "") {
-          elNumOP.textContent = currentOP;
-      }
+      if (elNumOP && currentOP !== "") elNumOP.textContent = currentOP;
 
       // Dispara as chamadas da API REST se houver uma OP
       if (currentOP !== "") {
@@ -276,7 +401,30 @@
     });
 
     // ========================================================================
-    // Busca detalhes da OP para preencher Operador logado e Descrição
+    // FUNÇÕES DE ALERTAS CUSTOMIZADOS (Substitui alert() nativo)
+    // ========================================================================
+    function mostrarAlerta(mensagem, tipo = 'error') {
+      const modal = document.getElementById('customAlertModal');
+      const header = document.getElementById('customAlertHeader');
+      const msg = document.getElementById('customAlertMessage');
+      
+      msg.textContent = mensagem;
+      if (tipo === 'error') {
+        header.className = 'alert-header error';
+        header.textContent = 'Pendência Identificada';
+      } else {
+        header.className = 'alert-header success';
+        header.textContent = 'Sucesso';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function fecharAlerta() {
+      document.getElementById('customAlertModal').style.display = 'none';
+    }
+
+    // ========================================================================
+    // 1. CARREGAR DETALHES DA OP (Operador e Descrição)
     // ========================================================================
     async function carregarDetalhesOP(opCompleta) {
       try {
@@ -284,6 +432,7 @@
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK') {
+          // Preenche a variável global com o usuário vindo da API
           USUARIO_LOGADO = data.usuarioLogado || data.idUsuarioLogado || "";
 
           const opDados = data.ops.find(o => o.opCompleta === opCompleta || (o.num + o.item + o.seq) === opCompleta);
@@ -295,7 +444,6 @@
                 
                 const avatar = document.querySelector('.user-avatar');
                 let nomeParaAvatar = opDados.nomeOperador || data.nomeUsuarioLogado;
-                
                 if (avatar && nomeParaAvatar) {
                     let partes = nomeParaAvatar.trim().split(" ");
                     let iniciais = "OP";
@@ -307,7 +455,6 @@
                     avatar.textContent = iniciais.toUpperCase();
                 }
             }
-
             const elDesc = document.getElementById('campoDescProd');
             if (elDesc) elDesc.textContent = opDados.desc;
 
@@ -321,7 +468,7 @@
     }
 
     // ========================================================================
-    // 1. CARREGAR CHECKLIST DINÂMICO
+    // 2. CARREGAR CHECKLIST DINÂMICO
     // ========================================================================
     async function carregarChecklistProtheus(reator) {
       const container = document.getElementById('checklistForm');
@@ -360,7 +507,7 @@
     }
 
     // ========================================================================
-    // 2. CARREGAR PESAGEM DINÂMICA
+    // 3. CARREGAR PESAGEM DINÂMICA
     // ========================================================================
     async function carregarPesagemProtheus(op) {
       const tbody = document.getElementById('pesagemTbody');
@@ -397,7 +544,7 @@
     }
 
     // ========================================================================
-    // 3. NAVEGAÇÃO DE ABAS E BOTÕES TOUCH
+    // NAVEGAÇÃO DE ABAS E BOTÕES TOUCH
     // ========================================================================
     function trocarAba(evt, idAba) {
       if(evt.currentTarget.classList.contains('locked')) return;
@@ -419,7 +566,7 @@
     }
 
     // ========================================================================
-    // 4. FINALIZAR CHECKLIST
+    // FINALIZAR CHECKLIST
     // ========================================================================
     async function finalizarChecklist() {
       const cards = document.querySelectorAll('#checklistForm .check-card');
@@ -440,15 +587,17 @@
       });
 
       if(checklistItens.length === 0) return;
+      
+      // Bloqueia caso tenha pendências e mostra o Modal Customizado
       if(!todoSim) {
-        alert("O Checklist não está completo ou possui não-conformidades.");
+        mostrarAlerta("O Checklist não está completo ou possui não-conformidades.", "error");
         return;
       }
 
       try {
         const response = await fetch(`${API_BASE}/checklist`, {
           method: 'POST',
-          headers: reqHeaders, // Usa os cabeçalhos com auth
+          headers: reqHeaders,
           body: JSON.stringify({ op: currentOP, itens: checklistItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
@@ -457,6 +606,7 @@
         console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
       }
 
+      // Bloqueia a edição visual do Checklist
       document.getElementById('checklistForm').style.pointerEvents = 'none';
       document.getElementById('checklistForm').style.opacity = '0.7';
       
@@ -466,13 +616,13 @@
       let now = new Date();
       const elOpNome = document.getElementById('opNomeCheck');
       if(elOpNome) elOpNome.innerText = document.getElementById('userNameLbl').innerText;
-      
       const elDhCheck = document.getElementById('dhCheck');
       if(elDhCheck) elDhCheck.innerText = now.toLocaleString();
       
       const elLockMsg = document.getElementById('lockChecklistMsg');
       if(elLockMsg) elLockMsg.style.display = 'block';
 
+      // Desbloqueia e vai para a aba de Pesagem
       let btnMat = document.getElementById('btn-tab-materias');
       if(btnMat) {
           btnMat.classList.remove('locked');
@@ -481,7 +631,7 @@
     }
 
     // ========================================================================
-    // 5. FINALIZAR PESAGEM
+    // FINALIZAR PESAGEM
     // ========================================================================
     async function finalizarPesagem() {
       const linhas = document.querySelectorAll('#pesagemTbody tr');
@@ -507,15 +657,16 @@
         });
       });
 
+      // Bloqueia caso tenha pendências e mostra o Modal Customizado
       if(!valido) {
-        alert("Preencha todos os pesos e confirme todos os lotes.");
+        mostrarAlerta("Preencha todos os pesos e confirme todos os lotes (Confirmação Dupla).", "error");
         return;
       }
 
       try {
         const response = await fetch(`${API_BASE}/pesagem`, {
           method: 'POST',
-          headers: reqHeaders, // Usa os cabeçalhos com auth
+          headers: reqHeaders,
           body: JSON.stringify({ op: currentOP, itens: pesagemItens, operador: USUARIO_LOGADO })
         });
         const res = await response.json();
@@ -524,24 +675,43 @@
         console.warn("Falha na gravação REST, a operar em modo offline para navegação.", e);
       }
 
+      // Bloqueia a edição visual da tabela
       document.getElementById('pesagemTbody').style.pointerEvents = 'none';
-      
       const btnSalvar = document.getElementById('btnSalvarPesagemContainer');
       if (btnSalvar) btnSalvar.style.display = 'none';
       
       const lockMsg = document.getElementById('lockPesagemMsg');
       if (lockMsg) lockMsg.style.display = 'block';
 
+      // Atualiza os badges
       document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
         badge.className = "badge-status badge-ok";
         badge.innerText = "✓ Pesado";
       });
 
+      // Desbloqueia e vai para a aba de Receita
       let btnRec = document.getElementById('btn-tab-receita');
       if(btnRec) {
           btnRec.classList.remove('locked');
           btnRec.click();
       }
+    }
+
+    // ========================================================================
+    // FUNÇÕES DO MODAL DE APONTAMENTO MATA681 (Aba Receita)
+    // ========================================================================
+    function abrirModalApontamento() {
+      document.getElementById('modalApontamento').style.display = 'flex';
+    }
+    function fecharModalApontamento() {
+      document.getElementById('modalApontamento').style.display = 'none';
+    }
+    async function executarApontamentoMATA681() {
+      // Exemplo básico do MATA681
+      mostrarAlerta("Apontamento simulado com sucesso no MATA681 via T-Cloud!", "success");
+      fecharModalApontamento();
+      // Opcional: Redirecionar
+      // setTimeout(() => window.location.href = "comigo.html", 1500);
     }
   </script>
 </body>
