@@ -210,16 +210,33 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      currentOP = urlParams.get('op') || "00006201001";
-      currentCod = urlParams.get('cod') || "888.10.002000.23.0.0001";
-      if (urlParams.get('reator')) currentReator = urlParams.get('reator');
+      
+      // Pega os valores ESTRITAMENTE da URL da tela anterior (sem valores fixos)
+      currentOP = urlParams.get('op');
+      currentCod = urlParams.get('produto') || urlParams.get('cod');
+      currentReator = urlParams.get('reator') || ""; 
 
-      document.getElementById('campoNumOP').textContent = currentOP;
-      document.getElementById('campoCodProd').textContent = currentCod;
+      if (!currentOP) {
+          console.warn("Nenhuma OP foi passada na URL.");
+      }
 
-      // Carrega os dados direto da API REST
-      carregarChecklistProtheus();
-      carregarPesagemProtheus();
+      // Proteção para injetar na tela apenas se os elementos existirem
+      let elNumOP = document.getElementById('campoNumOP');
+      let elCodProd = document.getElementById('campoCodProd');
+      
+      if (elNumOP && currentOP) {
+          elNumOP.textContent = currentOP;
+      }
+      
+      if (elCodProd && currentCod) {
+          elCodProd.textContent = currentCod;
+      }
+
+      // Só dispara as requisições para a API REST se a OP existir na URL
+      if (currentOP) {
+          carregarChecklistProtheus();
+          carregarPesagemProtheus();
+      }
     });
 
     // 1. CARREGAR CHECKLIST DINÂMICO
