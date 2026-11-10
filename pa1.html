@@ -483,11 +483,15 @@
         if (resp.ok && data.status === 'OK' && data.checklist.length > 0) {
           container.innerHTML = ""; 
           data.checklist.forEach(item => {
+            
+            // FALLBACK: Se o banco devolver o reator vazio, ele puxa o Reator correto da URL.
+            const reatorValido = (item.reator && item.reator.trim() !== "") ? item.reator.trim() : reator;
+            
             const cardHTML = `
-              <div class="check-card" data-reator="${item.reator}" data-seq="${item.seq}" data-acao="${item.acao}">
+              <div class="check-card" data-reator="${reatorValido}" data-seq="${item.seq}" data-acao="${item.acao}">
                 <div>
                   <div style="font-weight:700;">${item.acao}</div>
-                  <div style="font-size:0.75rem; color:#64748b;">Checklist Reator: ${item.reator}</div>
+                  <div style="font-size:0.75rem; color:#64748b;">Checklist Reator: ${reatorValido}</div>
                 </div>
                 <div class="touch-toggle-group">
                   <button class="btn-toggle btn-sim" onclick="toggleCheck(this, 'sim')">SIM</button>
