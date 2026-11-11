@@ -49,7 +49,7 @@
     .tablet-input { height: 40px; padding: 4px 10px; font-size: 1rem; font-weight: 700; text-align: right; border: 2px solid #cbd5e1; border-radius: 6px; width: 120px; color: #0f172a; background: #ffffff; outline: none; }
     .tablet-input:focus { border-color: var(--teal-primary); box-shadow: 0 0 0 3px rgba(0, 156, 166, 0.2); }
     .badge-status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 14px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
-    .badge-ok { background: #dcfce7; color: #15803d; }
+    .badge-ok { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
     .badge-high { background: #fee2e2; color: #b91c1c; font-weight: 800; border: 1px solid #fecaca; }
     .badge-wait { background: #f1f5f9; color: #64748b; }
 
@@ -181,19 +181,16 @@
       <!-- ABAS NAVEGÁVEIS -->
       <div>
         <div class="tabs-header">
-          <!-- 1. CHECKLIST -->
           <button class="tab-btn active" id="btn-tab-checklist" onclick="trocarAba(event, 'aba-checklist')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             Checklist Pré-Operacional
           </button>
 
-          <!-- 2. MATERIAIS / PESAGEM (Inicia bloqueado) -->
           <button class="tab-btn locked" id="btn-tab-materias" onclick="trocarAba(event, 'aba-materias')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
             Ficha de Matérias-Primas (WMS / Pesagem)
           </button>
 
-          <!-- 3. RECEITA (Inicia bloqueado) -->
           <button class="tab-btn locked" id="btn-tab-receita" onclick="trocarAba(event, 'aba-receita')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Quadro de Monitoramento & Receita
@@ -202,9 +199,7 @@
 
         <!-- ABA 1: CHECKLIST -->
         <div id="aba-checklist" class="tab-content active" style="margin-top: 14px;">
-          <div class="checklist-container" id="checklistForm">
-            <!-- Preenchido via JS -->
-          </div>
+          <div class="checklist-container" id="checklistForm"></div>
           <div id="lockChecklistMsg" class="lock-msg">
             Checklist bloqueado e finalizado por <span id="opNomeCheck"></span> em <span id="dhCheck"></span>. Aba de Pesagem Liberada!
           </div>
@@ -223,6 +218,7 @@
                   <th>Endereço WMS</th>
                   <th style="text-align: right;">KG Previsto</th>
                   <th style="text-align: center;">KG Balança</th>
+                  <th style="text-align: center;">Lote Previsto</th>
                   <th style="text-align: center;">Confirmar Lote</th>
                   <th style="text-align: center;">Status</th>
                 </tr>
@@ -409,9 +405,7 @@
       if (elNumOP && currentOP !== "") elNumOP.textContent = currentOP;
 
       if (currentOP !== "") {
-          // 1º Carrega os detalhes da OP (para garantir reator, lote e GHS do produto)
           await carregarDetalhesOP(currentOP);
-          // 2º Carrega Checklist e Pesagem enviando a OP para checar histórico (SZ4 e SZ6)
           await carregarChecklistProtheus(currentReator, currentOP);
           await carregarPesagemProtheus(currentOP);
       } else {
@@ -470,7 +464,7 @@
     }
 
     // ========================================================================
-    // 1. CARREGAR DETALHES DA OP (Operador, Descrição, Lote C2_XLOTE e GHS)
+    // 1. CARREGAR DETALHES DA OP
     // ========================================================================
     async function carregarDetalhesOP(opCompleta) {
       try {
@@ -515,13 +509,11 @@
             const elQtd = document.getElementById('campoQtdPrev');
             if (elQtd) elQtd.textContent = opDados.qtdPrev + " KG";
 
-            // Preenche Lote de Produção vindo do campo C2_XLOTE da OP
             const elLote = document.getElementById('campoLoteProd');
             if (elLote) {
               elLote.textContent = (opDados.lote && opDados.lote.trim() !== "") ? opDados.lote : "S/ Lote";
             }
 
-            // Monta o mosaico GHS do produto produzido
             renderizarPictogramasGHS(opDados.ghs);
           }
         }
@@ -531,7 +523,7 @@
     }
 
     // ========================================================================
-    // 2. CARREGAR CHECKLIST DINÂMICO (E VERIFICAR SE JÁ FOI REALIZADO NA SZ4)
+    // 2. CARREGAR CHECKLIST DINÂMICO
     // ========================================================================
     async function carregarChecklistProtheus(reator, op) {
       const container = document.getElementById('checklistForm');
@@ -566,7 +558,6 @@
             container.insertAdjacentHTML('beforeend', cardHTML);
           });
 
-          // Se a OP já possui o checklist gravado na SZ4, trava a tela e libera a Pesagem
           if (data.jaRealizado) {
             aplicarBloqueioVisualChecklist(
               data.operadorNome || document.getElementById('userNameLbl').innerText,
@@ -610,13 +601,13 @@
     }
 
     // ========================================================================
-    // 3. CARREGAR PESAGEM DINÂMICA (E VERIFICAR SE JÁ FOI REALIZADA NA SZ6)
+    // 3. CARREGAR PESAGEM DINÂMICA
     // ========================================================================
     async function carregarPesagemProtheus(op) {
       const tbody = document.getElementById('pesagemTbody');
       if(!tbody) return;
 
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">A carregar pesagem (SZ5/SZ6)...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">A carregar pesagem (SZ5/SZ6)...</td></tr>`;
       
       try {
         const resp = await fetch(`${API_BASE}/pesagem?op=${encodeURIComponent(op)}`, { headers: reqHeaders });
@@ -626,36 +617,88 @@
           tbody.innerHTML = "";
           data.pesagem.forEach(item => {
             const pesoSalvo = (item.kgcont !== undefined && item.kgcont !== "") ? item.kgcont : "";
-            const loteSalvo = (item.loteConf !== undefined && item.loteConf !== "") ? item.loteConf : item.lote;
+            // Lote não é preenchido automaticamente para que o operador digite. Se já estiver gravado (loteConf), preenche:
+            const loteSalvo = (item.loteConf !== undefined && item.loteConf !== "") ? item.loteConf : "";
             const jaPesado  = data.jaRealizado && pesoSalvo !== "";
+
+            let badgeClass = "badge-wait";
+            let badgeText = "Pendente";
+
+            if (jaPesado) {
+              const kgPrevNum = parseFloat((item.kgprev || "0").replace(',', '.'));
+              const kgContNum = parseFloat((pesoSalvo || "0").replace(',', '.'));
+              const lotePrevTxt = (item.lote || "").trim();
+              const loteContTxt = (loteSalvo || "").trim();
+
+              const divergente = (kgPrevNum !== kgContNum) || (lotePrevTxt !== "" && loteContTxt !== lotePrevTxt);
+              
+              if (divergente) {
+                badgeClass = "badge-high";
+                badgeText = "⚠ Divergente";
+              } else {
+                badgeClass = "badge-ok";
+                badgeText = "✓ Pesado";
+              }
+            }
 
             const tr = `
               <tr data-prod="${item.produto}" data-item="${item.item}" data-nome="${item.nome}" data-ender="${item.ender}" data-perc="${item.perc}" data-kgprev="${item.kgprev}" data-lote="${item.lote}">
                 <td><code>${item.produto}</code><br><small style="font-weight:600; color:#334155;">${item.nome}</small></td>
                 <td><span class="wms-address">📍 ${item.ender}</span></td>
                 <td style="text-align: right; font-weight: 700;">${item.kgprev} KG</td>
-                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg" value="${pesoSalvo}"></td>
-                <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${loteSalvo}"></td>
+                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg" value="${pesoSalvo}" oninput="verificarStatusPesagem(this)"></td>
+                <td style="text-align: center; font-weight: 700; color: #b45309;">${item.lote || '-'}</td>
+                <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${loteSalvo}" oninput="verificarStatusPesagem(this)"></td>
                 <td style="text-align: center;">
-                  <span class="badge-status ${jaPesado ? 'badge-ok' : 'badge-wait'}">
-                    ${jaPesado ? '✓ Pesado' : 'Pendente'}
-                  </span>
+                  <span class="badge-status ${badgeClass} badge-dinamico">${badgeText}</span>
                 </td>
               </tr>
             `;
             tbody.insertAdjacentHTML('beforeend', tr);
           });
 
-          // Se a OP já possui pesagem gravada na SZ6, trava a tabela e libera a aba Receita
           if (data.jaRealizado) {
             aplicarBloqueioVisualPesagem(data.operadorNome, data.dataHora, false);
           }
         } else {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Pesagem:", e);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5/SZ6).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5/SZ6).</td></tr>`;
+      }
+    }
+
+    // ========================================================================
+    // VERIFICAÇÃO EM TEMPO REAL (DIVERGENTE VS CORRETO)
+    // ========================================================================
+    function verificarStatusPesagem(inputElement) {
+      const tr = inputElement.closest('tr');
+      const inpPeso = tr.querySelector('.inp-peso');
+      const inpLote = tr.querySelector('.inp-lote');
+      const badge = tr.querySelector('.badge-dinamico');
+
+      if (!inpPeso.value) {
+        badge.className = "badge-status badge-wait badge-dinamico";
+        badge.innerText = "Pendente";
+        return;
+      }
+
+      const kgPrev = parseFloat((tr.getAttribute('data-kgprev') || "0").replace(',', '.'));
+      const kgCont = parseFloat(inpPeso.value.replace(',', '.'));
+      const lotePrev = (tr.getAttribute('data-lote') || "").trim();
+      const loteCont = (inpLote.value || "").trim();
+
+      // Peso não bate OU (Havia lote previsto, mas não foi confirmado idêntico, inclusive deixado em branco)
+      const pesoDivergente = (kgPrev !== kgCont);
+      const loteDivergente = (lotePrev !== "" && loteCont !== lotePrev);
+
+      if (pesoDivergente || loteDivergente) {
+        badge.className = "badge-status badge-high badge-dinamico";
+        badge.innerText = "⚠ Divergente";
+      } else {
+        badge.className = "badge-status badge-ok badge-dinamico";
+        badge.innerText = "✓ Correto";
       }
     }
 
@@ -677,9 +720,12 @@
       const lockMsg = document.getElementById('lockPesagemMsg');
       if (lockMsg) lockMsg.style.display = 'block';
 
-      document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
-        badge.className = "badge-status badge-ok";
-        badge.innerText = "✓ Pesado";
+      // Mantém quem estiver Divergente. Altera "Correto" ou "Pendente" para "Pesado".
+      document.querySelectorAll('#pesagemTbody .badge-dinamico').forEach(badge => {
+        if (!badge.innerText.includes("Divergente")) {
+          badge.className = "badge-status badge-ok";
+          badge.innerText = "✓ Pesado";
+        }
       });
 
       const btnMat = document.getElementById('btn-tab-materias');
@@ -779,7 +825,8 @@
         const inpPeso = tr.querySelector('.inp-peso');
         const inpLote = tr.querySelector('.inp-lote');
         
-        if(!inpPeso || !inpLote || !inpPeso.value || !inpLote.value) valido = false;
+        // Removemos a obrigatoriedade do lote (!inpLote.value foi removido)
+        if(!inpPeso || !inpPeso.value) valido = false;
         
         pesagemItens.push({
           produto: tr.getAttribute('data-prod'),
@@ -795,7 +842,7 @@
       });
 
       if(!valido) {
-        mostrarAlerta("Preencha todos os pesos e confirme todos os lotes (Confirmação Dupla).", "error");
+        mostrarAlerta("Preencha todos os pesos balança obrigatórios.", "error");
         return;
       }
 
