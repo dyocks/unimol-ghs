@@ -12,12 +12,20 @@
     .info-field { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
     .info-field label { font-size: 0.70rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
     .info-field .val { font-size: 1rem; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .safety-strip { background: linear-gradient(90deg, #fafbfd 0%, #f1f5f9 100%); border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-    .safety-group { display: flex; align-items: center; gap: 14px; }
+    
+    /* Faixa de Segurança GHS + EPIs */
+    .safety-strip { background: linear-gradient(90deg, #fafbfd 0%, #f1f5f9 100%); border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; min-height: 62px; }
+    .safety-group { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .safety-title { font-size: 0.78rem; font-weight: 800; color: #334155; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-    .ghs-icons { display: flex; align-items: center; gap: 10px; }
-    .ghs-diamond { width: 40px; height: 40px; border: 2.5px solid #dc2626; background: #ffffff; transform: rotate(45deg); display: flex; align-items: center; justify-content: center; border-radius: 4px; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2); margin: 4px 6px; }
-    .ghs-inner { transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; line-height: 1; }
+    
+    /* Mosaico GHS harmonizado com a barra */
+    .ghs-icons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ghs-badge-item { display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #fecaca; border-radius: 8px; padding: 3px 8px 3px 4px; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.08); transition: transform 0.15s ease; }
+    .ghs-badge-item:hover { transform: translateY(-1px); border-color: #ef4444; }
+    .ghs-badge-item img { width: 36px; height: 36px; object-fit: contain; display: block; flex-shrink: 0; }
+    .ghs-badge-label { font-size: 0.72rem; font-weight: 800; color: #991b1b; line-height: 1.1; max-width: 95px; white-space: normal; }
+    .ghs-empty-badge { font-size: 0.76rem; font-weight: 700; color: #64748b; background: #f8fafc; border: 1px dashed #cbd5e1; padding: 5px 12px; border-radius: 6px; }
+
     .epi-icons { display: flex; align-items: center; gap: 8px; }
     .epi-circle { width: 40px; height: 40px; background-color: #0077b6; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0, 119, 182, 0.35); display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer; }
     .epi-circle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
@@ -53,7 +61,7 @@
     .btn-toggle { min-width: 48px; height: 40px; border: 1.5px solid #cbd5e1; background: #ffffff; border-radius: 6px; font-weight: 700; font-size: 0.85rem; color: #475569; cursor: pointer; }
     .btn-toggle.active-sim { background: #16a34a; border-color: #16a34a; color: #ffffff; }
     .btn-toggle.active-nao { background: #dc2626; border-color: #dc2626; color: #ffffff; }
-    .lock-msg { display: none; background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; font-weight: 700; border: 1px solid #bbf7d0; text-align: center; }
+    .lock-msg { display: none; background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; font-weight: 700; border: 1px solid #bbf7d0; text-align: center; margin-bottom: 12px; }
 
     /* Botões Padrões e Barra Inferior */
     .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
@@ -67,7 +75,7 @@
     .modal-input-group label { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; }
     .modal-input-group input { height: 44px; border: 2px solid #cbd5e1; border-radius: 6px; padding: 0 12px; font-size: 1rem; font-weight: 700; color: #0f172a; }
 
-    /* Modal de Alerta Customizado (Novo) */
+    /* Modal de Alerta Customizado */
     .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
     .alert-card { background: #ffffff; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; }
     .alert-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.05rem; }
@@ -139,7 +147,7 @@
           </div>
           <div class="info-field">
             <label>Lote Produção</label>
-            <div class="val" id="campoLoteProd" style="color: #b45309;">Automático</div>
+            <div class="val" id="campoLoteProd" style="color: #b45309;">---</div>
           </div>
         </div>
 
@@ -149,12 +157,8 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               Pictogramas GHS:
             </span>
-            <div class="ghs-icons">
-              <div class="ghs-diamond" title="Inflamável"><span class="ghs-inner">🔥</span></div>
-              <div class="ghs-diamond" title="Corrosivo"><span class="ghs-inner">🧪</span></div>
-              <div class="ghs-diamond" title="Toxicidade Aguda"><span class="ghs-inner">☠️</span></div>
-              <div class="ghs-diamond" title="Perigo à Saúde"><span class="ghs-inner">🫁</span></div>
-              <div class="ghs-diamond" title="Perigo Ambiental"><span class="ghs-inner">🐟</span></div>
+            <div class="ghs-icons" id="ghsContainer">
+              <span class="ghs-empty-badge">A verificar classificação GHS...</span>
             </div>
           </div>
 
@@ -229,14 +233,14 @@
             </table>
           </div>
           <div id="lockPesagemMsg" class="lock-msg" style="margin-top: 14px;">
-            Pesagem confirmada e travada. Aba Receita Liberada!
+            Pesagem confirmada e travada<span id="infoPesagemRealizada"></span>. Aba Receita Liberada!
           </div>
           <div style="text-align: right; margin-top: 14px;" id="btnSalvarPesagemContainer">
             <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="finalizarPesagem()">Confirmar e Travar Pesagem</button>
           </div>
         </div>
 
-        <!-- ABA 3: RECEITA (Mantido o Layout Original Fixo por Enquanto) -->
+        <!-- ABA 3: RECEITA -->
         <div id="aba-receita" class="tab-content" style="margin-top: 14px;">
           <div class="alert-banner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -339,7 +343,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE ALERTA CUSTOMIZADO (Substitui o alert() nativo) -->
+  <!-- MODAL DE ALERTA CUSTOMIZADO -->
   <div class="alert-overlay" id="customAlertModal">
     <div class="alert-card">
       <div class="alert-header error" id="customAlertHeader">Atenção</div>
@@ -353,9 +357,10 @@
   <!-- SCRIPT CONSOLIDADO -->
   <script>
     // ========================================================================
-    // CONFIGURAÇÕES DE API E AUTENTICAÇÃO
+    // CONFIGURAÇÕES DE API E DICIONÁRIO DO PAINEL GHS (SB1)
     // ========================================================================
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
+    const GHS_IMG_BASE = 'https://dyocks.github.io/unimol-ghs/img/';
     const urlParams = new URLSearchParams(window.location.search);
     const USER_LOGIN = 'rodrigo.amaral';
     const USER_PASS = 'RaquelEduarda2010@';
@@ -368,6 +373,20 @@
         'Authorization': authHeader,
         'tenantId': '01,0101'
     };
+
+    // Mapeamento dos 10 campos do Painel GHS (ABNT NBR 14725)
+    const MAPA_GHS_SB1 = [
+      { campo: 'B1_XPEXPL', titulo: 'Explosivo',            img: 'B1_XPEXPL.png' },
+      { campo: 'B1_XPINFL', titulo: 'Inflamável',           img: 'B1_XPINFL.png' },
+      { campo: 'B1_XPOXID', titulo: 'Oxidante',             img: 'B1_XPOXID.png' },
+      { campo: 'B1_XPGASP', titulo: 'Gás Pressurizado',     img: 'B1_XPGASP.png' },
+      { campo: 'B1_XPCORM', titulo: 'Corrosivo p/ Metais',  img: 'B1_XPCORM.png' },
+      { campo: 'B1_XSCORP', titulo: 'Corrosão Dérmica/Olhos', img: 'B1_XSCORP.png' },
+      { campo: 'B1_XSTOXA', titulo: 'Toxicidade Aguda',     img: 'B1_XSTOXA.png' },
+      { campo: 'B1_XSIRRP', titulo: 'Nocivo / Irritante',   img: 'B1_XSIRRP.png' },
+      { campo: 'B1_XSPERA', titulo: 'Perigo à Saúde',       img: 'B1_XSPERA.png' },
+      { campo: 'B1_XSMAQU', titulo: 'Meio Ambiente',        img: 'B1_XSMAQU.png' }
+    ];
     
     // Variáveis Globais
     let USUARIO_LOGADO = ''; 
@@ -378,30 +397,30 @@
     // ========================================================================
     // INICIALIZAÇÃO DA PÁGINA
     // ========================================================================
-    window.addEventListener('DOMContentLoaded', () => {
-      currentOP = urlParams.get('op') || "";
-      currentCod = urlParams.get('produto') || urlParams.get('cod') || "";
-      currentReator = urlParams.get('reator') || "";
+    window.addEventListener('DOMContentLoaded', async () => {
+      currentOP = (urlParams.get('op') || "").trim();
+      currentCod = (urlParams.get('produto') || urlParams.get('cod') || "").trim();
+      currentReator = (urlParams.get('reator') || "").trim();
 
-      // Injeta Valores se existirem
       const elCodProd = document.getElementById('campoCodProd');
       if (elCodProd && currentCod !== "") elCodProd.textContent = currentCod;
 
       const elNumOP = document.getElementById('campoNumOP');
       if (elNumOP && currentOP !== "") elNumOP.textContent = currentOP;
 
-      // Dispara as chamadas da API REST se houver uma OP
       if (currentOP !== "") {
-          carregarDetalhesOP(currentOP);
-          carregarChecklistProtheus(currentReator);
-          carregarPesagemProtheus(currentOP);
+          // 1º Carrega os detalhes da OP (para garantir reator, lote e GHS do produto)
+          await carregarDetalhesOP(currentOP);
+          // 2º Carrega Checklist e Pesagem enviando a OP para checar histórico (SZ4 e SZ6)
+          await carregarChecklistProtheus(currentReator, currentOP);
+          await carregarPesagemProtheus(currentOP);
       } else {
           console.warn("Nenhuma OP informada na URL.");
       }
     });
 
     // ========================================================================
-    // FUNÇÕES DE ALERTAS CUSTOMIZADOS (Substitui alert() nativo)
+    // FUNÇÕES DE ALERTAS CUSTOMIZADOS
     // ========================================================================
     function mostrarAlerta(mensagem, tipo = 'error') {
       const modal = document.getElementById('customAlertModal');
@@ -424,7 +443,34 @@
     }
 
     // ========================================================================
-    // 1. CARREGAR DETALHES DA OP (Operador e Descrição)
+    // RENDERIZAR PICTOGRAMAS GHS NO CABEÇALHO BASEADO NA SB1
+    // ========================================================================
+    function renderizarPictogramasGHS(ghsObj) {
+      const container = document.getElementById('ghsContainer');
+      if (!container) return;
+
+      if (!ghsObj) {
+        container.innerHTML = `<span class="ghs-empty-badge">Sem classificação GHS</span>`;
+        return;
+      }
+
+      const ativos = MAPA_GHS_SB1.filter(item => ghsObj[item.campo] === true);
+
+      if (ativos.length === 0) {
+        container.innerHTML = `<span class="ghs-empty-badge">Produto sem perigos GHS classificados na SB1</span>`;
+        return;
+      }
+
+      container.innerHTML = ativos.map(item => `
+        <div class="ghs-badge-item" title="${item.titulo} (${item.campo})">
+          <img src="${GHS_IMG_BASE}${item.img}" alt="${item.titulo}">
+          <span class="ghs-badge-label">${item.titulo}</span>
+        </div>
+      `).join('');
+    }
+
+    // ========================================================================
+    // 1. CARREGAR DETALHES DA OP (Operador, Descrição, Lote C2_XLOTE e GHS)
     // ========================================================================
     async function carregarDetalhesOP(opCompleta) {
       try {
@@ -432,12 +478,19 @@
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK') {
-          // Preenche a variável global com o usuário vindo da API
           USUARIO_LOGADO = data.usuarioLogado || data.idUsuarioLogado || "";
 
-          const opDados = data.ops.find(o => o.opCompleta === opCompleta || (o.num + o.item + o.seq) === opCompleta);
+          const opDados = data.ops.find(o => 
+            o.opCompleta === opCompleta || 
+            (o.num + o.item + o.seq) === opCompleta ||
+            o.num === opCompleta.substring(0, 6)
+          );
           
           if (opDados) {
+            if (!currentReator && opDados.reator) {
+              currentReator = opDados.reator.trim();
+            }
+
             const elNomeOperador = document.getElementById('userNameLbl');
             if (elNomeOperador) {
                 elNomeOperador.textContent = opDados.nomeOperador || opDados.codOperador || data.nomeUsuarioLogado || "Não Atribuído";
@@ -446,20 +499,30 @@
                 let nomeParaAvatar = opDados.nomeOperador || data.nomeUsuarioLogado;
                 if (avatar && nomeParaAvatar) {
                     let partes = nomeParaAvatar.trim().split(" ");
-                    let iniciais = "OP";
-                    if (partes.length > 1) {
-                        iniciais = partes[0][0] + partes[partes.length-1][0];
-                    } else {
-                        iniciais = partes[0].substring(0, 2);
-                    }
+                    let iniciais = partes.length > 1 
+                        ? (partes[0][0] + partes[partes.length - 1][0]) 
+                        : partes[0].substring(0, 2);
                     avatar.textContent = iniciais.toUpperCase();
                 }
             }
+
+            const elCodProd = document.getElementById('campoCodProd');
+            if (elCodProd && opDados.produto) elCodProd.textContent = opDados.produto;
+
             const elDesc = document.getElementById('campoDescProd');
             if (elDesc) elDesc.textContent = opDados.desc;
 
             const elQtd = document.getElementById('campoQtdPrev');
             if (elQtd) elQtd.textContent = opDados.qtdPrev + " KG";
+
+            // Preenche Lote de Produção vindo do campo C2_XLOTE da OP
+            const elLote = document.getElementById('campoLoteProd');
+            if (elLote) {
+              elLote.textContent = (opDados.lote && opDados.lote.trim() !== "") ? opDados.lote : "S/ Lote";
+            }
+
+            // Monta o mosaico GHS do produto produzido
+            renderizarPictogramasGHS(opDados.ghs);
           }
         }
       } catch (e) {
@@ -468,82 +531,164 @@
     }
 
     // ========================================================================
-    // 2. CARREGAR CHECKLIST DINÂMICO
+    // 2. CARREGAR CHECKLIST DINÂMICO (E VERIFICAR SE JÁ FOI REALIZADO NA SZ4)
     // ========================================================================
-    async function carregarChecklistProtheus(reator) {
+    async function carregarChecklistProtheus(reator, op) {
       const container = document.getElementById('checklistForm');
       if(!container) return;
 
       container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #64748b;">A carregar checklist do Protheus...</div>`;
       
       try {
-        const resp = await fetch(`${API_BASE}/checklist?reator=${reator}`, { headers: reqHeaders });
+        const query = `reator=${encodeURIComponent(reator || '')}&op=${encodeURIComponent(op || '')}`;
+        const resp = await fetch(`${API_BASE}/checklist?${query}`, { headers: reqHeaders });
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK' && data.checklist.length > 0) {
           container.innerHTML = ""; 
           data.checklist.forEach(item => {
-            
-            // FALLBACK: Se o banco devolver o reator vazio, ele puxa o Reator correto da URL.
             const reatorValido = (item.reator && item.reator.trim() !== "") ? item.reator.trim() : reator;
-            
+            const isSim = (item.status === 'S');
+            const isNao = (item.status === 'N');
+
             const cardHTML = `
-              <div class="check-card" data-reator="${reatorValido}" data-seq="${item.seq}" data-acao="${item.acao}">
+              <div class="check-card ${isSim ? 'checked-ok' : ''}" data-reator="${reatorValido}" data-seq="${item.seq}" data-acao="${item.acao}">
                 <div>
                   <div style="font-weight:700;">${item.acao}</div>
                   <div style="font-size:0.75rem; color:#64748b;">Checklist Reator: ${reatorValido}</div>
                 </div>
                 <div class="touch-toggle-group">
-                  <button class="btn-toggle btn-sim" onclick="toggleCheck(this, 'sim')">SIM</button>
-                  <button class="btn-toggle btn-nao" onclick="toggleCheck(this, 'nao')">NÃO</button>
+                  <button class="btn-toggle btn-sim ${isSim ? 'active-sim' : ''}" onclick="toggleCheck(this, 'sim')">SIM</button>
+                  <button class="btn-toggle btn-nao ${isNao ? 'active-nao' : ''}" onclick="toggleCheck(this, 'nao')">NÃO</button>
                 </div>
               </div>
             `;
             container.insertAdjacentHTML('beforeend', cardHTML);
           });
+
+          // Se a OP já possui o checklist gravado na SZ4, trava a tela e libera a Pesagem
+          if (data.jaRealizado) {
+            aplicarBloqueioVisualChecklist(
+              data.operadorNome || document.getElementById('userNameLbl').innerText,
+              data.dataHora || "registrado no banco",
+              false
+            );
+          }
         } else {
           container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Nenhum checklist cadastrado na SZ3 para o reator.</div>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Checklist:", e);
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de ligação com o REST do Protheus (SZ3).</div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de ligação com o REST do Protheus (SZ3/SZ4).</div>`;
+      }
+    }
+
+    function aplicarBloqueioVisualChecklist(nomeOperador, dataHoraStr, navegarParaPesagem = true) {
+      const form = document.getElementById('checklistForm');
+      if (form) {
+        form.style.pointerEvents = 'none';
+        form.style.opacity = '0.75';
+      }
+      
+      const btnSalvar = document.getElementById('btnSalvarChecklistContainer');
+      if (btnSalvar) btnSalvar.style.display = 'none';
+      
+      const elOpNome = document.getElementById('opNomeCheck');
+      if (elOpNome) elOpNome.innerText = nomeOperador;
+      
+      const elDhCheck = document.getElementById('dhCheck');
+      if (elDhCheck) elDhCheck.innerText = dataHoraStr;
+      
+      const elLockMsg = document.getElementById('lockChecklistMsg');
+      if (elLockMsg) elLockMsg.style.display = 'block';
+
+      const btnMat = document.getElementById('btn-tab-materias');
+      if (btnMat) {
+        btnMat.classList.remove('locked');
+        if (navegarParaPesagem) btnMat.click();
       }
     }
 
     // ========================================================================
-    // 3. CARREGAR PESAGEM DINÂMICA
+    // 3. CARREGAR PESAGEM DINÂMICA (E VERIFICAR SE JÁ FOI REALIZADA NA SZ6)
     // ========================================================================
     async function carregarPesagemProtheus(op) {
       const tbody = document.getElementById('pesagemTbody');
       if(!tbody) return;
 
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">A carregar pesagem (SZ5)...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">A carregar pesagem (SZ5/SZ6)...</td></tr>`;
       
       try {
-        const resp = await fetch(`${API_BASE}/pesagem?op=${op}`, { headers: reqHeaders });
+        const resp = await fetch(`${API_BASE}/pesagem?op=${encodeURIComponent(op)}`, { headers: reqHeaders });
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK' && data.pesagem.length > 0) {
           tbody.innerHTML = "";
           data.pesagem.forEach(item => {
+            const pesoSalvo = (item.kgcont !== undefined && item.kgcont !== "") ? item.kgcont : "";
+            const loteSalvo = (item.loteConf !== undefined && item.loteConf !== "") ? item.loteConf : item.lote;
+            const jaPesado  = data.jaRealizado && pesoSalvo !== "";
+
             const tr = `
               <tr data-prod="${item.produto}" data-item="${item.item}" data-nome="${item.nome}" data-ender="${item.ender}" data-perc="${item.perc}" data-kgprev="${item.kgprev}" data-lote="${item.lote}">
                 <td><code>${item.produto}</code><br><small style="font-weight:600; color:#334155;">${item.nome}</small></td>
                 <td><span class="wms-address">📍 ${item.ender}</span></td>
                 <td style="text-align: right; font-weight: 700;">${item.kgprev} KG</td>
-                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg"></td>
-                <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${item.lote}"></td>
-                <td style="text-align: center;"><span class="badge-status badge-wait">Pendente</span></td>
+                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg" value="${pesoSalvo}"></td>
+                <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${loteSalvo}"></td>
+                <td style="text-align: center;">
+                  <span class="badge-status ${jaPesado ? 'badge-ok' : 'badge-wait'}">
+                    ${jaPesado ? '✓ Pesado' : 'Pendente'}
+                  </span>
+                </td>
               </tr>
             `;
             tbody.insertAdjacentHTML('beforeend', tr);
           });
+
+          // Se a OP já possui pesagem gravada na SZ6, trava a tabela e libera a aba Receita
+          if (data.jaRealizado) {
+            aplicarBloqueioVisualPesagem(data.operadorNome, data.dataHora, false);
+          }
         } else {
           tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Pesagem:", e);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5/SZ6).</td></tr>`;
+      }
+    }
+
+    function aplicarBloqueioVisualPesagem(operadorNome = "", dataHoraStr = "", navegarParaReceita = true) {
+      const tbody = document.getElementById('pesagemTbody');
+      if (tbody) {
+        tbody.style.pointerEvents = 'none';
+        tbody.style.opacity = '0.85';
+      }
+
+      const btnSalvar = document.getElementById('btnSalvarPesagemContainer');
+      if (btnSalvar) btnSalvar.style.display = 'none';
+
+      const infoSpan = document.getElementById('infoPesagemRealizada');
+      if (infoSpan && (operadorNome || dataHoraStr)) {
+        infoSpan.textContent = ` por ${operadorNome || 'Operador'} em ${dataHoraStr || ''}`;
+      }
+
+      const lockMsg = document.getElementById('lockPesagemMsg');
+      if (lockMsg) lockMsg.style.display = 'block';
+
+      document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
+        badge.className = "badge-status badge-ok";
+        badge.innerText = "✓ Pesado";
+      });
+
+      const btnMat = document.getElementById('btn-tab-materias');
+      if (btnMat) btnMat.classList.remove('locked');
+
+      const btnRec = document.getElementById('btn-tab-receita');
+      if (btnRec) {
+        btnRec.classList.remove('locked');
+        if (navegarParaReceita) btnRec.click();
       }
     }
 
@@ -569,7 +714,7 @@
       else card.classList.remove('checked-ok');
     }
 
-   // ========================================================================
+    // ========================================================================
     // FINALIZAR CHECKLIST
     // ========================================================================
     async function finalizarChecklist() {
@@ -605,38 +750,21 @@
         });
         const res = await response.json();
         
-        // Se o Protheus devolver erro, lança exceção para parar a execução
         if(res.status !== 'OK') {
             throw new Error(res.mensagem || "Erro desconhecido no Protheus");
         }
       } catch(e) {
         console.error("Falha na gravação REST:", e);
         mostrarAlerta("Falha ao gravar no Protheus: " + e.message, "error");
-        return; // PÁRA A EXECUÇÃO AQUI! Não tranca o ecrã.
+        return;
       }
 
-      // Se passou pelo catch sem erros, bloqueia a edição visual do Checklist
-      document.getElementById('checklistForm').style.pointerEvents = 'none';
-      document.getElementById('checklistForm').style.opacity = '0.7';
-      
-      const btnSalvar = document.getElementById('btnSalvarChecklistContainer');
-      if (btnSalvar) btnSalvar.style.display = 'none';
-      
-      let now = new Date();
-      const elOpNome = document.getElementById('opNomeCheck');
-      if(elOpNome) elOpNome.innerText = document.getElementById('userNameLbl').innerText;
-      const elDhCheck = document.getElementById('dhCheck');
-      if(elDhCheck) elDhCheck.innerText = now.toLocaleString();
-      
-      const elLockMsg = document.getElementById('lockChecklistMsg');
-      if(elLockMsg) elLockMsg.style.display = 'block';
-
-      // Desbloqueia e vai para a aba de Pesagem
-      let btnMat = document.getElementById('btn-tab-materias');
-      if(btnMat) {
-          btnMat.classList.remove('locked');
-          btnMat.click();
-      }
+      const now = new Date();
+      aplicarBloqueioVisualChecklist(
+        document.getElementById('userNameLbl').innerText,
+        now.toLocaleString(),
+        true
+      );
     }
 
     // ========================================================================
@@ -685,29 +813,15 @@
       } catch(e) {
         console.error("Falha na gravação REST:", e);
         mostrarAlerta("Falha ao gravar pesagem no Protheus: " + e.message, "error");
-        return; // PÁRA A EXECUÇÃO AQUI!
+        return;
       }
 
-      // Se gravou com sucesso, bloqueia a edição visual da tabela
-      document.getElementById('pesagemTbody').style.pointerEvents = 'none';
-      const btnSalvar = document.getElementById('btnSalvarPesagemContainer');
-      if (btnSalvar) btnSalvar.style.display = 'none';
-      
-      const lockMsg = document.getElementById('lockPesagemMsg');
-      if (lockMsg) lockMsg.style.display = 'block';
-
-      // Atualiza os badges
-      document.querySelectorAll('#pesagemTbody .badge-status').forEach(badge => {
-        badge.className = "badge-status badge-ok";
-        badge.innerText = "✓ Pesado";
-      });
-
-      // Desbloqueia e vai para a aba de Receita
-      let btnRec = document.getElementById('btn-tab-receita');
-      if(btnRec) {
-          btnRec.classList.remove('locked');
-          btnRec.click();
-      }
+      const now = new Date();
+      aplicarBloqueioVisualPesagem(
+        document.getElementById('userNameLbl').innerText,
+        now.toLocaleString(),
+        true
+      );
     }
 
     // ========================================================================
@@ -720,11 +834,8 @@
       document.getElementById('modalApontamento').style.display = 'none';
     }
     async function executarApontamentoMATA681() {
-      // Exemplo básico do MATA681
       mostrarAlerta("Apontamento simulado com sucesso no MATA681 via T-Cloud!", "success");
       fecharModalApontamento();
-      // Opcional: Redirecionar
-      // setTimeout(() => window.location.href = "comigo.html", 1500);
     }
   </script>
 </body>
