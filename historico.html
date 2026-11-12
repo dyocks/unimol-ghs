@@ -3,40 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PCP Químico - Histórico de Ordens Fechadas</title>
+  <title>PCP Químico - Histórico de Ordens Concluídas</title>
   <link rel="stylesheet" href="style-base.css">
   <style>
-    .loading-row {
-      text-align: center;
-      padding: 30px;
-      color: #64748b;
-      font-weight: 600;
-    }
+    .main-area { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-scroll { flex: 1; overflow-y: auto; padding: 18px 24px 40px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Cards de KPI no Topo */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .kpi-card { background: var(--surface); border-radius: 12px; border: 1.5px solid var(--border); padding: 16px 18px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .kpi-val { font-size: 1.65rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; margin-bottom: 4px; }
+    .kpi-lbl { font-size: 0.76rem; font-weight: 700; color: #64748b; }
+
+    /* Barra de Pesquisa e Status */
+    .filter-bar { background: var(--surface); border-radius: 12px; border: 1.5px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .search-box { position: relative; flex: 1; min-width: 260px; max-width: 420px; }
+    .search-box input { width: 100%; height: 40px; padding: 0 14px 0 38px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; font-weight: 700; color: #0f172a; outline: none; box-sizing: border-box; }
+    .search-box input:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.18); }
+    .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #64748b; }
+
+    .btn-refresh { height: 38px; padding: 0 14px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 800; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn-refresh:hover { border-color: #0072B2; color: #0072B2; background: #f0f9ff; }
+
+    /* Tabela de Histórico */
+    .table-card { background: var(--surface); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.04); overflow: hidden; }
+    .table-scroll { max-height: calc(100vh - 280px); overflow-y: auto; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { position: sticky; top: 0; z-index: 5; background: #f8fafc; color: #475569; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 12px; border-bottom: 2px solid #e2e8f0; text-align: left; white-space: nowrap; }
+    tbody td { padding: 14px 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.86rem; color: #1e293b; vertical-align: middle; }
+    tbody tr:hover { background: #f8fafc; }
+
+    .dot-closed { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #0072B2; margin-right: 8px; }
+    .op-code { font-family: ui-monospace, monospace; font-weight: 800; font-size: 0.92rem; color: #0f172a; }
+    .prod-code { font-family: ui-monospace, monospace; font-weight: 700; font-size: 0.82rem; color: #334155; }
+    .lote-badge { font-family: ui-monospace, monospace; font-weight: 800; color: #b45309; background: #fef3c7; padding: 3px 8px; border-radius: 6px; border: 1px solid #fde68a; font-size: 0.78rem; }
+    .operador-link { display: inline-flex; align-items: center; gap: 5px; color: #0072B2; font-weight: 700; font-size: 0.82rem; }
+    .badge-encerrada { display: inline-flex; align-items: center; gap: 5px; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; padding: 4px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 800; }
+    .btn-ver-op { height: 32px; padding: 0 12px; border-radius: 6px; background: #0072B2; color: #ffffff; font-size: 0.76rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-ver-op:hover { background: #005AB5; }
+
+    .badge-offline { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; padding: 4px 10px; border-radius: 14px; font-size: 0.72rem; font-weight: 800; }
   </style>
 </head>
 <body>
+
   <!-- LATERAL FIXA -->
   <aside class="sidebar">
     <div class="brand-icon">PCP</div>
-
-    <!-- 1. INÍCIO -->
     <a href="index.html" class="nav-link" title="Ordens Abertas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Início</span>
     </a>
-
-    <!-- 2. COMIGO -->
     <a href="comigo.html" class="nav-link" title="Minhas Ordens">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Comigo</span>
     </a>
-
-    <!-- 3. HISTÓRICO (Ativo) -->
     <a href="historico.html" class="nav-link active" title="Ordens Encerradas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span>Histórico</span>
     </a>
-
     <a href="receita.html" class="nav-link" title="Gestão de Receitas (SZ7)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/>
@@ -44,195 +69,278 @@
       </svg>
       <span>Receitas</span>
     </a>
-    
   </aside>
 
-  <!-- ÁREA DE CONTEÚDO -->
+  <!-- ÁREA PRINCIPAL -->
   <div class="main-area">
     <header class="topbar">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <span class="app-title">HISTÓRICO DE ORDENS CONCLUÍDAS</span>
-        <span class="badge-online" id="statusBadge">ONLINE • PROTHEUS</span>
+        <span class="app-title" style="font-size: 1rem;">HISTÓRICO DE ORDENS CONCLUÍDAS</span>
+        <span class="badge-online" id="statusConexaoBadge">ONLINE • PROTHEUS TCLOUD</span>
       </div>
+
       <div class="user-pill">
-        <div class="user-avatar">RA</div>
+        <div class="user-avatar" id="avatarTop" style="background:#0072B2; color:white;">RA</div>
         <div>
-          <div style="font-weight: 700; font-size: 0.82rem;">Rodrigo Amaral</div>
-          <div style="font-size: 0.72rem; color: #64748b;">rodrigo.amaral</div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">A carregar...</div>
+          <div style="font-size: 0.72rem; color: #64748b;" id="userLoginLbl">Produção</div>
         </div>
       </div>
     </header>
 
     <main class="content-scroll">
-      <div class="kpi-row">
+      <!-- KPIS SUPERIORES -->
+      <div class="kpi-grid">
         <div class="kpi-card">
-          <span class="kpi-num" style="color: #16a34a;" id="kpiEncerradas">0</span>
-          <span class="kpi-label">OPs Concluídas</span>
+          <div class="kpi-val" id="kpiTotalOPs" style="color: #0072B2;">0</div>
+          <div class="kpi-lbl">OPs Concluídas</div>
         </div>
         <div class="kpi-card">
-          <span class="kpi-num" style="color: #0284c7;" id="kpiKgTotal">0 KG</span>
-          <span class="kpi-label">Volume Total Produzido</span>
+          <div class="kpi-val" id="kpiVolumeTotal" style="color: #0284c7;">0 KG</div>
+          <div class="kpi-lbl">Volume Total Produzido</div>
         </div>
         <div class="kpi-card">
-          <span class="kpi-num" style="color: #64748b;" id="kpiLotes">0</span>
-          <span class="kpi-label">Lotes Gerados</span>
+          <div class="kpi-val" id="kpiLotesGerados" style="color: #334155;">0</div>
+          <div class="kpi-lbl">Lotes Gerados</div>
         </div>
         <div class="kpi-card">
-          <span class="kpi-num" style="color: #009ca6;">100%</span>
-          <span class="kpi-label">Conformidade Protheus</span>
+          <div class="kpi-val" id="kpiConformidade" style="color: #0072B2;">100%</div>
+          <div class="kpi-lbl">Conformidade Protheus</div>
         </div>
       </div>
 
-      <div class="table-card">
-        <div class="table-toolbar">
-          <div class="search-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="filtroOP" placeholder="Pesquisar histórico por OP, Produto ou Lote..." onkeyup="filtrarTabela()">
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <button onclick="carregarHistorico()" style="background:#ffffff; border:1.5px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px;">
-              🔄 Atualizar
-            </button>
-            <div style="font-size: 0.85rem; color: #16a34a; font-weight: 700;" id="txtCount">
-              ✓ Filtro: SC2 C2_DATRF preenchido
-            </div>
-          </div>
+      <!-- BARRA DE FILTRO E ATUALIZAÇÃO -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="inputBuscaHistorico" placeholder="Pesquisar histórico por OP, Produto ou Lote..." oninput="filtrarTabelaHistorico()">
         </div>
 
-        <table id="tabelaOPs">
-          <thead>
-            <tr>
-              <th style="width: 30px;"></th>
-              <th>Número da OP</th>
-              <th style="text-align: center;">Item</th>
-              <th style="text-align: center;">Sequência</th>
-              <th>Produto</th>
-              <th>Desc. Produto</th>
-              <th style="text-align: center;">Armazém</th>
-              <th style="text-align: center;">Tipo OP</th>
-              <th>Lote UNIMOL</th>
-              <th>Fechamento</th>
-              <th>Operador</th>
-              <th style="text-align: center;">Status</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyHistorico">
-            <tr>
-              <td colspan="12" class="loading-row">Carregando histórico do Protheus...</td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <button class="btn-refresh" onclick="carregarHistoricoProtheus()">
+            🔄 Atualizar
+          </button>
+          <span style="font-size: 0.82rem; font-weight: 800; color: #0072B2;" id="lblContadorRegistros">
+            A consultar SC2...
+          </span>
+        </div>
+      </div>
+
+      <!-- TABELA DE ORDENS ENCERRADAS -->
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Número da OP</th>
+                <th style="text-align: center;">Item</th>
+                <th style="text-align: center;">Sequência</th>
+                <th>Produto</th>
+                <th>Desc. Produto</th>
+                <th style="text-align: center;">Armazém</th>
+                <th style="text-align: center;">Qtd. Prod.</th>
+                <th>Lote Unimol</th>
+                <th style="text-align: center;">Fechamento</th>
+                <th>Operador</th>
+                <th style="text-align: center;">Status</th>
+                <th style="text-align: center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyHistorico">
+              <tr>
+                <td colspan="12" style="text-align: center; padding: 28px; color: #64748b; font-weight: 700;">
+                  A carregar histórico de ordens encerradas no Protheus T-Cloud...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
 
   <script>
-    const API_BASE = '/rest/WSPCPQUIM';
+    // ========================================================================
+    // CONFIGURAÇÃO OFICIAL DA API PROTHEUS T-CLOUD (URL ABSOLUTA)
+    // ========================================================================
+    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
+    const urlParams = new URLSearchParams(window.location.search);
+    const USER_LOGIN = 'rodrigo.amaral';
+    const USER_PASS = 'RaquelEduarda2010@';
+    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
-    async function carregarHistorico() {
-      const tbody = document.getElementById("tbodyHistorico");
-      tbody.innerHTML = '<tr><td colspan="12" class="loading-row">Consultando histórico no Protheus...</td></tr>';
+    const reqHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader,
+      'tenantId': '01,0101'
+    };
+
+    let LISTA_HISTORICO = [];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarHistoricoProtheus();
+    });
+
+    // ========================================================================
+    // CONSULTA À ROTA /WSPCPQUIM/historico NO PROTHEUS
+    // ========================================================================
+    async function carregarHistoricoProtheus() {
+      const tbody = document.getElementById('tbodyHistorico');
+      const badgeStatus = document.getElementById('statusConexaoBadge');
+      const lblCont = document.getElementById('lblContadorRegistros');
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="12" style="text-align: center; padding: 28px; color: #64748b; font-weight: 700;">
+            ⏳ A consultar ordens encerradas (C2_DATRF) no Protheus...
+          </td>
+        </tr>
+      `;
 
       try {
-        const resp = await fetch(`${API_BASE}/historico`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'tenantId': '01,0101'
-          }
-        });
-
-        if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
+        const resp = await fetch(`${API_BASE}/historico`, { headers: reqHeaders });
         const data = await resp.json();
-        const lista = data.ops || [];
-        renderizarTabela(lista);
-      } catch (err) {
-        console.warn("Falha na API Protheus, carregando dados locais de histórico:", err);
-        document.getElementById("statusBadge").textContent = "MODO DEMO • OFFLINE";
-        document.getElementById("statusBadge").style.color = "#ea580c";
-        document.getElementById("statusBadge").style.background = "#fff7ed";
-        renderizarMock();
+
+        if (resp.ok && data.status === 'OK') {
+          badgeStatus.className = 'badge-online';
+          badgeStatus.textContent = 'ONLINE • PROTHEUS TCLOUD';
+
+          // Atualiza dados do utilizador logado no topo
+          if (data.nomeUsuarioLogado) {
+            document.getElementById('userNameLbl').textContent = data.nomeUsuarioLogado;
+            document.getElementById('userLoginLbl').textContent = data.usuarioLogado || 'Produção';
+            const partes = data.nomeUsuarioLogado.trim().split(' ');
+            const iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : partes[0].substring(0, 2);
+            document.getElementById('avatarTop').textContent = iniciais.toUpperCase();
+          }
+
+          LISTA_HISTORICO = data.ops || [];
+          atualizarKPIs(LISTA_HISTORICO);
+          renderizarTabelaHistorico(LISTA_HISTORICO);
+          lblCont.textContent = `✓ ${LISTA_HISTORICO.length} Ordem(ns) encerrada(s) registrada(s)`;
+        } else {
+          throw new Error(data.mensagem || 'Resposta inválida do servidor REST.');
+        }
+      } catch (e) {
+        console.error('Erro ao buscar histórico no Protheus:', e);
+        badgeStatus.className = 'badge-offline';
+        badgeStatus.textContent = 'ERRO DE COMUNICAÇÃO REST';
+        lblCont.textContent = '⚠️ Falha ao carregar';
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" style="text-align: center; padding: 28px; color: #D55E00; font-weight: 800;">
+              ⚠️ Não foi possível consultar o histórico no Protheus (${e.message}). Verifique se o serviço REST está ativo.
+            </td>
+          </tr>
+        `;
       }
-    }   
+    }
 
-    function renderizarTabela(ops) {
-      const tbody = document.getElementById("tbodyHistorico");
-      tbody.innerHTML = "";
+    // ========================================================================
+    // CÁLCULO DOS KPIS EM TEMPO REAL
+    // ========================================================================
+    function atualizarKPIs(lista) {
+      const totalOPs = lista.length;
+      let volumeTotal = 0;
+      const lotesUnicos = new Set();
 
-      let kgTotal = 0;
-      let lotesValidos = 0;
+      lista.forEach(op => {
+        const qtd = parseFloat(op.qtdProd !== undefined && op.qtdProd > 0 ? op.qtdProd : (op.qtdPrev || 0));
+        if (!isNaN(qtd)) volumeTotal += qtd;
+        if (op.lote && op.lote.trim() !== '') {
+          lotesUnicos.add(op.lote.trim());
+        }
+      });
 
-      if (ops.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="loading-row">Nenhuma ordem encerrada encontrada.</td></tr>';
-        atualizarKPIs(0, 0, 0);
+      document.getElementById('kpiTotalOPs').textContent = totalOPs;
+      document.getElementById('kpiVolumeTotal').textContent = volumeTotal.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' KG';
+      document.getElementById('kpiLotesGerados').textContent = lotesUnicos.size;
+      document.getElementById('kpiConformidade').textContent = totalOPs > 0 ? '100%' : '---';
+    }
+
+    // ========================================================================
+    // RENDERIZAÇÃO DA TABELA E FILTRO DE PESQUISA
+    // ========================================================================
+    function renderizarTabelaHistorico(lista) {
+      const tbody = document.getElementById('tbodyHistorico');
+      tbody.innerHTML = '';
+
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" style="text-align: center; padding: 28px; color: #64748b; font-weight: 700;">
+              Nenhuma Ordem de Produção encerrada localizada para o filtro atual.
+            </td>
+          </tr>
+        `;
         return;
       }
 
-      ops.forEach(op => {
-        kgTotal += parseFloat(op.qtdPrev || op.qtd || 0);
-        if (op.lote && op.lote.trim() !== '') lotesValidos++;
+      lista.forEach(op => {
+        const opCompleta = op.opCompleta || (op.num + op.item + op.seq);
+        const qtdExibir = (op.qtdProd !== undefined && op.qtdProd > 0) ? op.qtdProd : op.qtdPrev;
+        const dataFmt = formatarDataFechamento(op.dataFechamento);
+        const linkDetalhes = `apontamento.html?op=${encodeURIComponent(opCompleta)}&produto=${encodeURIComponent(op.produto || '')}&reator=${encodeURIComponent(op.reator || '')}`;
 
-        const tr = document.createElement("tr");
-
-        const displayOperador = op.nomeOperador ? 
-          `<span style="color:#0284c7; font-weight:700; font-size:0.82rem;">👤 ${op.nomeOperador}</span>` : 
-          `<span style="color:#64748b; font-size:0.82rem;">—</span>`;
-
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><span class="badge-bullet bullet-green"></span></td>
-          <td><strong>${op.num}</strong></td>
-          <td style="text-align: center;">${op.item}</td>
-          <td style="text-align: center;">${op.seq}</td>
-          <td><code>${op.produto}</code></td>
-          <td>${op.desc}</td>
-          <td style="text-align: center;">${op.armazem}</td>
-          <td style="text-align: center;">${op.tipo === 'F' ? 'Firme' : op.tipo}</td>
-          <td>${op.lote || '—'}</td>
-          <td>${formatarData(op.dataFechamento)}</td>
-          <td>${displayOperador}</td>
-          <td style="text-align: center;">
-            <span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:12px; font-weight:700; font-size:0.75rem;">
-              ✓ Encerrada
+          <td>
+            <span class="dot-closed"></span>
+            <span class="op-code">${op.num}</span>
+          </td>
+          <td style="text-align: center; font-weight: 700;">${op.item}</td>
+          <td style="text-align: center; font-weight: 700;">${op.seq}</td>
+          <td><span class="prod-code">${op.produto}</span></td>
+          <td style="font-weight: 700;">${op.desc}</td>
+          <td style="text-align: center; font-weight: 700;">${op.armazem || '01'}</td>
+          <td style="text-align: center; font-weight: 800; color: #0072B2;">${Number(qtdExibir || 0).toLocaleString('pt-BR')} KG</td>
+          <td><span class="lote-badge">${op.lote || 'S/ LOTE'}</span></td>
+          <td style="text-align: center; font-weight: 700;">${dataFmt}</td>
+          <td>
+            <span class="operador-link">
+              👤 ${op.nomeOperador || op.codOperador || 'Operador'}
             </span>
+          </td>
+          <td style="text-align: center;">
+            <span class="badge-encerrada">✓ Encerrada</span>
+          </td>
+          <td style="text-align: center;">
+            <a href="${linkDetalhes}" class="btn-ver-op" title="Consultar Checklist, Pesagem e Receita desta OP">
+              👁️ Consultar
+            </a>
           </td>
         `;
         tbody.appendChild(tr);
       });
-
-      atualizarKPIs(ops.length, kgTotal, lotesValidos);
     }
 
-    function atualizarKPIs(qtd, kg, lotes) {
-      document.getElementById("kpiEncerradas").textContent = qtd;
-      document.getElementById("kpiKgTotal").textContent = kg.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' KG';
-      document.getElementById("kpiLotes").textContent = lotes;
-      document.getElementById("txtCount").textContent = `✓ ${qtd} Ordem(ns) encerrada(s) registradas`;
-    }
-
-    function formatarData(d) {
-      if (!d || d.length !== 8) return d || '—';
-      return `${d.substring(6, 8)}/${d.substring(4, 6)}/${d.substring(0, 4)}`;
-    }
-
-    function filtrarTabela() {
-      const input = document.getElementById("filtroOP").value.toUpperCase();
-      const trs = document.getElementById("tbodyHistorico").getElementsByTagName("tr");
-      for (let i = 0; i < trs.length; i++) {
-        const texto = trs[i].textContent || trs[i].innerText;
-        trs[i].style.display = texto.toUpperCase().indexOf(input) > -1 ? "" : "none";
+    function formatarDataFechamento(dtStr) {
+      if (!dtStr) return '---';
+      const limpa = String(dtStr).trim();
+      if (limpa.length === 8 && /^\d{8}$/.test(limpa)) {
+        return `${limpa.substring(6, 8)}/${limpa.substring(4, 6)}/${limpa.substring(0, 4)}`;
       }
+      return limpa;
     }
 
-    function renderizarMock() {
-      const mock = [
-        { num: '000046', item: '01', seq: '001', produto: '12.30.00.1.0019', desc: 'BASE SECATIVA DPA 45', armazem: '01', tipo: 'F', lote: '0106980/2026', dataFechamento: '20261028', qtdPrev: 4200, nomeOperador: 'Rodrigo Amaral' },
-        { num: '000031', item: '01', seq: '001', produto: '10.30.50.1.5106', desc: 'PRODUTO DE TESTE RODOLFO', armazem: '03', tipo: 'F', lote: '0106822/2026', dataFechamento: '20261027', qtdPrev: 3100, nomeOperador: 'José Químico' },
-        { num: '000028', item: '01', seq: '001', produto: 'X12.30.00.1.0003', desc: 'BASE DPA GRANEL REAT 01', armazem: '77', tipo: 'F', lote: '0106710/2026', dataFechamento: '20261025', qtdPrev: 5000, nomeOperador: 'José Químico' }
-      ];
-      renderizarTabela(mock);
-    }
+    function filtrarTabelaHistorico() {
+      const termo = document.getElementById('inputBuscaHistorico').value.trim().toUpperCase();
+      if (!termo) {
+        renderizarTabelaHistorico(LISTA_HISTORICO);
+        return;
+      }
 
-    window.addEventListener('DOMContentLoaded', carregarHistorico);
+      const filtradas = LISTA_HISTORICO.filter(op =>
+        (op.num && op.num.toUpperCase().includes(termo)) ||
+        (op.opCompleta && op.opCompleta.toUpperCase().includes(termo)) ||
+        (op.produto && op.produto.toUpperCase().includes(termo)) ||
+        (op.desc && op.desc.toUpperCase().includes(termo)) ||
+        (op.lote && op.lote.toUpperCase().includes(termo)) ||
+        (op.nomeOperador && op.nomeOperador.toUpperCase().includes(termo))
+      );
+
+      renderizarTabelaHistorico(filtradas);
+    }
   </script>
 </body>
 </html>
