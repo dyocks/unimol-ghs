@@ -114,6 +114,22 @@
     .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
     .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
 
+    /* Modal de Fechamento de OP e Baixa de Saldos (PCP Mod. 2) */
+    .fechamento-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.76); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9500; padding: 16px; }
+    .fechamento-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 960px; max-height: 90vh; box-shadow: 0 24px 48px rgba(0,0,0,0.4); border: 3px solid #0072B2; display: flex; flex-direction: column; overflow: hidden; }
+    .fechamento-head { background: #0072B2; color: #ffffff; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; }
+    .fechamento-head h3 { font-size: 1.08rem; font-weight: 800; margin: 0; }
+    .fechamento-body { padding: 18px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .fechamento-pa-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 1.4fr; gap: 14px; background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 10px; padding: 14px 16px; }
+    .fechamento-box { display: flex; flex-direction: column; gap: 5px; }
+    .fechamento-box label { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: #0369a1; }
+    .fechamento-box input { height: 42px; padding: 0 12px; font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; border: 2px solid #7dd3fc; border-radius: 8px; color: #0f172a; background: #ffffff; outline: none; }
+    .fechamento-box input:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.25); }
+    .fechamento-mp-table { width: 100%; border-collapse: collapse; border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .fechamento-mp-table th { background: #f1f5f9; color: #334155; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 10px 8px; border-bottom: 2px solid #cbd5e1; }
+    .fechamento-mp-table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    .fechamento-foot { padding: 14px 22px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+
     /* Modal Acessível para Daltónicos (Paleta Okabe-Ito: Azul #0072B2 e Laranja/Âmbar #D55E00) */
     .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
     .alert-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; border: 3px solid #0072B2; }
@@ -123,10 +139,11 @@
     .alert-header.error { background: #D55E00; color: #ffffff; }
     .alert-header.success { background: #0072B2; color: #ffffff; }
     .alert-body { padding: 22px 20px; font-size: 1rem; color: #0f172a; line-height: 1.5; font-weight: 600; }
-    .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; }
+    .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
     .btn-ciente { height: 42px; padding: 0 22px; border-radius: 8px; font-size: 0.90rem; font-weight: 800; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
     .btn-ciente.btn-ciente-success { background: #005AB5; box-shadow: 0 3px 10px rgba(0, 90, 181, 0.3); }
     .btn-ciente.btn-ciente-warning { background: #D55E00; box-shadow: 0 3px 10px rgba(213, 94, 0, 0.3); }
+    .btn-ciente.btn-ciente-neutral { background: #ffffff; color: #334155; border: 1.5px solid #cbd5e1; }
   </style>
 </head>
 <body>
@@ -287,7 +304,6 @@
 
         <!-- ABA 3: RECEITA DINÂMICA (SZ7 + SZ6 [99] + EDIÇÃO EM TELA) -->
         <div id="aba-receita" class="tab-content" style="margin-top: 14px;">
-          <!-- BANNER DE ALERTA CRÍTICO: SÓ APARECE SE Z7_ALERT ESTIVER PREENCHIDO -->
           <div class="alert-banner" id="receitaAlertBanner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div class="alert-content">
@@ -313,9 +329,7 @@
                   <th style="text-align: center;">Status</th>
                 </tr>
               </thead>
-              <tbody id="receitaTbody">
-                <!-- Preenchido via JS a partir da SZ7 -->
-              </tbody>
+              <tbody id="receitaTbody"></tbody>
             </table>
           </div>
         </div>
@@ -338,12 +352,84 @@
     </footer>
   </div>
 
+  <!-- ====================================================================== -->
+  <!-- MODAL DE ENCERRAMENTO DA OP E BAIXA DE SALDOS (PCP MOD. 2 - MATA681)   -->
+  <!-- ====================================================================== -->
+  <div class="fechamento-overlay" id="modalFechamentoOP">
+    <div class="fechamento-card">
+      <div class="fechamento-head">
+        <div>
+          <h3>🏁 Encerramento da Ordem de Produção & Baixa de Saldos (PCP Mod. 2)</h3>
+          <div style="font-size: 0.78rem; opacity: 0.9;" id="subtituloFechamentoOP">OP: ---</div>
+        </div>
+        <button style="background:none; border:none; color:white; font-size:1.6rem; cursor:pointer;" onclick="fecharModalEncerramentoOP()">&times;</button>
+      </div>
+
+      <div class="fechamento-body">
+        <!-- 1. QUANTIDADES DO PRODUTO PRODUZIDO (PA/PI) -->
+        <div class="fechamento-pa-grid">
+          <div class="fechamento-box">
+            <label>Qtd. Prevista da OP (KG)</label>
+            <input type="text" id="fechQtdPrevPA" readonly style="background:#e2e8f0; border-color:#cbd5e1; color:#475569;">
+          </div>
+          <div class="fechamento-box">
+            <label>Qtd. Produzida Boa (KG) *</label>
+            <input type="number" step="0.01" id="fechQtdProdPA" placeholder="0.00" onblur="formatarDecimalCampo(this, 2)">
+          </div>
+          <div class="fechamento-box">
+            <label>Perda de Processo / PA (KG)</label>
+            <input type="number" step="0.01" id="fechQtdPerdaPA" value="0.00" placeholder="0.00" style="border-color:#fdba74; color:#D55E00;" onblur="formatarDecimalCampo(this, 2)">
+          </div>
+        </div>
+
+        <!-- 2. BALANÇO DE MASSA E BAIXA DAS MATÉRIAS-PRIMAS -->
+        <div>
+          <div style="font-size: 0.80rem; font-weight: 800; text-transform: uppercase; color: #334155; margin-bottom: 8px;">
+            Balanço de Consumo das Matérias-Primas (Qtd. Usada, Perda MP e Sobra)
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="fechamento-mp-table">
+              <thead>
+                <tr>
+                  <th>Matéria-Prima (MP)</th>
+                  <th style="text-align: center;">Lote</th>
+                  <th style="text-align: right;">Qtd. Separada</th>
+                  <th style="text-align: center;">Qtd. Usada (KG) *</th>
+                  <th style="text-align: center;">Perda MP (KG)</th>
+                  <th style="text-align: center;">Qtd. que Sobrou (KG)</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyFechamentoMP">
+                <!-- Preenchido dinamicamente a partir das MPs da OP -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="fechamento-foot">
+        <span style="font-size: 0.80rem; font-weight: 700; color: #475569;">
+          Ao confirmar, o Protheus baixará os saldos empenhados, apontará a produção (MATA681) e encerrará a OP.
+        </span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-ciente btn-ciente-neutral" onclick="fecharModalEncerramentoOP()">Voltar sem Fechar OP</button>
+          <button class="btn-ciente btn-ciente-success" id="btnConfirmarFechamentoOP" onclick="confirmarFechamentoTotalOP()">
+            ✓ Baixar Saldos, Apontar e Fechar OP
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL ACESSÍVEL PARA DALTÓNICOS (Paleta Okabe-Ito) -->
   <div class="alert-overlay" id="customAlertModal">
     <div class="alert-card card-success" id="customAlertCard">
       <div class="alert-header success" id="customAlertHeader">✓ Confirmação</div>
       <div class="alert-body" id="customAlertMessage"></div>
       <div class="alert-footer">
+        <button class="btn-ciente btn-ciente-neutral" id="btnSecundarioModal" style="display:none;" onclick="executarAcaoSecundariaModal()">
+          Não, Apenas Salvar
+        </button>
         <button class="btn-ciente btn-ciente-success" id="btnCienteModal" onclick="confirmarCienteModal()">
           ✓ CIENTE / ENTENDIDO
         </button>
@@ -353,9 +439,6 @@
 
   <!-- SCRIPT CONSOLIDADO -->
   <script>
-    // ========================================================================
-    // CONFIGURAÇÕES DE API E DICIONÁRIO DO PAINEL GHS (SB1)
-    // ========================================================================
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
     const GHS_IMG_BASE = 'https://dyocks.github.io/unimol-ghs/img/';
     const urlParams = new URLSearchParams(window.location.search);
@@ -387,10 +470,13 @@
     let currentOP = "";
     let currentCod = "";
     let currentReator = "";
+    let QTD_PREVISTA_OP = 0;
     let RECEITA_ETAPAS = [];
+    let LISTA_MPS_PESAGEM = [];
     let PESOS_SEPARADOS_Z6 = {};
     let ALERTAS_JA_EXIBIDOS = {};
     let ACAO_APOS_CIENTE = null;
+    let ACAO_SECUNDARIA_MODAL = null;
 
     // ========================================================================
     // INICIALIZAÇÃO DA PÁGINA
@@ -417,30 +503,39 @@
     });
 
     // ========================================================================
-    // FUNÇÕES DE ALERTAS ACESSÍVEIS PARA DALTÓNICOS + AÇÃO AO CLICAR EM CIENTE
+    // FUNÇÕES DE ALERTAS ACESSÍVEIS PARA DALTÓNICOS + CONFIRMAÇÃO DUPLA
     // ========================================================================
-    function mostrarAlerta(mensagem, tipo = 'error', tituloCustom = '', callbackCiente = null) {
+    function mostrarAlerta(mensagem, tipo = 'error', tituloCustom = '', callbackCiente = null, textoBtnSecundario = '', callbackSecundario = null, textoBtnPrincipal = '') {
       const modal = document.getElementById('customAlertModal');
       const card = document.getElementById('customAlertCard');
       const header = document.getElementById('customAlertHeader');
       const msg = document.getElementById('customAlertMessage');
       const btn = document.getElementById('btnCienteModal');
+      const btnSec = document.getElementById('btnSecundarioModal');
       
       ACAO_APOS_CIENTE = callbackCiente;
+      ACAO_SECUNDARIA_MODAL = callbackSecundario;
       msg.textContent = mensagem;
+
+      if (textoBtnSecundario) {
+        btnSec.style.display = 'inline-flex';
+        btnSec.textContent = textoBtnSecundario;
+      } else {
+        btnSec.style.display = 'none';
+      }
 
       if (tipo === 'error') {
         card.className = 'alert-card card-warning';
         header.className = 'alert-header error';
         header.textContent = tituloCustom || '⚠️ ATENÇÃO / PENDÊNCIA';
         btn.className = 'btn-ciente btn-ciente-warning';
-        btn.innerHTML = '⚠️ CIENTE / ENTENDIDO';
+        btn.innerHTML = textoBtnPrincipal || '⚠️ CIENTE / ENTENDIDO';
       } else {
         card.className = 'alert-card card-success';
         header.className = 'alert-header success';
         header.textContent = tituloCustom || '✓ APONTAMENTO CONFIRMADO';
         btn.className = 'btn-ciente btn-ciente-success';
-        btn.innerHTML = '✓ CIENTE / ENTENDIDO';
+        btn.innerHTML = textoBtnPrincipal || '✓ CIENTE / ENTENDIDO';
       }
       modal.style.display = 'flex';
     }
@@ -450,6 +545,17 @@
       if (typeof ACAO_APOS_CIENTE === 'function') {
         const fn = ACAO_APOS_CIENTE;
         ACAO_APOS_CIENTE = null;
+        ACAO_SECUNDARIA_MODAL = null;
+        await fn();
+      }
+    }
+
+    async function executarAcaoSecundariaModal() {
+      document.getElementById('customAlertModal').style.display = 'none';
+      if (typeof ACAO_SECUNDARIA_MODAL === 'function') {
+        const fn = ACAO_SECUNDARIA_MODAL;
+        ACAO_APOS_CIENTE = null;
+        ACAO_SECUNDARIA_MODAL = null;
         await fn();
       }
     }
@@ -458,7 +564,6 @@
       confirmarCienteModal();
     }
 
-    // Formata automaticamente o número ao sair do campo (ex: 5 -> 5.0 | 0 -> 0.00)
     function formatarDecimalCampo(inputEl, casas = 1) {
       if (!inputEl || inputEl.value === '') return;
       const num = parseFloat(String(inputEl.value).replace(',', '.'));
@@ -494,9 +599,6 @@
       `).join('');
     }
 
-    // ========================================================================
-    // ALTERNAR EPIS NO CABEÇALHO CONFORME A SEQUÊNCIA DA SZ7
-    // ========================================================================
     function atualizarEPIsDaSequencia(etapa) {
       const lbl = document.getElementById('lblEpiSeq');
       if (lbl) lbl.textContent = etapa ? `(Seq. ${etapa.seq})` : '';
@@ -515,7 +617,7 @@
     }
 
     // ========================================================================
-    // 1. CARREGAR DETALHES DA OP (Mantido conforme original)
+    // 1. CARREGAR DETALHES DA OP
     // ========================================================================
     async function carregarDetalhesOP(opCompleta) {
       try {
@@ -534,6 +636,7 @@
           if (opDados) {
             if (!currentReator && opDados.reator) currentReator = opDados.reator.trim();
             if (!currentCod && opDados.produto) currentCod = opDados.produto.trim();
+            QTD_PREVISTA_OP = parseFloat(opDados.qtdPrev || 0);
 
             const elNomeOperador = document.getElementById('userNameLbl');
             if (elNomeOperador) {
@@ -663,6 +766,7 @@
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK' && data.pesagem.length > 0) {
+          LISTA_MPS_PESAGEM = data.pesagem;
           tbody.innerHTML = "";
           data.pesagem.forEach(item => {
             const pesoSalvo = (item.kgcont !== undefined && item.kgcont !== "") ? item.kgcont : "";
@@ -798,7 +902,6 @@
       const tbody = document.getElementById('receitaTbody');
       if (!tbody) return;
 
-      // Lê SOMENTE para a Receita o código do produto exibido no cabeçalho (#campoCodProd)
       const elCabecalho = document.getElementById('campoCodProd');
       const prodCabecalho = (elCabecalho && elCabecalho.textContent && elCabecalho.textContent.trim() !== '---')
         ? elCabecalho.textContent.trim()
@@ -823,7 +926,6 @@
       }
     }
 
-    // Formata o texto de Z7_ATEN trocando [99] pelo proporcional de SZ6 (ou da Aba 2)
     function formatarTextoAtencaoComProporcional(etapa) {
       let textoBase = etapa.atenOrig || etapa.aten || "";
       if (etapa.tipo === 'M' && textoBase.includes('[99]')) {
@@ -1109,7 +1211,9 @@
       atualizarEstadoBloqueioLinhasReceita();
     }
 
-    // Grava na SZ8 e, ao clicar em CIENTE / ENTENDIDO, redireciona para comigo.html
+    // ========================================================================
+    // 5. SALVAR RECEITA NA SZ8 E VERIFICAR SE CONCLUIU PARA FECHAR A OP
+    // ========================================================================
     async function salvarReceitaEmTela() {
       const linhas = document.querySelectorAll('#receitaTbody .receita-row');
       if (linhas.length === 0) return;
@@ -1170,17 +1274,178 @@
           throw new Error(res.mensagem || "Erro ao gravar receita na SZ8.");
         }
 
+        // VERIFICA SE TODAS AS ETAPAS DA RECEITA FORAM CONCLUÍDAS ("Finalizado")
+        const todasConcluidas = !encontrouNaoFinalizada && etapasPayload.length > 0;
+
+        if (todasConcluidas) {
+          mostrarAlerta(
+            "Todas as etapas da receita foram concluídas e gravadas na SZ8! Deseja realizar o apontamento final e FECHAR A OP agora?",
+            "success",
+            "🏁 Receita 100% Concluída — Fechar OP?",
+            () => {
+              abrirModalEncerramentoOP();
+            },
+            "Não, Apenas Salvar",
+            () => {
+              window.location.href = "comigo.html";
+            },
+            "✓ Sim, Fechar OP Agora"
+          );
+        } else {
+          mostrarAlerta(
+            "Progresso da receita gravado com sucesso na SZ8! Clique em CIENTE / ENTENDIDO para retornar à listagem Minhas Ordens (Comigo).",
+            "success",
+            "✓ Apontamento Gravado na SZ8",
+            () => {
+              window.location.href = "comigo.html";
+            }
+          );
+        }
+      } catch (e) {
+        console.error("Erro ao gravar receita:", e);
+        mostrarAlerta("Falha ao gravar receita na SZ8: " + e.message, "error", "⚠️ Erro de Gravação");
+      }
+    }
+
+    // ========================================================================
+    // 6. MODAL DE FECHAMENTO DA OP, BALANÇO DE MP E APONTAMENTO PCP MOD. 2
+    // ========================================================================
+    function abrirModalEncerramentoOP() {
+      const descProd = document.getElementById('campoDescProd').textContent;
+      document.getElementById('subtituloFechamentoOP').textContent = `OP: ${currentOP} • Produto: ${currentCod} - ${descProd}`;
+
+      const qtdPrev = QTD_PREVISTA_OP > 0 ? QTD_PREVISTA_OP : parseFloat((document.getElementById('campoQtdPrev').textContent || "0").replace(',', '.'));
+      document.getElementById('fechQtdPrevPA').value = qtdPrev.toFixed(2);
+      document.getElementById('fechQtdProdPA').value = qtdPrev.toFixed(2);
+      document.getElementById('fechQtdPerdaPA').value = "0.00";
+
+      // Monta a tabela de Matérias-Primas a partir da Aba 2 (#pesagemTbody)
+      const tbodyMP = document.getElementById('tbodyFechamentoMP');
+      tbodyMP.innerHTML = "";
+
+      const linhasPesagem = document.querySelectorAll('#pesagemTbody tr[data-prod]');
+      linhasPesagem.forEach((tr, idx) => {
+        const codMp = tr.getAttribute('data-prod') || "";
+        const nomeMp = tr.getAttribute('data-nome') || "";
+        const inpPeso = tr.querySelector('.inp-peso');
+        const inpLote = tr.querySelector('.inp-lote');
+
+        const loteUsado = (inpLote && inpLote.value) ? inpLote.value : (tr.getAttribute('data-lote') || "");
+        const kgSeparado = parseFloat(((inpPeso && inpPeso.value) ? inpPeso.value : (tr.getAttribute('data-kgprev') || "0")).replace(',', '.')) || 0;
+
+        const rowHTML = `
+          <tr data-prod="${codMp}" data-lote="${loteUsado}" data-separado="${kgSeparado}">
+            <td>
+              <div style="font-family:ui-monospace,monospace; font-weight:800; color:#0072B2; font-size:0.84rem;">${codMp}</div>
+              <div style="font-size:0.78rem; font-weight:700; color:#334155;">${nomeMp}</div>
+            </td>
+            <td style="text-align:center; font-weight:700; color:#b45309;">${loteUsado || '-'}</td>
+            <td style="text-align:right; font-weight:800; color:#0f172a;">${kgSeparado.toFixed(2)} KG</td>
+            <td style="text-align:center;">
+              <input type="number" step="0.01" class="rec-input inp-mp-usada" style="width:105px;" value="${kgSeparado.toFixed(2)}" oninput="recalcularSobraMP(this)" onblur="formatarDecimalCampo(this, 2)">
+            </td>
+            <td style="text-align:center;">
+              <input type="number" step="0.01" class="rec-input inp-mp-perda" style="width:95px; border-color:#fdba74; color:#D55E00;" value="0.00" oninput="recalcularSobraMP(this)" onblur="formatarDecimalCampo(this, 2)">
+            </td>
+            <td style="text-align:center;">
+              <input type="number" step="0.01" class="rec-input inp-mp-sobra" style="width:105px; background:#f0f9ff; border-color:#7dd3fc; color:#0369a1;" value="0.00" onblur="formatarDecimalCampo(this, 2)">
+            </td>
+          </tr>
+        `;
+        tbodyMP.insertAdjacentHTML('beforeend', rowHTML);
+      });
+
+      document.getElementById('modalFechamentoOP').style.display = 'flex';
+    }
+
+    function recalcularSobraMP(inputEl) {
+      const tr = inputEl.closest('tr');
+      const separado = parseFloat(tr.getAttribute('data-separado') || "0");
+      const usada = parseFloat((tr.querySelector('.inp-mp-usada').value || "0").replace(',', '.')) || 0;
+      const perda = parseFloat((tr.querySelector('.inp-mp-perda').value || "0").replace(',', '.')) || 0;
+      const inpSobra = tr.querySelector('.inp-mp-sobra');
+
+      const sobraCalc = Math.max(0, separado - usada - perda);
+      inpSobra.value = sobraCalc.toFixed(2);
+    }
+
+    function fecharModalEncerramentoOP() {
+      document.getElementById('modalFechamentoOP').style.display = 'none';
+    }
+
+    async function confirmarFechamentoTotalOP() {
+      const qtdProdPA = parseFloat((document.getElementById('fechQtdProdPA').value || "0").replace(',', '.'));
+      const qtdPerdaPA = parseFloat((document.getElementById('fechQtdPerdaPA').value || "0").replace(',', '.')) || 0;
+
+      if (isNaN(qtdProdPA) || qtdProdPA <= 0) {
+        mostrarAlerta("Informe uma Quantidade Produzida Boa (KG) maior que zero para encerrar a OP.", "error", "⚠️ Quantidade Inválida");
+        return;
+      }
+
+      // Captura Hora Inicial da 1ª etapa e Hora Final da última etapa da receita
+      const linhasRec = document.querySelectorAll('#receitaTbody .receita-row');
+      let horaIniOP = "08:00";
+      let horaFimOP = "17:00";
+      if (linhasRec.length > 0) {
+        horaIniOP = linhasRec[0].querySelector('.inp-hrini').value || "08:00";
+        horaFimOP = linhasRec[linhasRec.length - 1].querySelector('.inp-hrfim').value || "17:00";
+      }
+
+      // Monta o array de consumo real das Matérias-Primas
+      const mpsPayload = [];
+      document.querySelectorAll('#tbodyFechamentoMP tr[data-prod]').forEach(tr => {
+        mpsPayload.push({
+          produto:  tr.getAttribute('data-prod'),
+          lote:     tr.getAttribute('data-lote') || "",
+          qtdUsada: parseFloat((tr.querySelector('.inp-mp-usada').value || "0").replace(',', '.')) || 0,
+          perdaMp:  parseFloat((tr.querySelector('.inp-mp-perda').value || "0").replace(',', '.')) || 0,
+          qtdSobra: parseFloat((tr.querySelector('.inp-mp-sobra').value || "0").replace(',', '.')) || 0
+        });
+      });
+
+      const btnConf = document.getElementById('btnConfirmarFechamentoOP');
+      const txtOrig = btnConf.innerHTML;
+      btnConf.disabled = true;
+      btnConf.innerHTML = '⏳ Processando Baixas e MATA681...';
+
+      try {
+        const resp = await fetch(`${API_BASE}/fechar_op`, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify({
+            op: currentOP,
+            produto: currentCod,
+            operador: USUARIO_LOGADO,
+            qtdProduzida: qtdProdPA,
+            qtdPerda: qtdPerdaPA,
+            horaIni: horaIniOP,
+            horaFim: horaFimOP,
+            materiasPrimas: mpsPayload
+          })
+        });
+        const res = await resp.json();
+
+        btnConf.disabled = false;
+        btnConf.innerHTML = txtOrig;
+
+        if (res.status !== 'OK') {
+          throw new Error(res.detalhe ? `${res.mensagem} (${res.detalhe})` : (res.mensagem || "Falha ao encerrar OP."));
+        }
+
+        fecharModalEncerramentoOP();
         mostrarAlerta(
-          "Dados da receita gravados com sucesso na SZ8! Clique em CIENTE / ENTENDIDO para retornar à listagem Minhas Ordens (Comigo).",
+          res.mensagem + " A Ordem de Produção foi movida para o Histórico.",
           "success",
-          "✓ Apontamento Gravado na SZ8",
+          "✓ OP Encerrada com Sucesso (PCP Mod. 2)",
           () => {
             window.location.href = "comigo.html";
           }
         );
       } catch (e) {
-        console.error("Erro ao gravar receita:", e);
-        mostrarAlerta("Falha ao gravar receita na SZ8: " + e.message, "error", "⚠️ Erro de Gravação");
+        btnConf.disabled = false;
+        btnConf.innerHTML = txtOrig;
+        console.error("Erro ao fechar OP:", e);
+        mostrarAlerta("Erro ao encerrar OP no Protheus: " + e.message, "error", "⚠️ Falha no Encerramento");
       }
     }
 
@@ -1213,9 +1478,6 @@
       else card.classList.remove('checked-ok');
     }
 
-    // ========================================================================
-    // FINALIZAR CHECKLIST
-    // ========================================================================
     async function finalizarChecklist() {
       const cards = document.querySelectorAll('#checklistForm .check-card');
       let checklistItens = [];
@@ -1266,9 +1528,6 @@
       );
     }
 
-    // ========================================================================
-    // FINALIZAR PESAGEM
-    // ========================================================================
     async function finalizarPesagem() {
       const linhas = document.querySelectorAll('#pesagemTbody tr');
       let pesagemItens = [];
