@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PCP Químico - Engenharia e Manutenção de Receitas (SZ7)</title>
+  <link rel="stylesheet" href="style-base.css">
+  <style>
+    /* Cabeçalho Mestre do Produto (SZ7) */
+    .master-card { background: var(--surface); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); border: 1.5px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+    .master-top-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 12px; }
+    .master-title-group { display: flex; align-items: center; gap: 10px; }
+    .mode-badge { padding: 4px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .mode-new { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+    .mode-edit { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+    .master-grid { display: grid; grid-template-columns: 2.2fr 3.8fr 1.2fr; gap: 14px; align-items: end; }
+    .field-box { display: flex; flex-direction: column; gap: 5px; }
+    .field-box label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.5px; }
+    
+    /* Input Seletor SB1 com Lupa */
+    .sb1-picker-group { display: flex; align-items: stretch; gap: 6px; }
+    .sb1-input { flex: 1; height: 42px; padding: 0 12px; font-size: 0.95rem; font-weight: 800; font-family: ui-monospace, monospace; color: #0f172a; background: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; transition: all 0.15s; }
+    .sb1-input:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.2); }
+    .sb1-desc-readonly { height: 42px; padding: 0 14px; font-size: 0.95rem; font-weight: 700; color: #0f172a; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .btn-lupa { height: 42px; padding: 0 14px; background: #0072B2; color: #ffffff; border: none; border-radius: 8px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 114, 178, 0.25); transition: transform 0.1s; }
+    .btn-lupa:active { transform: scale(0.97); }
+    .btn-lupa svg { width: 17px; height: 17px; }
+
+    /* Barra de Ferramentas de Gestão */
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn-tool { height: 38px; padding: 0 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #1e293b; transition: all 0.15s; }
+    .btn-tool:hover { border-color: #0072B2; color: #0072B2; background: #f0f9ff; }
+    .btn-tool-primary { background: #0072B2; color: #ffffff; border-color: #0072B2; }
+    .btn-tool-primary:hover { background: #005AB5; color: #ffffff; }
+    .btn-tool-danger { background: #fff7ed; color: #D55E00; border-color: #fdba74; }
+    .btn-tool-danger:hover { background: #D55E00; color: #ffffff; border-color: #D55E00; }
+
+    /* Tabela de Etapas da Receita (SZ7) */
+    .grid-header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+    .etapas-card { background: var(--surface); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.04); overflow: hidden; }
+    .etapas-table { width: 100%; border-collapse: collapse; }
+    .etapas-table th { background: #f1f5f9; color: #334155; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+    .etapas-table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .etapa-tr { transition: background 0.15s; }
+    .etapa-tr:hover { background: #f8fafc; }
+    .etapa-tr.tr-material { background: #f0f9ff; }
+    .etapa-tr.tr-alerta { border-left: 4px solid #D55E00; }
+
+    /* Inputs Internos da Grade SZ7 */
+    .z7-inp { height: 36px; padding: 4px 8px; font-size: 0.86rem; font-weight: 700; color: #0f172a; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; }
+    .z7-inp:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.18); }
+    .z7-seq { width: 64px; text-align: center; font-family: ui-monospace, monospace; font-weight: 800; font-size: 0.92rem; }
+    .z7-select { height: 36px; padding: 0 8px; font-size: 0.84rem; font-weight: 800; border: 1.5px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #0f172a; cursor: pointer; width: 118px; }
+    .z7-perc { width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
+    .z7-perc:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+    /* Seletor Compacto de Matéria-Prima (Z7_COMP) na Linha */
+    .comp-picker-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+    .comp-input-row { display: flex; gap: 4px; align-items: center; }
+    .comp-code-inp { flex: 1; height: 36px; padding: 4px 8px; font-size: 0.80rem; font-weight: 800; font-family: ui-monospace, monospace; border: 1.5px solid #cbd5e1; border-radius: 6px; color: #0f172a; background: #ffffff; }
+    .comp-code-inp:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+    .btn-mini-sb1 { height: 36px; width: 36px; border-radius: 6px; border: none; background: #0072B2; color: #ffffff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .btn-mini-sb1:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .comp-desc-lbl { font-size: 0.72rem; font-weight: 700; color: #0369a1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
+
+    /* Botão Auxiliar para Inserir Tag [99] */
+    .aten-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+    .btn-tag-99 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; border-radius: 4px; padding: 1px 6px; font-size: 0.68rem; font-weight: 800; cursor: pointer; }
+    .btn-tag-99:hover { background: #fde68a; }
+
+    /* Botões Toggle de EPIs na Linha (Z7_EP1 a Z7_EP5) */
+    .epi-row-toggles { display: flex; gap: 5px; align-items: center; justify-content: center; }
+    .epi-btn-mini { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #cbd5e1; background: #f1f5f9; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; padding: 0; }
+    .epi-btn-mini svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .epi-btn-mini.active { background: #0072B2; border-color: #005AB5; color: #ffffff; box-shadow: 0 2px 6px rgba(0, 114, 178, 0.35); transform: scale(1.06); }
+
+    /* Ações da Linha (Subir, Descer, Remover) */
+    .row-actions { display: flex; gap: 4px; align-items: center; justify-content: center; }
+    .btn-row-act { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; }
+    .btn-row-act:hover { background: #f1f5f9; color: #0f172a; }
+    .btn-row-del { border-color: #fdba74; color: #D55E00; background: #fff7ed; }
+    .btn-row-del:hover { background: #D55E00; color: #ffffff; }
+
+    /* Barra Inferior Fixa */
+    .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
+    .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
+
+    /* Modais (Seletor SB1, Catálogo SZ7, Duplicador e Alertas Okabe-Ito) */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 16px; }
+    .modal-box { background: #ffffff; border-radius: 14px; width: 100%; max-width: 780px; max-height: 86vh; box-shadow: 0 24px 48px rgba(0,0,0,0.35); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #0072B2; }
+    .modal-head { background: #0f172a; color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { font-size: 1rem; font-weight: 800; }
+    .modal-body { padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .modal-foot { padding: 12px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
+
+    .search-bar-modal { display: flex; gap: 8px; }
+    .search-bar-modal input { flex: 1; height: 42px; padding: 0 14px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: 700; outline: none; }
+    .search-bar-modal input:focus { border-color: #0072B2; }
+
+    .picker-list { border: 1.5px solid #e2e8f0; border-radius: 8px; max-height: 360px; overflow-y: auto; }
+    .picker-item { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.12s; }
+    .picker-item:hover { background: #f0f9ff; }
+    .picker-code { font-family: ui-monospace, monospace; font-weight: 800; color: #0072B2; font-size: 0.90rem; }
+    .picker-desc { font-weight: 700; color: #1e293b; font-size: 0.88rem; }
+    .picker-meta { font-size: 0.74rem; font-weight: 800; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 10px; }
+
+    /* Modal de Alerta Okabe-Ito (Daltónicos) */
+    .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .alert-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 500px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; border: 3px solid #0072B2; }
+    .alert-card.card-warning { border-color: #D55E00; }
+    .alert-card.card-success { border-color: #0072B2; }
+    .alert-header { padding: 16px 20px; font-weight: 800; font-size: 1.05rem; color: #ffffff; }
+    .alert-header.error { background: #D55E00; }
+    .alert-header.success { background: #0072B2; }
+    .alert-body { padding: 22px 20px; font-size: 0.98rem; color: #0f172a; line-height: 1.5; font-weight: 600; }
+    .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-ciente { height: 42px; padding: 0 22px; border-radius: 8px; font-size: 0.88rem; font-weight: 800; color: #ffffff; border: none; cursor: pointer; }
+    .btn-ciente-success { background: #005AB5; }
+    .btn-ciente-warning { background: #D55E00; }
+  </style>
+</head>
+<body>
+
+  <!-- LATERAL FIXA COM O BOTÃO DE RECEITAS ABAIXO DO HISTÓRICO -->
+  <aside class="sidebar">
+    <div class="brand-icon">PCP</div>
+    <a href="index.html" class="nav-link" title="Ordens Abertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+    <a href="comigo.html" class="nav-link" title="Minhas Ordens">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Comigo</span>
+    </a>
+    <a href="historico.html" class="nav-link" title="Ordens Encerradas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Histórico</span>
+    </a>
+    <!-- NOVO BOTÃO ABAIXO DO HISTÓRICO -->
+    <a href="receita.html" class="nav-link active" title="Gestão de Receitas (SZ7)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/>
+        <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
+      </svg>
+      <span>Receitas</span>
+    </a>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div class="main-area">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="app-title" style="font-size: 1rem;">ENGENHARIA & MANUTENÇÃO DE RECEITAS (SZ7)</span>
+        <span class="badge-online">ONLINE • PROTHEUS TCLOUD</span>
+      </div>
+
+      <div class="user-pill">
+        <div class="user-avatar" style="background:#0072B2; color:white;">RA</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">Engenharia PCP</div>
+          <div style="font-size: 0.72rem; color: #64748b;">Tabela SZ7 / SB1</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-scroll" style="padding-bottom: 95px;">
+      <!-- CARD MESTRE: SELEÇÃO DO PRODUTO PA (SB1) E FERRAMENTAS -->
+      <div class="master-card">
+        <div class="master-top-bar">
+          <div class="master-title-group">
+            <span style="font-weight: 800; font-size: 0.95rem; color: #0f172a;">PRODUTO DA RECEITA (PA / SEMIACABADO)</span>
+            <span class="mode-badge mode-new" id="badgeModoOperacao">NOVO / CONSULTA</span>
+          </div>
+
+          <div class="toolbar-actions">
+            <button class="btn-tool" onclick="abrirModalCatalogoReceitas()">
+              📂 Receitas Cadastradas (SZ7)
+            </button>
+            <button class="btn-tool" onclick="abrirModalDuplicarReceita()">
+              📑 Duplicar / Clonar Receita
+            </button>
+            <button class="btn-tool" onclick="limparFormularioReceita()">
+              ✨ Nova / Limpar
+            </button>
+            <button class="btn-tool btn-tool-danger" id="btnExcluirReceita" style="display:none;" onclick="confirmarExclusaoReceita()">
+              🗑️ Excluir Receita
+            </button>
+          </div>
+        </div>
+
+        <div class="master-grid">
+          <div class="field-box">
+            <label>Código do Produto (Z7_PROD) *</label>
+            <div class="sb1-picker-group">
+              <input type="text" id="prodMestreCod" class="sb1-input" placeholder="Selecione ou digite..." onchange="aoAlterarProdutoMestreManual()">
+              <button class="btn-lupa" onclick="abrirSeletorSB1('MESTRE')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                SB1
+              </button>
+            </div>
+          </div>
+
+          <div class="field-box">
+            <label>Descrição do Produto na SB1</label>
+            <div class="sb1-desc-readonly" id="prodMestreDesc">Selecione um produto na lupa SB1 ou no catálogo de receitas...</div>
+          </div>
+
+          <div class="field-box">
+            <label>Total de Etapas</label>
+            <div class="sb1-desc-readonly" id="lblTotalEtapas" style="justify-content: center; font-weight: 800; color: #0072B2;">0 Etapas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRA DE AÇÕES DA GRADE DE ETAPAS -->
+      <div class="grid-header-bar">
+        <div style="font-size: 0.82rem; color: #475569; font-weight: 600;">
+          💡 <strong>Dica:</strong> Para etapas do tipo <strong>Material (M)</strong>, use o botão <code>+ [99]</code> na Atenção para que o apontamento calcule automaticamente o peso proporcional da <strong>SZ6</strong>.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-tool" onclick="renumerarSequencias()">🔢 Renumerar Seq. (1000, 1001...)</button>
+          <button class="btn-tool btn-tool-primary" onclick="adicionarLinhaEtapa()">+ Adicionar Etapa</button>
+        </div>
+      </div>
+
+      <!-- TABELA EDITÁVEL DE ETAPAS DA RECEITA (SZ7) -->
+      <div class="etapas-card">
+        <div style="overflow-x: auto;">
+          <table class="etapas-table">
+            <thead>
+              <tr>
+                <th style="width: 70px; text-align: center;">Seq.<br><small>(Z7_SEQ)</small></th>
+                <th style="min-width: 190px;">Etapa / Operação<br><small>(Z7_DESC)</small></th>
+                <th style="min-width: 260px;">Instrução / Atenção Detalhada<br><small>(Z7_ATEN)</small></th>
+                <th style="width: 120px;">Tipo<br><small>(Z7_TIPO)</small></th>
+                <th style="min-width: 225px;">Matéria-Prima (SB1)<br><small>(Z7_COMP)</small></th>
+                <th style="width: 85px; text-align: right;">Fator / %<br><small>(Z7_PERC)</small></th>
+                <th style="width: 195px; text-align: center;">EPIs Obrigatórios<br><small>(Z7_EP1 a Z7_EP5)</small></th>
+                <th style="min-width: 190px;">Alerta Crítico Popup<br><small>(Z7_ALERT)</small></th>
+                <th style="width: 105px; text-align: center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyEtapasZ7">
+              <!-- Linhas geradas dinamicamente via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- BARRA INFERIOR FIXA -->
+    <footer class="bottom-action-bar">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #475569;" id="statusRodape">Pronto para edição.</span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;" onclick="recarregarReceitaAtual()">Descartar Alterações</button>
+        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="salvarReceitaSZ7()">💾 Salvar Receita na SZ7</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 1: SELETOR DE PRODUTOS E MATÉRIAS-PRIMAS (CONSULTA SB1)          -->
+  <!-- ====================================================================== -->
+  <div class="modal-overlay" id="modalSeletorSB1">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="tituloModalSB1">🔍 Pesquisar Produto na SB1</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharModalSB1()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-bar-modal">
+          <input type="text" id="inputBuscaSB1" placeholder="Digite parte do código ou descrição do produto (Ex: FORTNOL, ACETATO, 117...)" oninput="dispararBuscaSB1Debounce()">
+          <button class="btn-lupa" onclick="executarBuscaSB1()">Pesquisar</button>
+        </div>
+        <div class="picker-list" id="listaResultadosSB1">
+          <div style="padding: 20px; text-align: center; color: #64748b;">Digite acima para pesquisar na SB1...</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharModalSB1()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 2: CATÁLOGO DE RECEITAS JÁ CADASTRADAS NA SZ7                    -->
+  <!-- ====================================================================== -->
+  <div class="modal-overlay" id="modalCatalogoSZ7">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>📂 Produtos com Receita Cadastrada na SZ7</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharModalCatalogoReceitas()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-bar-modal">
+          <input type="text" id="filtroCatalogoSZ7" placeholder="Filtrar por código ou descrição..." oninput="filtrarCatalogoLocal()">
+        </div>
+        <div class="picker-list" id="listaCatalogoSZ7"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharModalCatalogoReceitas()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 3: DUPLICAR / CLONAR RECEITA DE UM PRODUTO PARA OUTRO            -->
+  <!-- ====================================================================== -->
+  <div class="modal-overlay" id="modalDuplicarSZ7">
+    <div class="modal-box" style="max-width: 640px;">
+      <div class="modal-head">
+        <h3>📑 Duplicar / Clonar Receita entre Produtos (SZ7)</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharModalDuplicarReceita()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:10px 14px; font-size:0.84rem; color:#0369a1; font-weight:600;">
+          Esta rotina copia todas as etapas, EPIs, percentuais, componentes e alertas de um produto já cadastrado para um novo produto da SB1.
+        </div>
+
+        <div class="field-box">
+          <label>1. Produto de Origem (Copiar de) *</label>
+          <div class="sb1-picker-group">
+            <input type="text" id="dupProdOrigemCod" class="sb1-input" placeholder="Código de Origem...">
+            <button class="btn-lupa" onclick="abrirSeletorSB1('DUP_ORIGEM')">🔍 SB1</button>
+          </div>
+          <div class="sb1-desc-readonly" id="dupProdOrigemDesc" style="height:34px; font-size:0.82rem;">---</div>
+        </div>
+
+        <div class="field-box" style="margin-top: 6px;">
+          <label>2. Produto de Destino (Colar em) *</label>
+          <div class="sb1-picker-group">
+            <input type="text" id="dupProdDestinoCod" class="sb1-input" placeholder="Código de Destino...">
+            <button class="btn-lupa" onclick="abrirSeletorSB1('DUP_DESTINO')">🔍 SB1</button>
+          </div>
+          <div class="sb1-desc-readonly" id="dupProdDestinoDesc" style="height:34px; font-size:0.82rem;">---</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharModalDuplicarReceita()">Cancelar</button>
+        <button class="btn-tool btn-tool-primary" onclick="executarDuplicacaoReceita(false)">📑 Executar Clonagem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 4: ALERTA / CONFIRMAÇÃO ACESSÍVEL PARA DALTÓNICOS (OKABE-ITO)    -->
+  <!-- ====================================================================== -->
+  <div class="alert-overlay" id="customAlertModal">
+    <div class="alert-card card-success" id="customAlertCard">
+      <div class="alert-header success" id="customAlertHeader">✓ Confirmação</div>
+      <div class="alert-body" id="customAlertMessage"></div>
+      <div class="alert-footer">
+        <button class="btn-tool" id="btnCancelarModal" style="display:none;" onclick="fecharAlerta()">Cancelar</button>
+        <button class="btn-ciente btn-ciente-success" id="btnCienteModal" onclick="confirmarCienteModal()">
+          ✓ CIENTE / ENTENDIDO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // CONFIGURAÇÃO DE CONEXÃO COM O PROTHEUS REST
+    // ========================================================================
+    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
+    const urlParams = new URLSearchParams(window.location.search);
+    const USER_LOGIN = 'rodrigo.amaral';
+    const USER_PASS = 'RaquelEduarda2010@';
+    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+
+    const reqHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader,
+      'tenantId': '01,0101'
+    };
+
+    // Estado Global do Editor de Receita
+    let ETAPAS_Z7 = [];
+    let CATALOGO_RECEITAS = [];
+    let CONTEXTO_SELETOR_SB1 = null; // 'MESTRE' | 'DUP_ORIGEM' | 'DUP_DESTINO' | { tipo: 'COMPONENTE', index: 0 }
+    let TIMER_BUSCA_SB1 = null;
+    let ACAO_APOS_CIENTE = null;
+    let DESCRICOES_SB1_CACHE = {};
+
+    // Ícones SVG dos 5 EPIs
+    const SVG_EPIS = [
+      { id: 'ep1', nome: 'Capacete', svg: '<svg viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0v2H3v-2z"/><path d="M2 17h20v2H2z"/></svg>' },
+      { id: 'ep2', nome: 'Óculos',   svg: '<svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M11 12h2"/></svg>' },
+      { id: 'ep3', nome: 'Luvas',    svg: '<svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v5"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 10a2 2 0 0 1 2 2v5a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-3a2 2 0 0 1 2-2h1"/></svg>' },
+      { id: 'ep4', nome: 'Botas',    svg: '<svg viewBox="0 0 24 24"><path d="M4 18h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-6l-3-4H4v10z"/></svg>' },
+      { id: 'ep5', nome: 'Máscara',  svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 15h6"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>' }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const prodUrl = (urlParams.get('produto') || "").trim();
+      if (prodUrl !== "") {
+        selecionarProdutoMestre(prodUrl, "");
+      } else {
+        adicionarLinhaEtapa();
+      }
+    });
+
+    // ========================================================================
+    // MODAL DE ALERTA E CONFIRMAÇÃO (PALETA ACESSÍVEL DALTÓNICOS)
+    // ========================================================================
+    function mostrarAlerta(mensagem, tipo = 'error', titulo = '', callbackConfirm = null, exibirCancelar = false) {
+      const modal = document.getElementById('customAlertModal');
+      const card = document.getElementById('customAlertCard');
+      const header = document.getElementById('customAlertHeader');
+      const msg = document.getElementById('customAlertMessage');
+      const btnOk = document.getElementById('btnCienteModal');
+      const btnCancel = document.getElementById('btnCancelarModal');
+
+      ACAO_APOS_CIENTE = callbackConfirm;
+      msg.textContent = mensagem;
+      btnCancel.style.display = exibirCancelar ? 'inline-flex' : 'none';
+
+      if (tipo === 'error') {
+        card.className = 'alert-card card-warning';
+        header.className = 'alert-header error';
+        header.textContent = titulo || '⚠️ ATENÇÃO / VALIDAÇÃO';
+        btnOk.className = 'btn-ciente btn-ciente-warning';
+        btnOk.innerHTML = exibirCancelar ? '⚠️ CONFIRMAR AÇÃO' : '⚠️ CIENTE / ENTENDIDO';
+      } else {
+        card.className = 'alert-card card-success';
+        header.className = 'alert-header success';
+        header.textContent = titulo || '✓ OPERAÇÃO CONCLUÍDA';
+        btnOk.className = 'btn-ciente btn-ciente-success';
+        btnOk.innerHTML = '✓ CIENTE / ENTENDIDO';
+      }
+      modal.style.display = 'flex';
+    }
+
+    async function confirmarCienteModal() {
+      document.getElementById('customAlertModal').style.display = 'none';
+      if (typeof ACAO_APOS_CIENTE === 'function') {
+        const fn = ACAO_APOS_CIENTE;
+        ACAO_APOS_CIENTE = null;
+        await fn();
+      }
+    }
+
+    function fecharAlerta() {
+      ACAO_APOS_CIENTE = null;
+      document.getElementById('customAlertModal').style.display = 'none';
+    }
+
+    // ========================================================================
+    // SELETOR INTELIGENTE SB1 (PRODUTO PA E MATÉRIA-PRIMA)
+    // ========================================================================
+    function abrirSeletorSB1(contexto) {
+      CONTEXTO_SELETOR_SB1 = contexto;
+      const modal = document.getElementById('modalSeletorSB1');
+      const titulo = document.getElementById('tituloModalSB1');
+      const inp = document.getElementById('inputBuscaSB1');
+
+      if (contexto === 'MESTRE') {
+        titulo.textContent = '🔍 Selecionar Produto da Receita (SB1)';
+      } else if (contexto === 'DUP_ORIGEM') {
+        titulo.textContent = '🔍 Selecionar Produto de Origem (SB1)';
+      } else if (contexto === 'DUP_DESTINO') {
+        titulo.textContent = '🔍 Selecionar Produto de Destino (SB1)';
+      } else {
+        titulo.textContent = `🔍 Selecionar Matéria-Prima da Etapa ${ETAPAS_Z7[contexto.index]?.seq || ''} (SB1)`;
+      }
+
+      inp.value = '';
+      modal.style.display = 'flex';
+      inp.focus();
+      executarBuscaSB1();
+    }
+
+    function fecharModalSB1() {
+      document.getElementById('modalSeletorSB1').style.display = 'none';
+    }
+
+    function dispararBuscaSB1Debounce() {
+      clearTimeout(TIMER_BUSCA_SB1);
+      TIMER_BUSCA_SB1 = setTimeout(() => executarBuscaSB1(), 280);
+    }
+
+    async function executarBuscaSB1() {
+      const termo = document.getElementById('inputBuscaSB1').value.trim();
+      const container = document.getElementById('listaResultadosSB1');
+      container.innerHTML = `<div style="padding: 18px; text-align: center; color: #64748b;">A consultar tabela SB1 no Protheus...</div>`;
+
+      try {
+        const resp = await fetch(`${API_BASE}/sb1?busca=${encodeURIComponent(termo)}`, { headers: reqHeaders });
+        const data = await resp.json();
+
+        if (resp.ok && data.status === 'OK' && data.produtos && data.produtos.length > 0) {
+          container.innerHTML = '';
+          data.produtos.forEach(p => {
+            DESCRICOES_SB1_CACHE[p.codigo] = p.descricao;
+            const div = document.createElement('div');
+            div.className = 'picker-item';
+            div.onclick = () => confirmarSelecaoSB1(p.codigo, p.descricao);
+            div.innerHTML = `
+              <div>
+                <div class="picker-code">${p.codigo}</div>
+                <div class="picker-desc">${p.descricao}</div>
+              </div>
+              <span class="picker-meta">${p.tipo || 'SB1'} • ${p.um || 'KG'}</span>
+            `;
+            container.appendChild(div);
+          });
+        } else {
+          container.innerHTML = `<div style="padding: 18px; text-align: center; color: #D55E00; font-weight:700;">Nenhum produto encontrado na SB1 para "${termo}".</div>`;
+        }
+      } catch (e) {
+        console.error("Erro ao consultar SB1:", e);
+        container.innerHTML = `<div style="padding: 18px; text-align: center; color: #D55E00;">Falha de comunicação com a rota /sb1.</div>`;
+      }
+    }
+
+    function confirmarSelecaoSB1(codigo, descricao) {
+      DESCRICOES_SB1_CACHE[codigo] = descricao;
+
+      if (CONTEXTO_SELETOR_SB1 === 'MESTRE') {
+        selecionarProdutoMestre(codigo, descricao);
+      } else if (CONTEXTO_SELETOR_SB1 === 'DUP_ORIGEM') {
+        document.getElementById('dupProdOrigemCod').value = codigo;
+        document.getElementById('dupProdOrigemDesc').textContent = descricao;
+      } else if (CONTEXTO_SELETOR_SB1 === 'DUP_DESTINO') {
+        document.getElementById('dupProdDestinoCod').value = codigo;
+        document.getElementById('dupProdDestinoDesc').textContent = descricao;
+      } else if (CONTEXTO_SELETOR_SB1 && CONTEXTO_SELETOR_SB1.tipo === 'COMPONENTE') {
+        const idx = CONTEXTO_SELETOR_SB1.index;
+        if (ETAPAS_Z7[idx]) {
+          ETAPAS_Z7[idx].comp = codigo;
+          ETAPAS_Z7[idx].compDesc = descricao;
+          renderizarGradeEtapas();
+        }
+      }
+      fecharModalSB1();
+    }
+
+    // ========================================================================
+    // CARREGAMENTO DA RECEITA DO PRODUTO MESTRE (SZ7)
+    // ========================================================================
+    async function aoAlterarProdutoMestreManual() {
+      const cod = document.getElementById('prodMestreCod').value.trim();
+      if (!cod) return;
+      await buscarDescricaoSB1Isolada(cod, (desc) => {
+        selecionarProdutoMestre(cod, desc);
+      });
+    }
+
+    async function buscarDescricaoSB1Isolada(codigo, callback) {
+      if (DESCRICOES_SB1_CACHE[codigo]) {
+        callback(DESCRICOES_SB1_CACHE[codigo]);
+        return;
+      }
+      try {
+        const resp = await fetch(`${API_BASE}/sb1?busca=${encodeURIComponent(codigo)}`, { headers: reqHeaders });
+        const data = await resp.json();
+        if (resp.ok && data.produtos) {
+          const exato = data.produtos.find(p => p.codigo.trim() === codigo.trim());
+          const desc = exato ? exato.descricao : "Produto localizado";
+          if (exato) DESCRICOES_SB1_CACHE[codigo] = desc;
+          callback(desc);
+          return;
+        }
+      } catch (e) {}
+      callback("Descrição não localizada na SB1");
+    }
+
+    async function selecionarProdutoMestre(codigo, descricao) {
+      document.getElementById('prodMestreCod').value = codigo;
+      document.getElementById('prodMestreDesc').textContent = descricao || 'A consultar descrição na SB1...';
+
+      if (!descricao) {
+        buscarDescricaoSB1Isolada(codigo, (d) => {
+          document.getElementById('prodMestreDesc').textContent = d;
+        });
+      }
+
+      document.getElementById('statusRodape').textContent = `A carregar etapas da SZ7 para ${codigo}...`;
+
+      try {
+        const resp = await fetch(`${API_BASE}/receita?produto=${encodeURIComponent(codigo)}`, { headers: reqHeaders });
+        const data = await resp.json();
+
+        const badge = document.getElementById('badgeModoOperacao');
+        const btnDel = document.getElementById('btnExcluirReceita');
+
+        if (resp.ok && data.status === 'OK' && data.receita && data.receita.length > 0) {
+          ETAPAS_Z7 = data.receita.map(item => ({
+            seq:   item.seq || '1000',
+            desc:  item.desc || '',
+            aten:  item.atenOrig || item.aten || '',
+            tipo:  item.tipo === 'M' ? 'M' : 'A',
+            comp:  item.comp || '',
+            compDesc: DESCRICOES_SB1_CACHE[item.comp] || '',
+            perc:  item.perc || '',
+            ep1:   !!item.ep1,
+            ep2:   !!item.ep2,
+            ep3:   !!item.ep3,
+            ep4:   !!item.ep4,
+            ep5:   !!item.ep5,
+            alert: item.alert || ''
+          }));
+
+          badge.className = 'mode-badge mode-edit';
+          badge.textContent = 'MODO ALTERAÇÃO (SZ7 EXISTENTE)';
+          btnDel.style.display = 'inline-flex';
+          document.getElementById('statusRodape').textContent = `Receita carregada (${ETAPAS_Z7.length} etapas).`;
+
+          // Preenche descrições das matérias-primas em background
+          ETAPAS_Z7.forEach((et, i) => {
+            if (et.comp) {
+              buscarDescricaoSB1Isolada(et.comp, (d) => {
+                ETAPAS_Z7[i].compDesc = d;
+                const lbl = document.getElementById(`comp-desc-${i}`);
+                if (lbl) lbl.textContent = d;
+              });
+            }
+          });
+        } else {
+          // Produto ainda não possui receita na SZ7 -> Inicia em Modo Inclusão
+          ETAPAS_Z7 = [{
+            seq: '1000',
+            desc: 'GARANTIR A APLICAÇÃO DO CHECK LIST',
+            aten: 'VALIDAR PRODUTO E EMBALAGENS A UTILIZAR.',
+            tipo: 'A',
+            comp: '',
+            compDesc: '',
+            perc: '',
+            ep1: false, ep2: false, ep3: false, ep4: false, ep5: false,
+            alert: ''
+          }];
+          badge.className = 'mode-badge mode-new';
+          badge.textContent = 'MODO INCLUSÃO (NOVA RECEITA)';
+          btnDel.style.display = 'none';
+          document.getElementById('statusRodape').textContent = `Produto ${codigo} ainda sem receita na SZ7. Preencha as etapas e clique em Salvar.`;
+        }
+
+        renderizarGradeEtapas();
+      } catch (e) {
+        console.error("Erro ao carregar receita SZ7:", e);
+        mostrarAlerta("Erro ao consultar a SZ7 para o produto informado.", "error");
+      }
+    }
+
+    // ========================================================================
+    // RENDERIZAÇÃO E MANIPULAÇÃO DA GRADE DE ETAPAS (SZ7)
+    // ========================================================================
+    function renderizarGradeEtapas() {
+      const tbody = document.getElementById('tbodyEtapasZ7');
+      tbody.innerHTML = '';
+
+      document.getElementById('lblTotalEtapas').textContent = `${ETAPAS_Z7.length} Etapa(s)`;
+
+      ETAPAS_Z7.forEach((etapa, idx) => {
+        const isMat = (etapa.tipo === 'M');
+        const temAlert = (etapa.alert && etapa.alert.trim() !== '');
+
+        const botoesEPI = SVG_EPIS.map(epi => {
+          const ativo = etapa[epi.id] ? 'active' : '';
+          return `<button type="button" class="epi-btn-mini ${ativo}" title="${epi.nome}" onclick="alternarEpiLinha(${idx}, '${epi.id}')">${epi.svg}</button>`;
+        }).join('');
+
+        const tr = document.createElement('tr');
+        tr.className = `etapa-tr ${isMat ? 'tr-material' : ''} ${temAlert ? 'tr-alerta' : ''}`;
+        tr.innerHTML = `
+          <td style="text-align:center;">
+            <input type="text" maxlength="4" class="z7-inp z7-seq" value="${etapa.seq}" oninput="ETAPAS_Z7[${idx}].seq = this.value.toUpperCase()">
+          </td>
+          <td>
+            <input type="text" maxlength="200" class="z7-inp" placeholder="Ex: CARREGAR REATOR..." value="${escaparAttr(etapa.desc)}" oninput="ETAPAS_Z7[${idx}].desc = this.value">
+          </td>
+          <td>
+            <div class="aten-header-row">
+              <span style="font-size:0.68rem; font-weight:700; color:#64748b;">Instrução ao Operador</span>
+              ${isMat ? `<button type="button" class="btn-tag-99" onclick="inserirMarcador99(${idx})" title="Insere a tag [99] para cálculo automático do peso SZ6">+ Inserir [99] KG</button>` : ''}
+            </div>
+            <input type="text" id="inp-aten-${idx}" maxlength="200" class="z7-inp" placeholder="Ex: CARREGAR [99] KG..." value="${escaparAttr(etapa.aten)}" oninput="ETAPAS_Z7[${idx}].aten = this.value">
+          </td>
+          <td>
+            <select class="z7-select" onchange="alterarTipoEtapa(${idx}, this.value)">
+              <option value="A" ${!isMat ? 'selected' : ''}>A - Ação</option>
+              <option value="M" ${isMat ? 'selected' : ''}>M - Material</option>
+            </select>
+          </td>
+          <td>
+            <div class="comp-picker-wrap">
+              <div class="comp-input-row">
+                <input type="text" class="comp-code-inp" placeholder="${isMat ? 'Código MP...' : 'N/A (Ação)'}" value="${escaparAttr(etapa.comp)}" ${!isMat ? 'disabled' : ''} onchange="aoDigitarComponenteLinha(${idx}, this.value)">
+                <button type="button" class="btn-mini-sb1" ${!isMat ? 'disabled' : ''} onclick="abrirSeletorSB1({ tipo: 'COMPONENTE', index: ${idx} })" title="Buscar Matéria-Prima na SB1">🔍</button>
+              </div>
+              <div class="comp-desc-lbl" id="comp-desc-${idx}">${isMat ? (etapa.compDesc || (etapa.comp ? 'Selecionado' : 'Selecione a MP na lupa')) : ''}</div>
+            </div>
+          </td>
+          <td style="text-align:right;">
+            <input type="text" maxlength="10" class="z7-inp z7-perc" placeholder="${isMat ? 'Ex: 0,40' : '-'}" value="${escaparAttr(etapa.perc)}" ${!isMat ? 'disabled' : ''} oninput="ETAPAS_Z7[${idx}].perc = this.value">
+          </td>
+          <td>
+            <div class="epi-row-toggles">${botoesEPI}</div>
+          </td>
+          <td>
+            <input type="text" maxlength="200" class="z7-inp" style="${temAlert ? 'border-color:#D55E00; background:#fff7ed;' : ''}" placeholder="Opcional (Explode Popup)" value="${escaparAttr(etapa.alert)}" oninput="ETAPAS_Z7[${idx}].alert = this.value">
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="btn-row-act" title="Subir Etapa" onclick="moverEtapa(${idx}, -1)">▲</button>
+              <button type="button" class="btn-row-act" title="Descer Etapa" onclick="moverEtapa(${idx}, 1)">▼</button>
+              <button type="button" class="btn-row-act btn-row-del" title="Remover Etapa" onclick="removerLinhaEtapa(${idx})">✕</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escaparAttr(str) {
+      return String(str || '').replace(/"/g, '&quot;');
+    }
+
+    function alterarTipoEtapa(idx, novoTipo) {
+      ETAPAS_Z7[idx].tipo = novoTipo;
+      if (novoTipo === 'A') {
+        ETAPAS_Z7[idx].comp = '';
+        ETAPAS_Z7[idx].compDesc = '';
+        ETAPAS_Z7[idx].perc = '';
+      } else if (!ETAPAS_Z7[idx].perc) {
+        ETAPAS_Z7[idx].perc = '1';
+      }
+      renderizarGradeEtapas();
+    }
+
+    function aoDigitarComponenteLinha(idx, codigo) {
+      const codLimpo = codigo.trim();
+      ETAPAS_Z7[idx].comp = codLimpo;
+      if (!codLimpo) {
+        ETAPAS_Z7[idx].compDesc = '';
+        renderizarGradeEtapas();
+        return;
+      }
+      buscarDescricaoSB1Isolada(codLimpo, (desc) => {
+        ETAPAS_Z7[idx].compDesc = desc;
+        renderizarGradeEtapas();
+      });
+    }
+
+    function inserirMarcador99(idx) {
+      const atual = ETAPAS_Z7[idx].aten || '';
+      if (!atual.includes('[99]')) {
+        ETAPAS_Z7[idx].aten = atual ? `${atual} [99] KG` : `CARREGAR [99] KG DE ${ETAPAS_Z7[idx].compDesc || 'MATERIA-PRIMA'}`;
+        renderizarGradeEtapas();
+      }
+    }
+
+    function alternarEpiLinha(idx, epiKey) {
+      ETAPAS_Z7[idx][epiKey] = !ETAPAS_Z7[idx][epiKey];
+      renderizarGradeEtapas();
+    }
+
+    function adicionarLinhaEtapa() {
+      let proxSeq = '1000';
+      if (ETAPAS_Z7.length > 0) {
+        const ult = parseInt(ETAPAS_Z7[ETAPAS_Z7.length - 1].seq, 10);
+        proxSeq = !isNaN(ult) ? String(ult + 1) : String(1000 + ETAPAS_Z7.length);
+      }
+
+      ETAPAS_Z7.push({
+        seq: proxSeq,
+        desc: '',
+        aten: '',
+        tipo: 'A',
+        comp: '',
+        compDesc: '',
+        perc: '',
+        ep1: false, ep2: false, ep3: false, ep4: false, ep5: false,
+        alert: ''
+      });
+      renderizarGradeEtapas();
+    }
+
+    function removerLinhaEtapa(idx) {
+      if (ETAPAS_Z7.length <= 1) {
+        mostrarAlerta("A receita deve possuir pelo menos 1 etapa.", "error");
+        return;
+      }
+      ETAPAS_Z7.splice(idx, 1);
+      renderizarGradeEtapas();
+    }
+
+    function moverEtapa(idx, direcao) {
+      const novoIdx = idx + direcao;
+      if (novoIdx < 0 || novoIdx >= ETAPAS_Z7.length) return;
+      const temp = ETAPAS_Z7[idx];
+      ETAPAS_Z7[idx] = ETAPAS_Z7[novoIdx];
+      ETAPAS_Z7[novoIdx] = temp;
+      renderizarGradeEtapas();
+    }
+
+    function renumerarSequencias() {
+      let contador = 1000;
+      ETAPAS_Z7.forEach(et => {
+        if (/^\d+$/.test(et.seq.trim())) {
+          et.seq = String(contador++);
+        }
+      });
+      renderizarGradeEtapas();
+    }
+
+    function limparFormularioReceita() {
+      document.getElementById('prodMestreCod').value = '';
+      document.getElementById('prodMestreDesc').textContent = 'Selecione um produto na lupa SB1...';
+      document.getElementById('badgeModoOperacao').className = 'mode-badge mode-new';
+      document.getElementById('badgeModoOperacao').textContent = 'NOVO / CONSULTA';
+      document.getElementById('btnExcluirReceita').style.display = 'none';
+      ETAPAS_Z7 = [];
+      adicionarLinhaEtapa();
+    }
+
+    function recarregarReceitaAtual() {
+      const cod = document.getElementById('prodMestreCod').value.trim();
+      if (cod) selecionarProdutoMestre(cod, DESCRICOES_SB1_CACHE[cod] || '');
+      else limparFormularioReceita();
+    }
+
+    // ========================================================================
+    // GRAVAÇÃO COMPLETA E VALIDAÇÕES DE ENGENHARIA (SALVAR NA SZ7)
+    // ========================================================================
+    async function salvarReceitaSZ7() {
+      const prodMestre = document.getElementById('prodMestreCod').value.trim();
+      if (!prodMestre) {
+        mostrarAlerta("Selecione o Código do Produto (Z7_PROD) no topo do formulário antes de gravar.", "error", "⚠️ Produto Obrigatório");
+        return;
+      }
+
+      if (ETAPAS_Z7.length === 0) {
+        mostrarAlerta("Adicione pelo menos uma etapa na receita.", "error");
+        return;
+      }
+
+      const seqVistas = new Set();
+      for (let i = 0; i < ETAPAS_Z7.length; i++) {
+        const et = ETAPAS_Z7[i];
+        const seqLimpa = (et.seq || '').trim();
+        const descLimpa = (et.desc || '').trim();
+        const atenLimpa = (et.aten || '').trim();
+
+        if (!seqLimpa || !descLimpa || !atenLimpa) {
+          mostrarAlerta(`Preencha Sequência, Descrição e Instrução/Atenção na linha ${i + 1} (Seq. ${seqLimpa || '?'}).`, "error", "⚠️ Campos Obrigatórios");
+          return;
+        }
+
+        if (seqVistas.has(seqLimpa)) {
+          mostrarAlerta(`A sequência "${seqLimpa}" está duplicada na tabela. Cada etapa deve ter uma sequência única.`, "error", "⚠️ Sequência Duplicada");
+          return;
+        }
+        seqVistas.add(seqLimpa);
+
+        if (et.tipo === 'M') {
+          if (!et.comp || et.comp.trim() === '') {
+            mostrarAlerta(`A etapa ${seqLimpa} está marcada como Material (M), mas não possui Matéria-Prima (Z7_COMP) selecionada.`, "error", "⚠️ Matéria-Prima Obrigatória");
+            return;
+          }
+          if (!et.perc || et.perc.trim() === '') {
+            mostrarAlerta(`Informe o Fator / Percentual (Z7_PERC) para o componente da etapa ${seqLimpa} (Ex: 0,40 ou 1).`, "error", "⚠️ Percentual Obrigatório");
+            return;
+          }
+        }
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/receita_manut`, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify({
+            produto: prodMestre,
+            etapas: ETAPAS_Z7
+          })
+        });
+        const res = await resp.json();
+
+        if (res.status !== 'OK') {
+          throw new Error(res.mensagem || "Erro ao gravar na SZ7.");
+        }
+
+        document.getElementById('badgeModoOperacao').className = 'mode-badge mode-edit';
+        document.getElementById('badgeModoOperacao').textContent = 'MODO ALTERAÇÃO (SZ7 EXISTENTE)';
+        document.getElementById('btnExcluirReceita').style.display = 'inline-flex';
+        document.getElementById('statusRodape').textContent = `Última gravação realizada às ${new Date().toLocaleTimeString()}.`;
+
+        mostrarAlerta(res.mensagem, "success", "✓ Receita Gravada na SZ7");
+      } catch (e) {
+        console.error("Erro ao gravar SZ7:", e);
+        mostrarAlerta("Falha ao gravar receita no Protheus: " + e.message, "error", "⚠️ Falha de Gravação");
+      }
+    }
+
+    // ========================================================================
+    // EXCLUSÃO DE RECEITA (SZ7)
+    // ========================================================================
+    function confirmarExclusaoReceita() {
+      const prodMestre = document.getElementById('prodMestreCod').value.trim();
+      if (!prodMestre) return;
+
+      mostrarAlerta(
+        `Confirma a EXCLUSÃO DEFINITIVA de todas as ${ETAPAS_Z7.length} etapas da receita do produto ${prodMestre} na tabela SZ7?`,
+        "error",
+        "⚠️ Confirmar Exclusão da Receita",
+        async () => {
+          try {
+            const resp = await fetch(`${API_BASE}/receita_del`, {
+              method: 'POST',
+              headers: reqHeaders,
+              body: JSON.stringify({ produto: prodMestre })
+            });
+            const res = await resp.json();
+            if (res.status !== 'OK') throw new Error(res.mensagem);
+
+            limparFormularioReceita();
+            mostrarAlerta(res.mensagem, "success", "✓ Receita Excluída");
+          } catch (e) {
+            mostrarAlerta("Erro ao excluir receita: " + e.message, "error");
+          }
+        },
+        true
+      );
+    }
+
+    // ========================================================================
+    // CATÁLOGO DE RECEITAS CADASTRADAS (SZ7)
+    // ========================================================================
+    async function abrirModalCatalogoReceitas() {
+      const modal = document.getElementById('modalCatalogoSZ7');
+      const container = document.getElementById('listaCatalogoSZ7');
+      document.getElementById('filtroCatalogoSZ7').value = '';
+      modal.style.display = 'flex';
+      container.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;">A consultar receitas na SZ7...</div>`;
+
+      try {
+        const resp = await fetch(`${API_BASE}/receitas_lista`, { headers: reqHeaders });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'OK' && data.receitas) {
+          CATALOGO_RECEITAS = data.receitas;
+          renderizarListaCatalogo(CATALOGO_RECEITAS);
+        } else {
+          container.innerHTML = `<div style="padding:20px; text-align:center; color:#D55E00;">Nenhuma receita encontrada na SZ7.</div>`;
+        }
+      } catch (e) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#D55E00;">Erro ao consultar catálogo de receitas.</div>`;
+      }
+    }
+
+    function renderizarListaCatalogo(lista) {
+      const container = document.getElementById('listaCatalogoSZ7');
+      if (!lista || lista.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;">Nenhum produto encontrado.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      lista.forEach(item => {
+        DESCRICOES_SB1_CACHE[item.produto] = item.descricao;
+        const div = document.createElement('div');
+        div.className = 'picker-item';
+        div.onclick = () => {
+          fecharModalCatalogoReceitas();
+          selecionarProdutoMestre(item.produto, item.descricao);
+        };
+        div.innerHTML = `
+          <div>
+            <div class="picker-code">${item.produto}</div>
+            <div class="picker-desc">${item.descricao}</div>
+          </div>
+          <span class="picker-meta">${item.qtdEtapas} etapas na SZ7</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function filtrarCatalogoLocal() {
+      const termo = document.getElementById('filtroCatalogoSZ7').value.trim().toUpperCase();
+      const filtrados = CATALOGO_RECEITAS.filter(r =>
+        r.produto.toUpperCase().includes(termo) || r.descricao.toUpperCase().includes(termo)
+      );
+      renderizarListaCatalogo(filtrados);
+    }
+
+    function fecharModalCatalogoReceitas() {
+      document.getElementById('modalCatalogoSZ7').style.display = 'none';
+    }
+
+    // ========================================================================
+    // ROTINA DE DUPLICAÇÃO / CLONAGEM DE RECEITA ENTRE PRODUTOS
+    // ========================================================================
+    function abrirModalDuplicarReceita() {
+      const prodAtual = document.getElementById('prodMestreCod').value.trim();
+      const descAtual = document.getElementById('prodMestreDesc').textContent;
+
+      document.getElementById('dupProdOrigemCod').value = prodAtual || '';
+      document.getElementById('dupProdOrigemDesc').textContent = prodAtual ? descAtual : 'Selecione o produto de origem...';
+      document.getElementById('dupProdDestinoCod').value = '';
+      document.getElementById('dupProdDestinoDesc').textContent = 'Selecione o produto de destino na lupa SB1...';
+
+      document.getElementById('modalDuplicarSZ7').style.display = 'flex';
+    }
+
+    function fecharModalDuplicarReceita() {
+      document.getElementById('modalDuplicarSZ7').style.display = 'none';
+    }
+
+    async function executarDuplicacaoReceita(sobrescrever = false) {
+      const origem = document.getElementById('dupProdOrigemCod').value.trim();
+      const destino = document.getElementById('dupProdDestinoCod').value.trim();
+
+      if (!origem || !destino) {
+        mostrarAlerta("Selecione o Produto de Origem e o Produto de Destino usando a lupa da SB1.", "error", "⚠️ Dados Incompletos");
+        return;
+      }
+
+      if (origem === destino) {
+        mostrarAlerta("O Produto de Destino deve ser diferente do Produto de Origem.", "error", "⚠️ Produtos Idênticos");
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/receita_dup`, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify({
+            produtoOrigem: origem,
+            produtoDestino: destino,
+            sobrescrever: sobrescrever
+          })
+        });
+        const res = await resp.json();
+
+        if (res.status === 'JA_EXISTE') {
+          mostrarAlerta(
+            `${res.mensagem} Deseja SOBRESCREVER a receita do produto ${destino} pela receita de ${origem}?`,
+            "error",
+            "⚠️ Receita Já Existente no Destino",
+            () => executarDuplicacaoReceita(true),
+            true
+          );
+          return;
+        }
+
+        if (res.status !== 'OK') {
+          throw new Error(res.mensagem || "Falha ao duplicar receita.");
+        }
+
+        fecharModalDuplicarReceita();
+        const descDest = document.getElementById('dupProdDestinoDesc').textContent;
+        await selecionarProdutoMestre(destino, descDest !== '---' ? descDest : '');
+        mostrarAlerta(res.mensagem, "success", "✓ Receita Clonada com Sucesso");
+      } catch (e) {
+        mostrarAlerta("Erro ao duplicar receita: " + e.message, "error");
+      }
+    }
+  </script>
+</body>
+</html>
