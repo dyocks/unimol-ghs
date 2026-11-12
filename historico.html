@@ -280,7 +280,7 @@
         const opCompleta = op.opCompleta || (op.num + op.item + op.seq);
         const qtdExibir = (op.qtdProd !== undefined && op.qtdProd > 0) ? op.qtdProd : op.qtdPrev;
         const dataFmt = formatarDataFechamento(op.dataFechamento);
-        const linkDetalhes = `apontamento.html?op=${encodeURIComponent(opCompleta)}&produto=${encodeURIComponent(op.produto || '')}&reator=${encodeURIComponent(op.reator || '')}`;
+        const linkDetalhes = `pa1.html?op=${encodeURIComponent(opCompleta)}&produto=${encodeURIComponent(op.produto || '')}&reator=${encodeURIComponent(op.reator || '')}`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
