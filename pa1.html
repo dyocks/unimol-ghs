@@ -57,6 +57,7 @@
     .receita-row { transition: background 0.15s ease; cursor: pointer; }
     .receita-row.selected-row { background: #f0fdfa !important; border-left: 4px solid #0284c7; }
     .receita-row.alert-row.selected-row { background: #fef2f2 !important; border-left: 4px solid #dc2626; }
+    .receita-row.row-locked { opacity: 0.55; background: #f8fafc; }
     .rec-input { height: 36px; padding: 2px 6px; font-size: 0.88rem; font-weight: 700; text-align: right; border: 1.5px solid #cbd5e1; border-radius: 6px; width: 76px; color: #0f172a; background: #ffffff; outline: none; }
     .rec-input:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18); }
     .rec-time { width: 92px; text-align: center; }
@@ -755,7 +756,20 @@
       let textoBase = etapa.atenOrig || etapa.aten || "";
       if (etapa.tipo === 'M' && textoBase.includes('[99]')) {
         const compKey = (etapa.comp || "").trim();
-        const kgBase = (PESOS_SEPARADOS_Z6[compKey] !== undefined) ? PESOS_SEPARADOS_Z6[compKey] : (etapa.kgBaseZ6 || 0);
+        let kgBase = (PESOS_SEPARADOS_Z6[compKey] !== undefined && PESOS_SEPARADOS_Z6[compKey] > 0)
+          ? PESOS_SEPARADOS_Z6[compKey]
+          : (etapa.kgBaseZ6 || 0);
+
+        // Fallback: procura direto na tabela de Pesagem renderizada na Aba 2
+        if (!kgBase || kgBase <= 0) {
+          const trPesagem = document.querySelector(`#pesagemTbody tr[data-prod="${compKey}"]`);
+          if (trPesagem) {
+            const inpPeso = trPesagem.querySelector('.inp-peso');
+            const valDigitado = inpPeso && inpPeso.value ? inpPeso.value : trPesagem.getAttribute('data-kgprev');
+            kgBase = parseFloat(String(valDigitado || "0").replace(',', '.'));
+          }
+        }
+
         let percRaw = parseFloat(String(etapa.perc || "0").replace(',', '.'));
         let fator = percRaw > 1 ? (percRaw / 100) : percRaw;
         const kgProporcional = kgBase * fator;
@@ -786,7 +800,7 @@
         const temAlerta = (etapa.alert && etapa.alert.trim() !== "");
         const textoAtenHTML = formatarTextoAtencaoComProporcional(etapa);
         const statusAtual = etapa.status || "Pendente";
-        const badgeCls = statusAtual === "Finalizado" ? "badge-ok" : (temAlerta ? "badge-high" : "badge-wait");
+        const badgeCls = statusAtual === "Finalizado" ? "badge-ok" : (statusAtual === "Em Curso" ? "badge-run" : (temAlerta ? "badge-high" : "badge-wait"));
 
         const tr = `
           <tr class="receita-row ${temAlerta ? 'alert-row' : ''}" data-index="${index}" data-seq="${etapa.seq}" onclick="selecionarLinhaReceita(${index}, false)">
@@ -796,28 +810,28 @@
               <div id="rec-aten-${index}" style="font-size: 0.80rem; color: ${temAlerta ? '#b91c1c' : '#475569'}; font-weight: 600;">${textoAtenHTML}</div>
             </td>
             <td style="text-align: center;">
-              <input type="time" class="rec-input rec-time inp-hrini" value="${etapa.hrIni || ''}" onfocus="selecionarLinhaReceita(${index}, true)" oninput="calcularTempoTotalLinha(this)">
+              <input type="time" class="rec-input rec-time inp-hrini" value="${etapa.hrIni || ''}" onfocus="aoFocarCampoReceita(event, ${index})" oninput="calcularTempoTotalLinha(this, ${index})">
             </td>
             <td style="text-align: center;">
-              <input type="time" class="rec-input rec-time inp-hrfim" value="${etapa.hrFim || ''}" onfocus="selecionarLinhaReceita(${index}, false)" oninput="calcularTempoTotalLinha(this)">
+              <input type="time" class="rec-input rec-time inp-hrfim" value="${etapa.hrFim || ''}" onfocus="aoFocarCampoReceita(event, ${index})" oninput="calcularTempoTotalLinha(this, ${index})">
             </td>
             <td style="text-align: center;">
               <input type="text" class="rec-input rec-total inp-total" value="${etapa.total || '--:--'}" readonly tabindex="-1">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-topo" placeholder="0.0" value="${etapa.topo || ''}" onfocus="selecionarLinhaReceita(${index}, false)">
+              <input type="number" step="0.1" class="rec-input inp-topo" placeholder="0.0" value="${etapa.topo || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-fundo" placeholder="0.0" value="${etapa.fundo || ''}" onfocus="selecionarLinhaReceita(${index}, false)">
+              <input type="number" step="0.1" class="rec-input inp-fundo" placeholder="0.0" value="${etapa.fundo || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.01" class="rec-input inp-press" placeholder="0.00" value="${etapa.press || ''}" onfocus="selecionarLinhaReceita(${index}, false)">
+              <input type="number" step="0.01" class="rec-input inp-press" placeholder="0.00" value="${etapa.press || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-veloc" placeholder="0.0" value="${etapa.veloc || ''}" onfocus="selecionarLinhaReceita(${index}, false)">
+              <input type="number" step="0.1" class="rec-input inp-veloc" placeholder="0.0" value="${etapa.veloc || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-corr" placeholder="0.0" value="${etapa.corr || ''}" onfocus="selecionarLinhaReceita(${index}, false)">
+              <input type="number" step="0.1" class="rec-input inp-corr" placeholder="0.0" value="${etapa.corr || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
             </td>
             <td style="text-align: center;">
               <span class="badge-status ${badgeCls} inp-status" onclick="alternarStatusEtapa(event, this, ${index})">${statusAtual}</span>
@@ -827,56 +841,142 @@
         tbody.insertAdjacentHTML('beforeend', tr);
       });
 
-      // Seleciona a primeira etapa por padrão sem explodir popup antes de abrir a aba
+      atualizarEstadoBloqueioLinhasReceita();
+
       if (RECEITA_ETAPAS.length > 0) {
         selecionarLinhaReceita(0, false, true);
       }
+    }
+
+    // Verifica se todas as etapas anteriores até (index - 1) estão com status "Finalizado"
+    function validarEtapaAnteriorConcluida(index) {
+      if (index <= 0) return { ok: true };
+
+      const linhas = document.querySelectorAll('#receitaTbody .receita-row');
+      for (let i = 0; i < index; i++) {
+        const trAnt = linhas[i];
+        if (!trAnt) continue;
+        const statusAnt = trAnt.querySelector('.inp-status').innerText.trim();
+        const seqAnt = trAnt.getAttribute('data-seq');
+
+        if (statusAnt !== "Finalizado") {
+          return {
+            ok: false,
+            indexPendente: i,
+            seqPendente: seqAnt
+          };
+        }
+      }
+      return { ok: true };
+    }
+
+    // Atualiza o estilo visual das linhas que ainda estão bloqueadas pela etapa anterior
+    function atualizarEstadoBloqueioLinhasReceita() {
+      const linhas = document.querySelectorAll('#receitaTbody .receita-row');
+      let anteriorFinalizada = true;
+
+      linhas.forEach((tr, idx) => {
+        if (idx === 0) {
+          tr.classList.remove('row-locked');
+        } else {
+          if (anteriorFinalizada) {
+            tr.classList.remove('row-locked');
+          } else {
+            tr.classList.add('row-locked');
+          }
+        }
+        const st = tr.querySelector('.inp-status').innerText.trim();
+        if (st !== "Finalizado") {
+          anteriorFinalizada = false;
+        }
+      });
+    }
+
+    // Evento disparado ao tentar focar/digitar em qualquer input da linha
+    function aoFocarCampoReceita(evt, index) {
+      const validacao = validarEtapaAnteriorConcluida(index);
+      if (!validacao.ok) {
+        evt.target.blur();
+        selecionarLinhaReceita(validacao.indexPendente, false, true);
+        mostrarAlerta(
+          `Não é permitido apontar a etapa ${RECEITA_ETAPAS[index].seq} antes de concluir a etapa anterior (Seq. ${validacao.seqPendente}).`,
+          "error",
+          "Sequência Obrigatória"
+        );
+        return false;
+      }
+      selecionarLinhaReceita(index, true, false);
+      return true;
     }
 
     function selecionarLinhaReceita(index, iniciouDigitacao = false, silencioso = false) {
       const etapa = RECEITA_ETAPAS[index];
       if (!etapa) return;
 
+      // Se clicou numa linha posterior sem concluir a anterior, avisa e mantém na pendente
+      if (!silencioso && index > 0) {
+        const validacao = validarEtapaAnteriorConcluida(index);
+        if (!validacao.ok) {
+          mostrarAlerta(
+            `Conclua primeiro o apontamento da Seq. ${validacao.seqPendente} (Status: Finalizado) antes de avançar para a Seq. ${etapa.seq}.`,
+            "error",
+            "Etapa Anterior Pendente"
+          );
+          index = validacao.indexPendente;
+        }
+      }
+
+      const etapaFoco = RECEITA_ETAPAS[index];
       document.querySelectorAll('#receitaTbody .receita-row').forEach(r => r.classList.remove('selected-row'));
       const row = document.querySelector(`#receitaTbody .receita-row[data-index="${index}"]`);
       if (row) row.classList.add('selected-row');
 
       const lblEtapa = document.getElementById('lblEtapaSelecionada');
-      if (lblEtapa) lblEtapa.textContent = `Seq. ${etapa.seq} - ${etapa.desc}`;
+      if (lblEtapa) lblEtapa.textContent = `Seq. ${etapaFoco.seq} - ${etapaFoco.desc}`;
 
       // 1. Alterna as imagens dos EPIs conforme a sequência selecionada
-      atualizarEPIsDaSequencia(etapa);
+      atualizarEPIsDaSequencia(etapaFoco);
 
       // 2. Controla o Banner Vermelho e o Popup Explosivo se Z7_ALERT estiver preenchido
       const banner = document.getElementById('receitaAlertBanner');
       const tituloBanner = document.getElementById('receitaAlertTitulo');
       const textoBanner = document.getElementById('receitaAlertTexto');
-      const textoAlerta = (etapa.alert || "").trim();
+      const textoAlerta = (etapaFoco.alert || "").trim();
 
       if (textoAlerta !== "") {
-        if (tituloBanner) tituloBanner.textContent = `ATENÇÃO CRÍTICA DA ETAPA ${etapa.seq} - ${etapa.desc}`;
+        if (tituloBanner) tituloBanner.textContent = `ATENÇÃO CRÍTICA DA ETAPA ${etapaFoco.seq} - ${etapaFoco.desc}`;
         if (textoBanner) textoBanner.textContent = textoAlerta;
         if (banner) banner.style.display = 'flex';
 
-        // Explode o popup para avisar o operador na primeira vez que entra na etapa
-        if (!silencioso && !ALERTAS_JA_EXIBIDOS[etapa.seq]) {
-          ALERTAS_JA_EXIBIDOS[etapa.seq] = true;
-          mostrarAlerta(textoAlerta, 'error', `🚨 ATENÇÃO CRÍTICA - SEQ. ${etapa.seq}`);
+        if (!silencioso && !ALERTAS_JA_EXIBIDOS[etapaFoco.seq]) {
+          ALERTAS_JA_EXIBIDOS[etapaFoco.seq] = true;
+          mostrarAlerta(textoAlerta, 'error', `🚨 ATENÇÃO CRÍTICA - SEQ. ${etapaFoco.seq}`);
         }
       } else {
-        // Só pode aparecer quando tiver preenchido
         if (banner) banner.style.display = 'none';
       }
     }
 
-    function calcularTempoTotalLinha(inputEl) {
+    function calcularTempoTotalLinha(inputEl, index) {
+      const validacao = validarEtapaAnteriorConcluida(index);
+      if (!validacao.ok) {
+        inputEl.value = "";
+        inputEl.blur();
+        mostrarAlerta(
+          `Conclua a etapa anterior (Seq. ${validacao.seqPendente}) antes de preencher a Seq. ${RECEITA_ETAPAS[index].seq}.`,
+          "error",
+          "Sequência Obrigatória"
+        );
+        return;
+      }
+
       const tr = inputEl.closest('tr');
       const hrIni = tr.querySelector('.inp-hrini').value;
       const hrFim = tr.querySelector('.inp-hrfim').value;
       const inpTotal = tr.querySelector('.inp-total');
       const badge = tr.querySelector('.inp-status');
 
-      if (hrIni && !hrFim && badge.innerText === "Pendente") {
+      if (hrIni && !hrFim && badge.innerText.trim() !== "Finalizado") {
         badge.className = "badge-status badge-run inp-status";
         badge.innerText = "Em Curso";
       }
@@ -892,23 +992,51 @@
         badge.className = "badge-status badge-ok inp-status";
         badge.innerText = "Finalizado";
       }
+
+      atualizarEstadoBloqueioLinhasReceita();
     }
 
     function alternarStatusEtapa(evt, badgeEl, index) {
       evt.stopPropagation();
+
+      const validacao = validarEtapaAnteriorConcluida(index);
+      if (!validacao.ok) {
+        mostrarAlerta(
+          `A etapa anterior (Seq. ${validacao.seqPendente}) ainda não está concluída. Finalize-a antes de iniciar ou concluir a Seq. ${RECEITA_ETAPAS[index].seq}.`,
+          "error",
+          "Etapa Anterior Pendente"
+        );
+        return;
+      }
+
       selecionarLinhaReceita(index, false);
 
+      const tr = badgeEl.closest('tr');
+      const hrIni = tr.querySelector('.inp-hrini').value;
+      const hrFim = tr.querySelector('.inp-hrfim').value;
       const atual = badgeEl.innerText.trim();
+
       if (atual === "Pendente") {
         badgeEl.className = "badge-status badge-run inp-status";
         badgeEl.innerText = "Em Curso";
       } else if (atual === "Em Curso") {
+        // Só permite mudar manualmente para Finalizado se Hora Início e Hora Fim estiverem preenchidas
+        if (!hrIni || !hrFim) {
+          mostrarAlerta(
+            `Preencha a Hora Início e a Hora Fim da Seq. ${RECEITA_ETAPAS[index].seq} para concluir esta etapa.`,
+            "error",
+            "Horário Obrigatório"
+          );
+          return;
+        }
         badgeEl.className = "badge-status badge-ok inp-status";
         badgeEl.innerText = "Finalizado";
       } else {
         badgeEl.className = "badge-status badge-wait inp-status";
         badgeEl.innerText = "Pendente";
       }
+
+      atualizarEstadoBloqueioLinhasReceita();
     }
 
     async function salvarReceitaEmTela() {
@@ -916,20 +1044,42 @@
       if (linhas.length === 0) return;
 
       let etapasPayload = [];
-      linhas.forEach(tr => {
+      let encontrouNaoFinalizada = false;
+      let seqNaoFinalizada = "";
+
+      for (let i = 0; i < linhas.length; i++) {
+        const tr = linhas[i];
+        const seq = tr.getAttribute('data-seq');
+        const hrIni = tr.querySelector('.inp-hrini').value || "";
+        const hrFim = tr.querySelector('.inp-hrfim').value || "";
+        const total = tr.querySelector('.inp-total').value || "";
+        const topo  = tr.querySelector('.inp-topo').value  || "";
+        const fundo = tr.querySelector('.inp-fundo').value || "";
+        const press = tr.querySelector('.inp-press').value || "";
+        const veloc = tr.querySelector('.inp-veloc').value || "";
+        const corr  = tr.querySelector('.inp-corr').value  || "";
+        const status = tr.querySelector('.inp-status').innerText.trim();
+
+        const temAlgumApontamento = (hrIni !== "" || hrFim !== "" || status !== "Pendente");
+
+        if (temAlgumApontamento && encontrouNaoFinalizada) {
+          mostrarAlerta(
+            `Não é possível gravar o apontamento da Seq. ${seq} enquanto a etapa anterior (Seq. ${seqNaoFinalizada}) não estiver concluída (Finalizado).`,
+            "error",
+            "Ordem Sequencial Inválida"
+          );
+          return;
+        }
+
+        if (status !== "Finalizado") {
+          encontrouNaoFinalizada = true;
+          if (!seqNaoFinalizada) seqNaoFinalizada = seq;
+        }
+
         etapasPayload.push({
-          seq:    tr.getAttribute('data-seq'),
-          hrIni:  tr.querySelector('.inp-hrini').value || "",
-          hrFim:  tr.querySelector('.inp-hrfim').value || "",
-          total:  tr.querySelector('.inp-total').value || "",
-          topo:   tr.querySelector('.inp-topo').value  || "",
-          fundo:  tr.querySelector('.inp-fundo').value || "",
-          press:  tr.querySelector('.inp-press').value || "",
-          veloc:  tr.querySelector('.inp-veloc').value || "",
-          corr:   tr.querySelector('.inp-corr').value  || "",
-          status: tr.querySelector('.inp-status').innerText.trim()
+          seq, hrIni, hrFim, total, topo, fundo, press, veloc, corr, status
         });
-      });
+      }
 
       try {
         const resp = await fetch(`${API_BASE}/receita`, {
