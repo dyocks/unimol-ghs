@@ -719,16 +719,22 @@
     }
 
     // ========================================================================
-    // 4. CARREGAR E GERIR A RECEITA DINÂMICA (SZ7 + [99] SZ6 + EPIs + ALERT)
+    // 4. CARREGAR E GERIR A RECEITA DINÂMICA (Lê estritamente o #campoCodProd)
     // ========================================================================
     async function carregarReceitaProtheus(op, produto) {
       const tbody = document.getElementById('receitaTbody');
       if (!tbody) return;
 
+      // Lê SOMENTE para a Receita o código do produto que está exibido no cabeçalho
+      const elCabecalho = document.getElementById('campoCodProd');
+      const prodCabecalho = (elCabecalho && elCabecalho.textContent && elCabecalho.textContent.trim() !== '---')
+        ? elCabecalho.textContent.trim()
+        : (produto || '').trim();
+
       tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">A carregar receita (SZ7)...</td></tr>`;
 
       try {
-        const query = `op=${encodeURIComponent(op || '')}&produto=${encodeURIComponent(produto || '')}`;
+        const query = `op=${encodeURIComponent(op || '')}&produto=${encodeURIComponent(prodCabecalho)}`;
         const resp = await fetch(`${API_BASE}/receita?${query}`, { headers: reqHeaders });
         const data = await resp.json();
 
@@ -736,7 +742,7 @@
           RECEITA_ETAPAS = data.receita;
           renderizarTabelaReceita();
         } else {
-          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#b91c1c;">Nenhuma etapa cadastrada na SZ7 para o produto ${produto || ''}.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#b91c1c;">Nenhuma etapa cadastrada na SZ7 para o produto ${prodCabecalho}.</td></tr>`;
         }
       } catch (e) {
         console.error("Erro ao puxar Receita SZ7:", e);
