@@ -6,7 +6,7 @@
   <title>PCP Químico - Apontamento da Ordem de Produção</title>
   <link rel="stylesheet" href="style-base.css">
   <style>
-    /* Estilos base da tela original */
+    /* Estilos base da tela */
     .op-banner-card { background: var(--surface); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); border: 1px solid var(--border); padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
     .op-header-grid { display: grid; grid-template-columns: 2fr 3.5fr 1.6fr 1.6fr 1.6fr; gap: 12px; }
     .info-field { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
@@ -30,7 +30,7 @@
     .epi-circle { width: 40px; height: 40px; background-color: #0077b6; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(0, 119, 182, 0.35); display: flex; align-items: center; justify-content: center; color: #ffffff; transition: all 0.25s ease; }
     .epi-circle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
     .epi-circle.epi-off { background-color: #cbd5e1; color: #64748b; box-shadow: none; opacity: 0.35; transform: scale(0.90); }
-    .epi-circle.epi-on { background-color: #0284c7; color: #ffffff; box-shadow: 0 0 0 3px #bae6fd, 0 4px 10px rgba(2, 132, 199, 0.45); transform: scale(1.06); }
+    .epi-circle.epi-on { background-color: #0072B2; color: #ffffff; box-shadow: 0 0 0 3px #bae6fd, 0 4px 10px rgba(0, 114, 178, 0.45); transform: scale(1.06); }
     
     /* Abas */
     .tabs-header { display: flex; border-bottom: 2px solid #e2e8f0; gap: 28px; margin-top: 4px; }
@@ -41,57 +41,92 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Banner Vermelho de Alerta Crítico (Só aparece quando Z7_ALERT está preenchido) */
-    .alert-banner { background: #fef2f2; border: 1.5px solid #fca5a5; border-left: 6px solid #dc2626; border-radius: 10px; padding: 12px 16px; display: none; align-items: flex-start; gap: 12px; margin-bottom: 14px; animation: pulseBorder 2s infinite; }
-    @keyframes pulseBorder { 0%, 100% { border-color: #fca5a5; } 50% { border-color: #dc2626; } }
-    .alert-banner svg { width: 26px; height: 26px; color: #dc2626; flex-shrink: 0; margin-top: 2px; }
-    .alert-content h4 { color: #991b1b; font-size: 0.90rem; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; }
-    .alert-content p { color: #7f1d1d; font-size: 0.90rem; line-height: 1.35; font-weight: 600; }
+    /* Banner de Alerta Crítico (Só aparece quando Z7_ALERT está preenchido) */
+    .alert-banner { background: #fff7ed; border: 1.5px solid #fdba74; border-left: 6px solid #D55E00; border-radius: 10px; padding: 12px 16px; display: none; align-items: flex-start; gap: 12px; margin-bottom: 14px; animation: pulseBorder 2s infinite; }
+    @keyframes pulseBorder { 0%, 100% { border-color: #fdba74; } 50% { border-color: #D55E00; } }
+    .alert-banner svg { width: 26px; height: 26px; color: #D55E00; flex-shrink: 0; margin-top: 2px; }
+    .alert-content h4 { color: #9a3412; font-size: 0.90rem; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; }
+    .alert-content p { color: #7c2d12; font-size: 0.90rem; line-height: 1.35; font-weight: 600; }
 
-    /* Tabelas e Inputs LISO EM TELA */
+    /* Tabelas e Inputs de Pesagem */
     .wms-address { display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; color: #1d4ed8; font-family: ui-monospace, monospace; font-weight: 700; font-size: 0.82rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; }
-    .tablet-input { height: 40px; padding: 4px 10px; font-size: 1rem; font-weight: 700; text-align: right; border: 2px solid #cbd5e1; border-radius: 6px; width: 120px; color: #0f172a; background: #ffffff; outline: none; }
-    .tablet-input:focus { border-color: var(--teal-primary); box-shadow: 0 0 0 3px rgba(0, 156, 166, 0.2); }
+    .tablet-input { height: 40px; padding: 4px 10px; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; border: 2px solid #cbd5e1; border-radius: 6px; width: 120px; color: #0f172a; background: #ffffff; outline: none; }
+    .tablet-input:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.2); }
+    .tablet-input::-webkit-outer-spin-button,
+    .tablet-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .tablet-input[type=number] { -moz-appearance: textfield; }
 
-    /* Inputs compactos da Grade de Receita (Sem Popup) */
+    /* Inputs da Grade de Receita (Sem setas nativas e perfeitamente alinhados) */
     .receita-row { transition: background 0.15s ease; cursor: pointer; }
-    .receita-row.selected-row { background: #f0fdfa !important; border-left: 4px solid #0284c7; }
-    .receita-row.alert-row.selected-row { background: #fef2f2 !important; border-left: 4px solid #dc2626; }
+    .receita-row.selected-row { background: #f0f9ff !important; border-left: 4px solid #0072B2; }
+    .receita-row.alert-row.selected-row { background: #fff7ed !important; border-left: 4px solid #D55E00; }
     .receita-row.row-locked { opacity: 0.55; background: #f8fafc; }
-    .rec-input { height: 36px; padding: 2px 6px; font-size: 0.88rem; font-weight: 700; text-align: right; border: 1.5px solid #cbd5e1; border-radius: 6px; width: 76px; color: #0f172a; background: #ffffff; outline: none; }
-    .rec-input:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18); }
-    .rec-time { width: 92px; text-align: center; }
-    .rec-total { width: 64px; text-align: center; background: #f1f5f9; color: #334155; border-color: #e2e8f0; pointer-events: none; }
+
+    .rec-input {
+      height: 38px;
+      padding: 4px 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      width: 84px;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .rec-input:focus {
+      border-color: #0072B2;
+      box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.22);
+      background: #f8fafc;
+    }
+    .rec-input::-webkit-outer-spin-button,
+    .rec-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .rec-input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .rec-time { width: 98px; text-align: center; padding: 4px 6px; }
+    .rec-total { width: 72px; text-align: center; background: #f1f5f9; color: #334155; border-color: #e2e8f0; pointer-events: none; }
     .qtd-destaque { background: #fef3c7; color: #b45309; padding: 1px 6px; border-radius: 4px; font-weight: 800; border: 1px solid #fde68a; }
 
     .badge-status { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 10px; border-radius: 14px; font-size: 0.75rem; font-weight: 800; white-space: nowrap; cursor: pointer; user-select: none; border: 1px solid transparent; }
-    .badge-ok { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-    .badge-high { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .badge-ok { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+    .badge-high { background: #ffedd5; color: #c2410c; border-color: #fdba74; font-weight: 800; }
     .badge-wait { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
-    .badge-run { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+    .badge-run { background: #fef3c7; color: #b45309; border-color: #fde68a; }
 
     /* Checklist */
     .checklist-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;}
     .check-card { background: var(--surface); border-radius: 8px; border: 1.5px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
-    .check-card.checked-ok { border-color: #86efac; background: #f0fdf4; }
+    .check-card.checked-ok { border-color: #7dd3fc; background: #f0f9ff; }
     .touch-toggle-group { display: flex; gap: 6px; }
     .btn-toggle { min-width: 48px; height: 40px; border: 1.5px solid #cbd5e1; background: #ffffff; border-radius: 6px; font-weight: 700; font-size: 0.85rem; color: #475569; cursor: pointer; }
-    .btn-toggle.active-sim { background: #16a34a; border-color: #16a34a; color: #ffffff; }
-    .btn-toggle.active-nao { background: #dc2626; border-color: #dc2626; color: #ffffff; }
-    .lock-msg { display: none; background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; font-weight: 700; border: 1px solid #bbf7d0; text-align: center; margin-bottom: 12px; }
+    .btn-toggle.active-sim { background: #0072B2; border-color: #0072B2; color: #ffffff; }
+    .btn-toggle.active-nao { background: #D55E00; border-color: #D55E00; color: #ffffff; }
+    .lock-msg { display: none; background: #e0f2fe; color: #075985; padding: 12px; border-radius: 6px; font-weight: 700; border: 1px solid #bae6fd; text-align: center; margin-bottom: 12px; }
 
     /* Botões Padrões e Barra Inferior */
     .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
     .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
 
-    /* Popup Explosivo de Alerta Crítico (Z7_ALERT) */
+    /* Modal Acessível para Daltónicos (Paleta Okabe-Ito: Azul #0072B2 e Laranja/Âmbar #D55E00) */
     .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
-    .alert-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; border: 2px solid #dc2626; }
-    .alert-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.05rem; }
-    .alert-header.error { background: #dc2626; color: #ffffff; }
-    .alert-header.success { background: #16a34a; color: #ffffff; }
-    .alert-body { padding: 22px 20px; font-size: 1rem; color: #1e293b; line-height: 1.5; font-weight: 600; }
+    .alert-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; border: 3px solid #0072B2; }
+    .alert-card.card-warning { border-color: #D55E00; }
+    .alert-card.card-success { border-color: #0072B2; }
+    .alert-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.3px; }
+    .alert-header.error { background: #D55E00; color: #ffffff; }
+    .alert-header.success { background: #0072B2; color: #ffffff; }
+    .alert-body { padding: 22px 20px; font-size: 1rem; color: #0f172a; line-height: 1.5; font-weight: 600; }
     .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; }
+    .btn-ciente { height: 42px; padding: 0 22px; border-radius: 8px; font-size: 0.90rem; font-weight: 800; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-ciente.btn-ciente-success { background: #005AB5; box-shadow: 0 3px 10px rgba(0, 90, 181, 0.3); }
+    .btn-ciente.btn-ciente-warning { background: #D55E00; box-shadow: 0 3px 10px rgba(213, 94, 0, 0.3); }
   </style>
 </head>
 <body>
@@ -213,7 +248,7 @@
             Checklist bloqueado e finalizado por <span id="opNomeCheck"></span> em <span id="dhCheck"></span>. Aba de Pesagem Liberada!
           </div>
           <div style="text-align: right;" id="btnSalvarChecklistContainer">
-            <button class="btn-action-tablet" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#ffffff;" onclick="finalizarChecklist()">Salvar e Travar Checklist</button>
+            <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="finalizarChecklist()">Salvar e Travar Checklist</button>
           </div>
         </div>
 
@@ -239,7 +274,7 @@
             Pesagem confirmada e travada<span id="infoPesagemRealizada"></span>. Aba Receita Liberada!
           </div>
           <div style="text-align: right; margin-top: 14px;" id="btnSalvarPesagemContainer">
-            <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="finalizarPesagem()">Confirmar e Travar Pesagem</button>
+            <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="finalizarPesagem()">Confirmar e Travar Pesagem</button>
           </div>
         </div>
 
@@ -286,23 +321,25 @@
       <div style="display: flex; gap: 20px; align-items: center;">
         <div class="summary-item">
           <span class="s-label">Etapa em Foco</span>
-          <span class="s-val" id="lblEtapaSelecionada" style="color: #0284c7;">---</span>
+          <span class="s-val" id="lblEtapaSelecionada" style="color: #0072B2;">---</span>
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
         <a href="comigo.html" class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;">Cancelar / Voltar</a>
-        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff;" onclick="salvarReceitaEmTela()">Salvar Apontamento da Receita</button>
+        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="salvarReceitaEmTela()">Salvar Apontamento da Receita</button>
       </div>
     </footer>
   </div>
 
-  <!-- MODAL DE ALERTA CUSTOMIZADO E POPUP CRÍTICO Z7_ALERT -->
+  <!-- MODAL ACESSÍVEL PARA DALTÓNICOS (Paleta Okabe-Ito) -->
   <div class="alert-overlay" id="customAlertModal">
-    <div class="alert-card">
-      <div class="alert-header error" id="customAlertHeader">Atenção</div>
+    <div class="alert-card card-success" id="customAlertCard">
+      <div class="alert-header success" id="customAlertHeader">✓ Confirmação</div>
       <div class="alert-body" id="customAlertMessage"></div>
       <div class="alert-footer">
-        <button class="btn-action-tablet" style="background:#dc2626; color:#ffffff; height: 40px;" onclick="fecharAlerta()">CIENTE / ENTENDIDO</button>
+        <button class="btn-ciente btn-ciente-success" id="btnCienteModal" onclick="confirmarCienteModal()">
+          ✓ CIENTE / ENTENDIDO
+        </button>
       </div>
     </div>
   </div>
@@ -344,8 +381,9 @@
     let currentCod = "";
     let currentReator = "";
     let RECEITA_ETAPAS = [];
-    let PESOS_SEPARADOS_Z6 = {}; // Mapa { codigoMP: pesoSeparado }
-    let ALERTAS_JA_EXIBIDOS = {}; // Evita repetir popup na mesma etapa se já deu ciência
+    let PESOS_SEPARADOS_Z6 = {};
+    let ALERTAS_JA_EXIBIDOS = {};
+    let ACAO_APOS_CIENTE = null;
 
     // ========================================================================
     // INICIALIZAÇÃO DA PÁGINA
@@ -372,26 +410,54 @@
     });
 
     // ========================================================================
-    // FUNÇÕES DE ALERTAS E POPUP DE ALERTA CRÍTICO (Z7_ALERT)
+    // FUNÇÕES DE ALERTAS ACESSÍVEIS PARA DALTÓNICOS + AÇÃO AO CLICAR EM CIENTE
     // ========================================================================
-    function mostrarAlerta(mensagem, tipo = 'error', tituloCustom = '') {
+    function mostrarAlerta(mensagem, tipo = 'error', tituloCustom = '', callbackCiente = null) {
       const modal = document.getElementById('customAlertModal');
+      const card = document.getElementById('customAlertCard');
       const header = document.getElementById('customAlertHeader');
       const msg = document.getElementById('customAlertMessage');
+      const btn = document.getElementById('btnCienteModal');
       
+      ACAO_APOS_CIENTE = callbackCiente;
       msg.textContent = mensagem;
+
       if (tipo === 'error') {
+        card.className = 'alert-card card-warning';
         header.className = 'alert-header error';
-        header.textContent = tituloCustom || '⚠️ ALERTA CRÍTICO DE PROCESSO';
+        header.textContent = tituloCustom || '⚠️ ATENÇÃO / PENDÊNCIA';
+        btn.className = 'btn-ciente btn-ciente-warning';
+        btn.innerHTML = '⚠️ CIENTE / ENTENDIDO';
       } else {
+        card.className = 'alert-card card-success';
         header.className = 'alert-header success';
-        header.textContent = tituloCustom || 'Sucesso';
+        header.textContent = tituloCustom || '✓ APONTAMENTO CONFIRMADO';
+        btn.className = 'btn-ciente btn-ciente-success';
+        btn.innerHTML = '✓ CIENTE / ENTENDIDO';
       }
       modal.style.display = 'flex';
     }
 
-    function fecharAlerta() {
+    async function confirmarCienteModal() {
       document.getElementById('customAlertModal').style.display = 'none';
+      if (typeof ACAO_APOS_CIENTE === 'function') {
+        const fn = ACAO_APOS_CIENTE;
+        ACAO_APOS_CIENTE = null;
+        await fn();
+      }
+    }
+
+    function fecharAlerta() {
+      confirmarCienteModal();
+    }
+
+    // Formata automaticamente o número ao sair do campo (ex: 5 -> 5.0 | 0 -> 0.00)
+    function formatarDecimalCampo(inputEl, casas = 1) {
+      if (!inputEl || inputEl.value === '') return;
+      const num = parseFloat(String(inputEl.value).replace(',', '.'));
+      if (!isNaN(num)) {
+        inputEl.value = num.toFixed(casas);
+      }
     }
 
     // ========================================================================
@@ -442,7 +508,7 @@
     }
 
     // ========================================================================
-    // 1. CARREGAR DETALHES DA OP
+    // 1. CARREGAR DETALHES DA OP (Mantido conforme original)
     // ========================================================================
     async function carregarDetalhesOP(opCompleta) {
       try {
@@ -542,11 +608,11 @@
             );
           }
         } else {
-          container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Nenhum checklist cadastrado na SZ3 para o reator.</div>`;
+          container.innerHTML = `<div style="grid-column: 1 / -1; color: #D55E00;">Nenhum checklist cadastrado na SZ3 para o reator.</div>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Checklist:", e);
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: #b91c1c;">Erro de ligação com o REST do Protheus (SZ3/SZ4).</div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: #D55E00;">Erro de ligação com o REST do Protheus (SZ3/SZ4).</div>`;
       }
     }
 
@@ -596,7 +662,6 @@
             const loteSalvo = (item.loteConf !== undefined && item.loteConf !== "") ? item.loteConf : "";
             const jaPesado  = data.jaRealizado && pesoSalvo !== "";
 
-            // Guarda o peso separado na memória para cálculo proporcional [99] na Receita
             const prodKey = (item.produto || "").trim();
             const kgRef = parseFloat((pesoSalvo !== "" ? pesoSalvo : item.kgprev || "0").replace(',', '.'));
             if (prodKey) PESOS_SEPARADOS_Z6[prodKey] = kgRef;
@@ -626,7 +691,7 @@
                 <td><code>${item.produto}</code><br><small style="font-weight:600; color:#334155;">${item.nome}</small></td>
                 <td><span class="wms-address">📍 ${item.ender}</span></td>
                 <td style="text-align: right; font-weight: 700;">${item.kgprev} KG</td>
-                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="Kg" value="${pesoSalvo}" oninput="verificarStatusPesagem(this)"></td>
+                <td style="text-align: center;"><input type="number" step="0.01" class="tablet-input inp-peso" placeholder="0.00" value="${pesoSalvo}" oninput="verificarStatusPesagem(this)" onblur="formatarDecimalCampo(this, 2)"></td>
                 <td style="text-align: center; font-weight: 700; color: #b45309;">${item.lote || '-'}</td>
                 <td style="text-align: center;"><input type="text" class="tablet-input inp-lote" style="width:140px; text-align:center;" placeholder="Nº Lote" value="${loteSalvo}" oninput="verificarStatusPesagem(this)"></td>
                 <td style="text-align: center;">
@@ -641,11 +706,11 @@
             aplicarBloqueioVisualPesagem(data.operadorNome, data.dataHora, false);
           }
         } else {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#D55E00;">Nenhuma matéria-prima na SZ5 para esta OP.</td></tr>`;
         }
       } catch (e) {
         console.error("Falha ao puxar Pesagem:", e);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erro de ligação com o REST do Protheus (SZ5/SZ6).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#D55E00;">Erro de ligação com o REST do Protheus (SZ5/SZ6).</td></tr>`;
       }
     }
 
@@ -726,7 +791,7 @@
       const tbody = document.getElementById('receitaTbody');
       if (!tbody) return;
 
-      // Lê SOMENTE para a Receita o código do produto que está exibido no cabeçalho
+      // Lê SOMENTE para a Receita o código do produto exibido no cabeçalho (#campoCodProd)
       const elCabecalho = document.getElementById('campoCodProd');
       const prodCabecalho = (elCabecalho && elCabecalho.textContent && elCabecalho.textContent.trim() !== '---')
         ? elCabecalho.textContent.trim()
@@ -743,15 +808,15 @@
           RECEITA_ETAPAS = data.receita;
           renderizarTabelaReceita();
         } else {
-          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#b91c1c;">Nenhuma etapa cadastrada na SZ7 para o produto ${prodCabecalho}.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#D55E00;">Nenhuma etapa cadastrada na SZ7 para o produto ${prodCabecalho}.</td></tr>`;
         }
       } catch (e) {
         console.error("Erro ao puxar Receita SZ7:", e);
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#b91c1c;">Erro de comunicação com o REST do Protheus (SZ7).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#D55E00;">Erro de comunicação com o REST do Protheus (SZ7).</td></tr>`;
       }
     }
 
-    // Formata o texto de Z7_ATEN trocando [99] pelo proporcional de SZ6
+    // Formata o texto de Z7_ATEN trocando [99] pelo proporcional de SZ6 (ou da Aba 2)
     function formatarTextoAtencaoComProporcional(etapa) {
       let textoBase = etapa.atenOrig || etapa.aten || "";
       if (etapa.tipo === 'M' && textoBase.includes('[99]')) {
@@ -760,7 +825,6 @@
           ? PESOS_SEPARADOS_Z6[compKey]
           : (etapa.kgBaseZ6 || 0);
 
-        // Fallback: procura direto na tabela de Pesagem renderizada na Aba 2
         if (!kgBase || kgBase <= 0) {
           const trPesagem = document.querySelector(`#pesagemTbody tr[data-prod="${compKey}"]`);
           if (trPesagem) {
@@ -802,12 +866,18 @@
         const statusAtual = etapa.status || "Pendente";
         const badgeCls = statusAtual === "Finalizado" ? "badge-ok" : (statusAtual === "Em Curso" ? "badge-run" : (temAlerta ? "badge-high" : "badge-wait"));
 
+        const topoFmt  = etapa.topo  !== "" && !isNaN(parseFloat(etapa.topo))  ? parseFloat(etapa.topo).toFixed(1)  : "";
+        const fundoFmt = etapa.fundo !== "" && !isNaN(parseFloat(etapa.fundo)) ? parseFloat(etapa.fundo).toFixed(1) : "";
+        const pressFmt = etapa.press !== "" && !isNaN(parseFloat(etapa.press)) ? parseFloat(etapa.press).toFixed(2) : "";
+        const velocFmt = etapa.veloc !== "" && !isNaN(parseFloat(etapa.veloc)) ? parseFloat(etapa.veloc).toFixed(1) : "";
+        const corrFmt  = etapa.corr  !== "" && !isNaN(parseFloat(etapa.corr))  ? parseFloat(etapa.corr).toFixed(1)  : "";
+
         const tr = `
           <tr class="receita-row ${temAlerta ? 'alert-row' : ''}" data-index="${index}" data-seq="${etapa.seq}" onclick="selecionarLinhaReceita(${index}, false)">
-            <td style="text-align: center; font-weight: 800; color: ${temAlerta ? '#dc2626' : '#0f172a'};">${etapa.seq}</td>
+            <td style="text-align: center; font-weight: 800; color: ${temAlerta ? '#D55E00' : '#0f172a'};">${etapa.seq}</td>
             <td>
               <div style="font-weight: 800; color: #0f172a;">${etapa.desc}</div>
-              <div id="rec-aten-${index}" style="font-size: 0.80rem; color: ${temAlerta ? '#b91c1c' : '#475569'}; font-weight: 600;">${textoAtenHTML}</div>
+              <div id="rec-aten-${index}" style="font-size: 0.80rem; color: ${temAlerta ? '#D55E00' : '#475569'}; font-weight: 600;">${textoAtenHTML}</div>
             </td>
             <td style="text-align: center;">
               <input type="time" class="rec-input rec-time inp-hrini" value="${etapa.hrIni || ''}" onfocus="aoFocarCampoReceita(event, ${index})" oninput="calcularTempoTotalLinha(this, ${index})">
@@ -819,19 +889,19 @@
               <input type="text" class="rec-input rec-total inp-total" value="${etapa.total || '--:--'}" readonly tabindex="-1">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-topo" placeholder="0.0" value="${etapa.topo || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
+              <input type="number" step="0.1" class="rec-input inp-topo" placeholder="0.0" value="${topoFmt}" onfocus="aoFocarCampoReceita(event, ${index})" onblur="formatarDecimalCampo(this, 1)">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-fundo" placeholder="0.0" value="${etapa.fundo || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
+              <input type="number" step="0.1" class="rec-input inp-fundo" placeholder="0.0" value="${fundoFmt}" onfocus="aoFocarCampoReceita(event, ${index})" onblur="formatarDecimalCampo(this, 1)">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.01" class="rec-input inp-press" placeholder="0.00" value="${etapa.press || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
+              <input type="number" step="0.01" class="rec-input inp-press" placeholder="0.00" value="${pressFmt}" onfocus="aoFocarCampoReceita(event, ${index})" onblur="formatarDecimalCampo(this, 2)">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-veloc" placeholder="0.0" value="${etapa.veloc || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
+              <input type="number" step="0.1" class="rec-input inp-veloc" placeholder="0.0" value="${velocFmt}" onfocus="aoFocarCampoReceita(event, ${index})" onblur="formatarDecimalCampo(this, 1)">
             </td>
             <td style="text-align: right;">
-              <input type="number" step="0.1" class="rec-input inp-corr" placeholder="0.0" value="${etapa.corr || ''}" onfocus="aoFocarCampoReceita(event, ${index})">
+              <input type="number" step="0.1" class="rec-input inp-corr" placeholder="0.0" value="${corrFmt}" onfocus="aoFocarCampoReceita(event, ${index})" onblur="formatarDecimalCampo(this, 1)">
             </td>
             <td style="text-align: center;">
               <span class="badge-status ${badgeCls} inp-status" onclick="alternarStatusEtapa(event, this, ${index})">${statusAtual}</span>
@@ -848,7 +918,6 @@
       }
     }
 
-    // Verifica se todas as etapas anteriores até (index - 1) estão com status "Finalizado"
     function validarEtapaAnteriorConcluida(index) {
       if (index <= 0) return { ok: true };
 
@@ -870,7 +939,6 @@
       return { ok: true };
     }
 
-    // Atualiza o estilo visual das linhas que ainda estão bloqueadas pela etapa anterior
     function atualizarEstadoBloqueioLinhasReceita() {
       const linhas = document.querySelectorAll('#receitaTbody .receita-row');
       let anteriorFinalizada = true;
@@ -892,7 +960,6 @@
       });
     }
 
-    // Evento disparado ao tentar focar/digitar em qualquer input da linha
     function aoFocarCampoReceita(evt, index) {
       const validacao = validarEtapaAnteriorConcluida(index);
       if (!validacao.ok) {
@@ -901,7 +968,7 @@
         mostrarAlerta(
           `Não é permitido apontar a etapa ${RECEITA_ETAPAS[index].seq} antes de concluir a etapa anterior (Seq. ${validacao.seqPendente}).`,
           "error",
-          "Sequência Obrigatória"
+          "⚠️ Sequência Obrigatória"
         );
         return false;
       }
@@ -913,14 +980,13 @@
       const etapa = RECEITA_ETAPAS[index];
       if (!etapa) return;
 
-      // Se clicou numa linha posterior sem concluir a anterior, avisa e mantém na pendente
       if (!silencioso && index > 0) {
         const validacao = validarEtapaAnteriorConcluida(index);
         if (!validacao.ok) {
           mostrarAlerta(
             `Conclua primeiro o apontamento da Seq. ${validacao.seqPendente} (Status: Finalizado) antes de avançar para a Seq. ${etapa.seq}.`,
             "error",
-            "Etapa Anterior Pendente"
+            "⚠️ Etapa Anterior Pendente"
           );
           index = validacao.indexPendente;
         }
@@ -934,10 +1000,8 @@
       const lblEtapa = document.getElementById('lblEtapaSelecionada');
       if (lblEtapa) lblEtapa.textContent = `Seq. ${etapaFoco.seq} - ${etapaFoco.desc}`;
 
-      // 1. Alterna as imagens dos EPIs conforme a sequência selecionada
       atualizarEPIsDaSequencia(etapaFoco);
 
-      // 2. Controla o Banner Vermelho e o Popup Explosivo se Z7_ALERT estiver preenchido
       const banner = document.getElementById('receitaAlertBanner');
       const tituloBanner = document.getElementById('receitaAlertTitulo');
       const textoBanner = document.getElementById('receitaAlertTexto');
@@ -950,7 +1014,7 @@
 
         if (!silencioso && !ALERTAS_JA_EXIBIDOS[etapaFoco.seq]) {
           ALERTAS_JA_EXIBIDOS[etapaFoco.seq] = true;
-          mostrarAlerta(textoAlerta, 'error', `🚨 ATENÇÃO CRÍTICA - SEQ. ${etapaFoco.seq}`);
+          mostrarAlerta(textoAlerta, 'error', `⚠️ ATENÇÃO CRÍTICA - SEQ. ${etapaFoco.seq}`);
         }
       } else {
         if (banner) banner.style.display = 'none';
@@ -965,7 +1029,7 @@
         mostrarAlerta(
           `Conclua a etapa anterior (Seq. ${validacao.seqPendente}) antes de preencher a Seq. ${RECEITA_ETAPAS[index].seq}.`,
           "error",
-          "Sequência Obrigatória"
+          "⚠️ Sequência Obrigatória"
         );
         return;
       }
@@ -1004,7 +1068,7 @@
         mostrarAlerta(
           `A etapa anterior (Seq. ${validacao.seqPendente}) ainda não está concluída. Finalize-a antes de iniciar ou concluir a Seq. ${RECEITA_ETAPAS[index].seq}.`,
           "error",
-          "Etapa Anterior Pendente"
+          "⚠️ Etapa Anterior Pendente"
         );
         return;
       }
@@ -1020,12 +1084,11 @@
         badgeEl.className = "badge-status badge-run inp-status";
         badgeEl.innerText = "Em Curso";
       } else if (atual === "Em Curso") {
-        // Só permite mudar manualmente para Finalizado se Hora Início e Hora Fim estiverem preenchidas
         if (!hrIni || !hrFim) {
           mostrarAlerta(
             `Preencha a Hora Início e a Hora Fim da Seq. ${RECEITA_ETAPAS[index].seq} para concluir esta etapa.`,
             "error",
-            "Horário Obrigatório"
+            "⚠️ Horário Obrigatório"
           );
           return;
         }
@@ -1039,6 +1102,7 @@
       atualizarEstadoBloqueioLinhasReceita();
     }
 
+    // Grava na SZ8 e, ao clicar em CIENTE / ENTENDIDO, redireciona para comigo.html
     async function salvarReceitaEmTela() {
       const linhas = document.querySelectorAll('#receitaTbody .receita-row');
       if (linhas.length === 0) return;
@@ -1050,6 +1114,13 @@
       for (let i = 0; i < linhas.length; i++) {
         const tr = linhas[i];
         const seq = tr.getAttribute('data-seq');
+
+        formatarDecimalCampo(tr.querySelector('.inp-topo'), 1);
+        formatarDecimalCampo(tr.querySelector('.inp-fundo'), 1);
+        formatarDecimalCampo(tr.querySelector('.inp-press'), 2);
+        formatarDecimalCampo(tr.querySelector('.inp-veloc'), 1);
+        formatarDecimalCampo(tr.querySelector('.inp-corr'), 1);
+
         const hrIni = tr.querySelector('.inp-hrini').value || "";
         const hrFim = tr.querySelector('.inp-hrfim').value || "";
         const total = tr.querySelector('.inp-total').value || "";
@@ -1066,7 +1137,7 @@
           mostrarAlerta(
             `Não é possível gravar o apontamento da Seq. ${seq} enquanto a etapa anterior (Seq. ${seqNaoFinalizada}) não estiver concluída (Finalizado).`,
             "error",
-            "Ordem Sequencial Inválida"
+            "⚠️ Ordem Sequencial Inválida"
           );
           return;
         }
@@ -1089,12 +1160,20 @@
         });
         const res = await resp.json();
         if (res.status !== 'OK') {
-          throw new Error(res.mensagem || "Erro ao gravar receita.");
+          throw new Error(res.mensagem || "Erro ao gravar receita na SZ8.");
         }
-        mostrarAlerta("Dados da receita salvos com sucesso no Protheus!", "success", "Apontamento Gravado");
+
+        mostrarAlerta(
+          "Dados da receita gravados com sucesso na SZ8! Clique em CIENTE / ENTENDIDO para retornar à listagem Minhas Ordens (Comigo).",
+          "success",
+          "✓ Apontamento Gravado na SZ8",
+          () => {
+            window.location.href = "comigo.html";
+          }
+        );
       } catch (e) {
         console.error("Erro ao gravar receita:", e);
-        mostrarAlerta("Falha ao gravar receita: " + e.message, "error");
+        mostrarAlerta("Falha ao gravar receita na SZ8: " + e.message, "error", "⚠️ Erro de Gravação");
       }
     }
 
@@ -1151,7 +1230,7 @@
       if(checklistItens.length === 0) return;
       
       if(!todoSim) {
-        mostrarAlerta("O Checklist não está completo ou possui não-conformidades.", "error", "Pendência Identificada");
+        mostrarAlerta("O Checklist não está completo ou possui não-conformidades.", "error", "⚠️ Pendência Identificada");
         return;
       }
 
@@ -1168,7 +1247,7 @@
         }
       } catch(e) {
         console.error("Falha na gravação REST:", e);
-        mostrarAlerta("Falha ao gravar no Protheus: " + e.message, "error");
+        mostrarAlerta("Falha ao gravar no Protheus: " + e.message, "error", "⚠️ Erro de Gravação");
         return;
       }
 
@@ -1213,7 +1292,7 @@
       });
 
       if(!valido) {
-        mostrarAlerta("Preencha todos os pesos balança obrigatórios.", "error", "Pendência Identificada");
+        mostrarAlerta("Preencha todos os pesos balança obrigatórios.", "error", "⚠️ Pendência Identificada");
         return;
       }
 
@@ -1230,11 +1309,10 @@
         }
       } catch(e) {
         console.error("Falha na gravação REST:", e);
-        mostrarAlerta("Falha ao gravar pesagem no Protheus: " + e.message, "error");
+        mostrarAlerta("Falha ao gravar pesagem no Protheus: " + e.message, "error", "⚠️ Erro de Gravação");
         return;
       }
 
-      // Atualiza imediatamente os textos [99] da Receita com os novos pesos gravados na SZ6
       atualizarTextosProporcionaisReceita();
 
       const now = new Date();
