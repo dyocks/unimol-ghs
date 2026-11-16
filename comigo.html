@@ -431,10 +431,8 @@
           headers: { 'Content-Type': 'application/json', 'tenantId': '01,0101', 'Authorization': authHeader }
         });
         
-        // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
-        const buffer = await resp.arrayBuffer();
-        const text = new TextDecoder('windows-1252').decode(buffer);
-        const data = JSON.parse(text);
+        // Utilizando o parse nativo do JSON (suporta UTF-8 por padrão)
+        const data = await resp.json(); // (ou const res = await resp.json(); dependendo da função)
 
         if (resp.ok && data.status === 'OK') {
            listaUsuariosPCP = data.usuarios || [];

@@ -340,14 +340,16 @@
     <!-- BARRA INFERIOR DE APONTAMENTO -->
     <footer class="bottom-action-bar">
       <div style="display: flex; gap: 20px; align-items: center;">
-        <div class="summary-item">
+        <!-- Adicionado ID e display:none -->
+        <div class="summary-item" id="containerEtapaFoco" style="display: none;">
           <span class="s-label">Etapa em Foco</span>
           <span class="s-val" id="lblEtapaSelecionada" style="color: #0072B2;">---</span>
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
         <a href="comigo.html" class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;">Cancelar / Voltar</a>
-        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="salvarReceitaEmTela()">Salvar Apontamento da Receita</button>
+        <!-- Adicionado ID e display:none -->
+        <button id="btnSalvarReceitaFooter" class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff; display: none;" onclick="salvarReceitaEmTela()">Salvar Apontamento da Receita</button>
       </div>
     </footer>
   </div> 
@@ -1453,19 +1455,30 @@
     // NAVEGAÇÃO DE ABAS E BOTÕES TOUCH
     // ========================================================================
     function trocarAba(evt, idAba) {
-      if(evt.currentTarget.classList.contains('locked')) return;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(a => a.classList.remove('active'));
-      evt.currentTarget.classList.add('active');
-      document.getElementById(idAba).classList.add('active');
+    if(evt.currentTarget.classList.contains('locked')) return;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(a => a.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+    document.getElementById(idAba).classList.add('active');
 
-      if (idAba === 'aba-receita') {
-        atualizarTextosProporcionaisReceita();
-        if (RECEITA_ETAPAS.length > 0) {
-          selecionarLinhaReceita(0, false, false);
-        }
+    // --- NOVO: CONTROLE DE EXIBIÇÃO DO RODAPÉ DA RECEITA ---
+    const containerEtapa = document.getElementById('containerEtapaFoco');
+    const btnSalvar = document.getElementById('btnSalvarReceitaFooter');
+
+    if (idAba === 'aba-receita') {
+      if (containerEtapa) containerEtapa.style.display = 'block';
+      if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+      
+      atualizarTextosProporcionaisReceita();
+      if (RECEITA_ETAPAS.length > 0) {
+        selecionarLinhaReceita(0, false, false);
       }
+    } else {
+      // Esconde ao navegar para Checklist ou Pesagem
+      if (containerEtapa) containerEtapa.style.display = 'none';
+      if (btnSalvar) btnSalvar.style.display = 'none';
     }
+  }
 
     function toggleCheck(btn, type) {
       let group = btn.parentElement;
