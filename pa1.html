@@ -374,11 +374,11 @@
           </div>
           <div class="fechamento-box">
             <label>Qtd. Produzida Boa (KG) *</label>
-            <input type="number" step="0.01" id="fechQtdProdPA" placeholder="0.00" onblur="formatarDecimalCampo(this, 2)">
+            <input type="number" step="0.01" id="fechQtdProdPA" placeholder="0.00" oninput="calcularBalancoPA(this, 'prod')" onblur="formatarDecimalCampo(this, 2)">
           </div>
           <div class="fechamento-box">
             <label>Perda de Processo / PA (KG)</label>
-            <input type="number" step="0.01" id="fechQtdPerdaPA" value="0.00" placeholder="0.00" style="border-color:#fdba74; color:#D55E00;" onblur="formatarDecimalCampo(this, 2)">
+            <input type="number" step="0.01" id="fechQtdPerdaPA" value="0.00" placeholder="0.00" style="border-color:#fdba74; color:#D55E00;" oninput="calcularBalancoPA(this, 'perda')" onblur="formatarDecimalCampo(this, 2)">
           </div>
         </div>
 
@@ -1310,6 +1310,8 @@
     // ========================================================================
     // 6. MODAL DE FECHAMENTO DA OP, BALANÇO DE MP E APONTAMENTO PCP MOD. 2
     // ========================================================================
+    
+    // Função para balancear o consumo de Matéria-Prima (Usada, Perda, Sobra)
     function calcularBalancoMP(inputEl, origem) {
       const tr = inputEl.closest('tr');
       const separado = parseFloat(tr.getAttribute('data-separado') || "0");
@@ -1323,17 +1325,33 @@
       let sobra = parseFloat((inpSobra.value || "0").replace(',', '.')) || 0;
 
       if (origem === 'perda') {
-        // Ao digitar a perda, diminui diretamente da quantidade usada
         usada = Math.max(0, separado - perda - sobra);
         inpUsada.value = usada.toFixed(2);
       } else if (origem === 'usada') {
-        // Ao alterar a usada, a diferença restante vai para a sobra
         sobra = Math.max(0, separado - usada - perda);
         inpSobra.value = sobra.toFixed(2);
       } else if (origem === 'sobra') {
-        // Caso ajuste a sobra manualmente, diminui da quantidade usada
         usada = Math.max(0, separado - perda - sobra);
         inpUsada.value = usada.toFixed(2);
+      }
+    }
+
+    // Função para balancear a Quantidade Produzida vs Perda do Produto Acabado
+    function calcularBalancoPA(inputEl, origem) {
+      const inpPrev = document.getElementById('fechQtdPrevPA');
+      const inpProd = document.getElementById('fechQtdProdPA');
+      const inpPerda = document.getElementById('fechQtdPerdaPA');
+
+      const prev = parseFloat((inpPrev.value || "0").replace(',', '.')) || 0;
+      let prod = parseFloat((inpProd.value || "0").replace(',', '.')) || 0;
+      let perda = parseFloat((inpPerda.value || "0").replace(',', '.')) || 0;
+
+      if (origem === 'perda') {
+        prod = Math.max(0, prev - perda);
+        inpProd.value = prod.toFixed(2);
+      } else if (origem === 'prod') {
+        perda = Math.max(0, prev - prod);
+        inpPerda.value = perda.toFixed(2);
       }
     }
 
@@ -1475,7 +1493,7 @@
       evt.currentTarget.classList.add('active');
       document.getElementById(idAba).classList.add('active');
 
-      // --- NOVO: CONTROLE DE EXIBIÇÃO DO RODAPÉ DA RECEITA ---
+      // CONTROLE DE EXIBIÇÃO DO RODAPÉ DA RECEITA
       const containerEtapa = document.getElementById('containerEtapaFoco');
       const btnSalvar = document.getElementById('btnSalvarReceitaFooter');
 
@@ -1488,7 +1506,6 @@
           selecionarLinhaReceita(0, false, false);
         }
       } else {
-        // Esconde ao navegar para Checklist ou Pesagem
         if (containerEtapa) containerEtapa.style.display = 'none';
         if (btnSalvar) btnSalvar.style.display = 'none';
       }
@@ -1614,7 +1631,7 @@
         now.toLocaleString(),
         true
       );
-    } 
+    }
   </script>
 </body>
 </html>
