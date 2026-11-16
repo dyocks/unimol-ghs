@@ -41,7 +41,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Banner de Alerta Crítico (Só aparece quando Z7_ALERT está preenchido) */
+    /* Banner de Alerta Crítico */
     .alert-banner { background: #fff7ed; border: 1.5px solid #fdba74; border-left: 6px solid #D55E00; border-radius: 10px; padding: 12px 16px; display: none; align-items: flex-start; gap: 12px; margin-bottom: 14px; animation: pulseBorder 2s infinite; }
     @keyframes pulseBorder { 0%, 100% { border-color: #fdba74; } 50% { border-color: #D55E00; } }
     .alert-banner svg { width: 26px; height: 26px; color: #D55E00; flex-shrink: 0; margin-top: 2px; }
@@ -56,7 +56,7 @@
     .tablet-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .tablet-input[type=number] { -moz-appearance: textfield; }
 
-    /* Inputs da Grade de Receita (Sem setas nativas e perfeitamente alinhados) */
+    /* Inputs da Grade de Receita */
     .receita-row { transition: background 0.15s ease; cursor: pointer; }
     .receita-row.selected-row { background: #f0f9ff !important; border-left: 4px solid #0072B2; }
     .receita-row.alert-row.selected-row { background: #fff7ed !important; border-left: 4px solid #D55E00; }
@@ -340,7 +340,6 @@
     <!-- BARRA INFERIOR DE APONTAMENTO -->
     <footer class="bottom-action-bar">
       <div style="display: flex; gap: 20px; align-items: center;">
-        <!-- Adicionado ID e display:none -->
         <div class="summary-item" id="containerEtapaFoco" style="display: none;">
           <span class="s-label">Etapa em Foco</span>
           <span class="s-val" id="lblEtapaSelecionada" style="color: #0072B2;">---</span>
@@ -348,7 +347,6 @@
       </div>
       <div style="display: flex; gap: 10px;">
         <a href="comigo.html" class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;">Cancelar / Voltar</a>
-        <!-- Adicionado ID e display:none -->
         <button id="btnSalvarReceitaFooter" class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff; display: none;" onclick="salvarReceitaEmTela()">Salvar Apontamento da Receita</button>
       </div>
     </footer>
@@ -1312,6 +1310,33 @@
     // ========================================================================
     // 6. MODAL DE FECHAMENTO DA OP, BALANÇO DE MP E APONTAMENTO PCP MOD. 2
     // ========================================================================
+    function calcularBalancoMP(inputEl, origem) {
+      const tr = inputEl.closest('tr');
+      const separado = parseFloat(tr.getAttribute('data-separado') || "0");
+      
+      const inpUsada = tr.querySelector('.inp-mp-usada');
+      const inpPerda = tr.querySelector('.inp-mp-perda');
+      const inpSobra = tr.querySelector('.inp-mp-sobra');
+      
+      let usada = parseFloat((inpUsada.value || "0").replace(',', '.')) || 0;
+      let perda = parseFloat((inpPerda.value || "0").replace(',', '.')) || 0;
+      let sobra = parseFloat((inpSobra.value || "0").replace(',', '.')) || 0;
+
+      if (origem === 'perda') {
+        // Ao digitar a perda, diminui diretamente da quantidade usada
+        usada = Math.max(0, separado - perda - sobra);
+        inpUsada.value = usada.toFixed(2);
+      } else if (origem === 'usada') {
+        // Ao alterar a usada, a diferença restante vai para a sobra
+        sobra = Math.max(0, separado - usada - perda);
+        inpSobra.value = sobra.toFixed(2);
+      } else if (origem === 'sobra') {
+        // Caso ajuste a sobra manualmente, diminui da quantidade usada
+        usada = Math.max(0, separado - perda - sobra);
+        inpUsada.value = usada.toFixed(2);
+      }
+    }
+
     function abrirModalEncerramentoOP() {
       const descProd = document.getElementById('campoDescProd').textContent;
       document.getElementById('subtituloFechamentoOP').textContent = `OP: ${currentOP} • Produto: ${currentCod} - ${descProd}`;
@@ -1344,13 +1369,13 @@
             <td style="text-align:center; font-weight:700; color:#b45309;">${loteUsado || '-'}</td>
             <td style="text-align:right; font-weight:800; color:#0f172a;">${kgSeparado.toFixed(2)} KG</td>
             <td style="text-align:center;">
-              <input type="number" step="0.01" class="rec-input inp-mp-usada" style="width:105px;" value="${kgSeparado.toFixed(2)}" oninput="recalcularSobraMP(this)" onblur="formatarDecimalCampo(this, 2)">
+              <input type="number" step="0.01" class="rec-input inp-mp-usada" style="width:105px;" value="${kgSeparado.toFixed(2)}" oninput="calcularBalancoMP(this, 'usada')" onblur="formatarDecimalCampo(this, 2)">
             </td>
             <td style="text-align:center;">
-              <input type="number" step="0.01" class="rec-input inp-mp-perda" style="width:95px; border-color:#fdba74; color:#D55E00;" value="0.00" oninput="recalcularSobraMP(this)" onblur="formatarDecimalCampo(this, 2)">
+              <input type="number" step="0.01" class="rec-input inp-mp-perda" style="width:95px; border-color:#fdba74; color:#D55E00;" value="0.00" oninput="calcularBalancoMP(this, 'perda')" onblur="formatarDecimalCampo(this, 2)">
             </td>
             <td style="text-align:center;">
-              <input type="number" step="0.01" class="rec-input inp-mp-sobra" style="width:105px; background:#f0f9ff; border-color:#7dd3fc; color:#0369a1;" value="0.00" onblur="formatarDecimalCampo(this, 2)">
+              <input type="number" step="0.01" class="rec-input inp-mp-sobra" style="width:105px; background:#f0f9ff; border-color:#7dd3fc; color:#0369a1;" value="0.00" oninput="calcularBalancoMP(this, 'sobra')" onblur="formatarDecimalCampo(this, 2)">
             </td>
           </tr>
         `;
@@ -1358,17 +1383,6 @@
       });
 
       document.getElementById('modalFechamentoOP').style.display = 'flex';
-    }
-
-    function recalcularSobraMP(inputEl) {
-      const tr = inputEl.closest('tr');
-      const separado = parseFloat(tr.getAttribute('data-separado') || "0");
-      const usada = parseFloat((tr.querySelector('.inp-mp-usada').value || "0").replace(',', '.')) || 0;
-      const perda = parseFloat((tr.querySelector('.inp-mp-perda').value || "0").replace(',', '.')) || 0;
-      const inpSobra = tr.querySelector('.inp-mp-sobra');
-
-      const sobraCalc = Math.max(0, separado - usada - perda);
-      inpSobra.value = sobraCalc.toFixed(2);
     }
 
     function fecharModalEncerramentoOP() {
@@ -1455,30 +1469,30 @@
     // NAVEGAÇÃO DE ABAS E BOTÕES TOUCH
     // ========================================================================
     function trocarAba(evt, idAba) {
-    if(evt.currentTarget.classList.contains('locked')) return;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(a => a.classList.remove('active'));
-    evt.currentTarget.classList.add('active');
-    document.getElementById(idAba).classList.add('active');
+      if(evt.currentTarget.classList.contains('locked')) return;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(a => a.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(idAba).classList.add('active');
 
-    // --- NOVO: CONTROLE DE EXIBIÇÃO DO RODAPÉ DA RECEITA ---
-    const containerEtapa = document.getElementById('containerEtapaFoco');
-    const btnSalvar = document.getElementById('btnSalvarReceitaFooter');
+      // --- NOVO: CONTROLE DE EXIBIÇÃO DO RODAPÉ DA RECEITA ---
+      const containerEtapa = document.getElementById('containerEtapaFoco');
+      const btnSalvar = document.getElementById('btnSalvarReceitaFooter');
 
-    if (idAba === 'aba-receita') {
-      if (containerEtapa) containerEtapa.style.display = 'block';
-      if (btnSalvar) btnSalvar.style.display = 'inline-flex';
-      
-      atualizarTextosProporcionaisReceita();
-      if (RECEITA_ETAPAS.length > 0) {
-        selecionarLinhaReceita(0, false, false);
+      if (idAba === 'aba-receita') {
+        if (containerEtapa) containerEtapa.style.display = 'block';
+        if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+        
+        atualizarTextosProporcionaisReceita();
+        if (RECEITA_ETAPAS.length > 0) {
+          selecionarLinhaReceita(0, false, false);
+        }
+      } else {
+        // Esconde ao navegar para Checklist ou Pesagem
+        if (containerEtapa) containerEtapa.style.display = 'none';
+        if (btnSalvar) btnSalvar.style.display = 'none';
       }
-    } else {
-      // Esconde ao navegar para Checklist ou Pesagem
-      if (containerEtapa) containerEtapa.style.display = 'none';
-      if (btnSalvar) btnSalvar.style.display = 'none';
     }
-  }
 
     function toggleCheck(btn, type) {
       let group = btn.parentElement;
