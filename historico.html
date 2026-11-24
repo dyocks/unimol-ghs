@@ -80,7 +80,7 @@
       </div>
 
       <div class="user-pill">
-        <div class="user-avatar" id="avatarTop" style="background:#0072B2; color:white;">RA</div>
+        <div class="user-avatar" id="avatarTop" style="background:#0072B2; color:white;">--</div>
         <div>
           <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">A carregar...</div>
           <div style="font-size: 0.72rem; color: #64748b;" id="userLoginLbl">Produção</div>
@@ -164,10 +164,32 @@
     // CONFIGURAÇÃO OFICIAL DA API PROTHEUS T-CLOUD (URL ABSOLUTA)
     // ========================================================================
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
-    const urlParams = new URLSearchParams(window.location.search);
+    // ========================================================================
+    // SESSÃO DO OPERADOR LOGADO NO PROTHEUS (URL -> sessionStorage)
+    // ========================================================================
+    const urlParams   = new URLSearchParams(window.location.search);
+    const paramIdUser = (urlParams.get('iduser') || '').trim();
+    const paramUser   = (urlParams.get('user')   || '').trim();
+    const paramNome   = (urlParams.get('nome')   || '').trim();
+    const paramAuth   = (urlParams.get('auth')   || '').trim();
+
+    if (paramIdUser || paramUser || paramNome) {
+      sessionStorage.setItem('pcp_iduser', paramIdUser);
+      sessionStorage.setItem('pcp_user',   paramUser);
+      sessionStorage.setItem('pcp_nome',   paramNome);
+    }
+    if (paramAuth) {
+      sessionStorage.setItem('pcp_auth', paramAuth);
+    }
+
+    const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
+    const SESSAO_LOGIN   = (sessionStorage.getItem('pcp_user')   || '').trim();
+    const SESSAO_NOME    = (sessionStorage.getItem('pcp_nome')   || '').trim();
+    const SESSAO_AUTH    = (sessionStorage.getItem('pcp_auth')   || '').trim();
+
     const USER_LOGIN = 'rodrigo.amaral';
-    const USER_PASS = 'RaquelEduarda2010@';
-    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+    const USER_PASS  = 'RaquelEduarda2010@';
+    const authHeader = SESSAO_AUTH || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     const reqHeaders = {
       'Content-Type': 'application/json',
@@ -206,11 +228,13 @@
           badgeStatus.textContent = 'ONLINE • PROTHEUS TCLOUD';
 
           // Atualiza dados do utilizador logado no topo
-          if (data.nomeUsuarioLogado) {
-            document.getElementById('userNameLbl').textContent = data.nomeUsuarioLogado;
-            document.getElementById('userLoginLbl').textContent = data.usuarioLogado || 'Produção';
-            const partes = data.nomeUsuarioLogado.trim().split(' ');
-            const iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : partes[0].substring(0, 2);
+          const nomeExibir  = SESSAO_NOME  || data.nomeUsuarioLogado || '';
+          const loginExibir = SESSAO_LOGIN || data.usuarioLogado     || 'Produção';
+          if (nomeExibir) {
+            document.getElementById('userNameLbl').textContent = nomeExibir;
+            document.getElementById('userLoginLbl').textContent = loginExibir.toLowerCase();
+            const partes = nomeExibir.trim().split(/\s+/).filter(n => n.length > 0);
+            const iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : '--');
             document.getElementById('avatarTop').textContent = iniciais.toUpperCase();
           }
 

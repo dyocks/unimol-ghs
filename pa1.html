@@ -441,11 +441,32 @@
   <script>
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
     const GHS_IMG_BASE = 'https://dyocks.github.io/unimol-ghs/img/';
-    const urlParams = new URLSearchParams(window.location.search);
+    // ========================================================================
+    // SESSÃO DO OPERADOR LOGADO NO PROTHEUS (URL -> sessionStorage)
+    // ========================================================================
+    const urlParams   = new URLSearchParams(window.location.search);
+    const paramIdUser = (urlParams.get('iduser') || '').trim();
+    const paramUser   = (urlParams.get('user')   || '').trim();
+    const paramNome   = (urlParams.get('nome')   || '').trim();
+    const paramAuth   = (urlParams.get('auth')   || '').trim();
+
+    if (paramIdUser || paramUser || paramNome) {
+      sessionStorage.setItem('pcp_iduser', paramIdUser);
+      sessionStorage.setItem('pcp_user',   paramUser);
+      sessionStorage.setItem('pcp_nome',   paramNome);
+    }
+    if (paramAuth) {
+      sessionStorage.setItem('pcp_auth', paramAuth);
+    }
+
+    const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
+    const SESSAO_LOGIN   = (sessionStorage.getItem('pcp_user')   || '').trim();
+    const SESSAO_NOME    = (sessionStorage.getItem('pcp_nome')   || '').trim();
+    const SESSAO_AUTH    = (sessionStorage.getItem('pcp_auth')   || '').trim();
+
     const USER_LOGIN = 'rodrigo.amaral';
-    const USER_PASS = 'RaquelEduarda2010@';
-    
-    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+    const USER_PASS  = 'RaquelEduarda2010@';
+    const authHeader = SESSAO_AUTH || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     const reqHeaders = {
         'Content-Type': 'application/json',
@@ -466,7 +487,7 @@
       { campo: 'B1_XSMAQU', titulo: 'Meio Ambiente',          img: 'B1_XSMAQU.png' }
     ];
     
-    let USUARIO_LOGADO = ''; 
+    let USUARIO_LOGADO = SESSAO_LOGIN || SESSAO_ID_USER || ''; 
     let currentOP = "";
     let currentCod = "";
     let currentReator = "";
@@ -625,7 +646,7 @@
         const data = await resp.json();
         
         if (resp.ok && data.status === 'OK') {
-          USUARIO_LOGADO = data.usuarioLogado || data.idUsuarioLogado || "";
+          USUARIO_LOGADO = SESSAO_LOGIN || SESSAO_ID_USER || data.usuarioLogado || data.idUsuarioLogado || "";
 
           const opDados = data.ops.find(o => 
             o.opCompleta === opCompleta || 
@@ -640,9 +661,9 @@
 
             const elNomeOperador = document.getElementById('userNameLbl');
             if (elNomeOperador) {
-                elNomeOperador.textContent = opDados.nomeOperador || opDados.codOperador || data.nomeUsuarioLogado || "Não Atribuído";
+                elNomeOperador.textContent = SESSAO_NOME || opDados.nomeOperador || opDados.codOperador || data.nomeUsuarioLogado || "Não Atribuído";
                 const avatar = document.querySelector('.user-avatar');
-                let nomeParaAvatar = opDados.nomeOperador || data.nomeUsuarioLogado;
+                let nomeParaAvatar = SESSAO_NOME || opDados.nomeOperador || data.nomeUsuarioLogado;
                 if (avatar && nomeParaAvatar) {
                     let partes = nomeParaAvatar.trim().split(" ");
                     let iniciais = partes.length > 1 

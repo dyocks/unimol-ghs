@@ -314,10 +314,32 @@
   <script>
     const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
 
-    const urlParams  = new URLSearchParams(window.location.search);
+    // ========================================================================
+    // SESSÃO DO OPERADOR LOGADO NO PROTHEUS (URL -> sessionStorage)
+    // ========================================================================
+    const urlParams   = new URLSearchParams(window.location.search);
+    const paramIdUser = (urlParams.get('iduser') || '').trim();
+    const paramUser   = (urlParams.get('user')   || '').trim();
+    const paramNome   = (urlParams.get('nome')   || '').trim();
+    const paramAuth   = (urlParams.get('auth')   || '').trim();
+
+    if (paramIdUser || paramUser || paramNome) {
+      sessionStorage.setItem('pcp_iduser', paramIdUser);
+      sessionStorage.setItem('pcp_user',   paramUser);
+      sessionStorage.setItem('pcp_nome',   paramNome);
+    }
+    if (paramAuth) {
+      sessionStorage.setItem('pcp_auth', paramAuth);
+    }
+
+    const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
+    const SESSAO_LOGIN   = (sessionStorage.getItem('pcp_user')   || '').trim();
+    const SESSAO_NOME    = (sessionStorage.getItem('pcp_nome')   || '').trim();
+    const SESSAO_AUTH    = (sessionStorage.getItem('pcp_auth')   || '').trim();
+
     const USER_LOGIN = 'rodrigo.amaral';
     const USER_PASS  = 'RaquelEduarda2010@';
-    const authHeader = urlParams.get('auth') || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+    const authHeader = SESSAO_AUTH || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
 
     let USUARIO_LOGADO = '';
     let ID_USUARIO_LOGADO = ''; 
@@ -380,10 +402,10 @@
           throw new Error(data.mensagem || `Erro HTTP: ${resp.status}`);
         }
 
-        USUARIO_LOGADO = data.usuarioLogado || USER_LOGIN;
-        ID_USUARIO_LOGADO = data.idUsuarioLogado || ''; 
+        USUARIO_LOGADO    = SESSAO_LOGIN   || data.usuarioLogado   || USER_LOGIN;
+        ID_USUARIO_LOGADO = SESSAO_ID_USER || data.idUsuarioLogado || ''; 
         
-        const nomeCompleto = data.nomeUsuarioLogado || USUARIO_LOGADO;
+        const nomeCompleto = SESSAO_NOME   || data.nomeUsuarioLogado || USUARIO_LOGADO;
 
         document.getElementById('loginOperadorLogado').textContent = USUARIO_LOGADO.toLowerCase();
         document.getElementById('nomeOperadorLogado').textContent = nomeCompleto;
