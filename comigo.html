@@ -281,6 +281,12 @@
       </svg>
       <span>Receitas</span>
     </a>
+    <a href="checklist.html" class="nav-link" title="Checklist de Reatores (SZ3)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      <span>Checklist</span>
+    </a>
   </aside>
 
   <!-- ÁREA DE CONTEÚDO -->
@@ -459,6 +465,14 @@
     let opAtualTransferencia = '';
     let usuarioSelecionadoTransf = '';
 
+   function decodificarBuffer(buffer) {
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+      } catch (e) {
+        return new TextDecoder('windows-1252').decode(buffer);
+      }
+    }
+
     function showToast(mensagem, tipo = 'success', tempo = 2200) {
       const toast = document.getElementById("toastCenter");
       toast.textContent = mensagem;
@@ -564,7 +578,7 @@
 
         // CORREÇÃO DE ENCODING (WINDOWS-1252 PARA UTF-8)
         const buffer = await resp.arrayBuffer();
-        const text = new TextDecoder('windows-1252').decode(buffer);
+        const text = decodificarBuffer(buffer);
         let data = JSON.parse(text);
 
         if (!resp.ok || data.status === 'ERRO' || data.status === 'ERRO_INTERNO') {
@@ -704,7 +718,7 @@
         
         // CORREÇÃO DE ENCODING
         const buffer = await resp.arrayBuffer();
-        const text = new TextDecoder('windows-1252').decode(buffer);
+        const text = decodificarBuffer(buffer);
         const res = JSON.parse(text);
         
         if (resp.ok && res.status === 'OK') {
@@ -736,7 +750,7 @@
         
         // CORREÇÃO DE ENCODING
         const buffer = await resp.arrayBuffer();
-        const text = new TextDecoder('windows-1252').decode(buffer);
+        const text = decodificarBuffer(buffer);
         const res = JSON.parse(text);
         
         if (resp.ok && res.status === 'OK') {

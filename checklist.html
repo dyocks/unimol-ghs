@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PCP Químico - Cadastro e Manutenção de Checklist de Reatores (SZ3)</title>
+  <link rel="stylesheet" href="style-base.css">
+  <style>
+    .main-area { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-scroll { flex: 1; overflow-y: auto; padding: 18px 24px 110px 24px; }
+
+    /* Cabeçalho Mestre do Reator (SZ3) */
+    .master-card { background: var(--surface); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); border: 1.5px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+    .master-top-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 12px; }
+    .master-title-group { display: flex; align-items: center; gap: 10px; }
+    .mode-badge { padding: 4px 10px; border-radius: 14px; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .mode-new { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+    .mode-edit { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+    .master-grid { display: grid; grid-template-columns: 2.2fr 3.6fr 1.2fr; gap: 14px; align-items: end; }
+    .field-box { display: flex; flex-direction: column; gap: 5px; }
+    .field-box label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.5px; }
+
+    .picker-group { display: flex; align-items: stretch; gap: 6px; }
+    .reator-input { flex: 1; height: 42px; padding: 0 12px; font-size: 0.95rem; font-weight: 800; font-family: ui-monospace, monospace; color: #0f172a; background: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; transition: all 0.15s; text-transform: uppercase; }
+    .reator-input:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.2); }
+    .desc-readonly { height: 42px; padding: 0 14px; font-size: 0.95rem; font-weight: 700; color: #0f172a; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .btn-lupa { height: 42px; padding: 0 14px; background: #0072B2; color: #ffffff; border: none; border-radius: 8px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0, 114, 178, 0.25); transition: transform 0.1s; white-space: nowrap; }
+    .btn-lupa:active { transform: scale(0.97); }
+    .btn-lupa svg { width: 17px; height: 17px; }
+
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn-tool { height: 38px; padding: 0 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #1e293b; transition: all 0.15s; }
+    .btn-tool:hover { border-color: #0072B2; color: #0072B2; background: #f0f9ff; }
+    .btn-tool-primary { background: #0072B2; color: #ffffff; border-color: #0072B2; }
+    .btn-tool-primary:hover { background: #005AB5; color: #ffffff; }
+    .btn-tool-danger { background: #fff7ed; color: #D55E00; border-color: #fdba74; }
+    .btn-tool-danger:hover { background: #D55E00; color: #ffffff; border-color: #D55E00; }
+
+    /* Grade de Perguntas/Ações do Checklist (SZ3) */
+    .grid-header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+    .etapas-card { background: var(--surface); border-radius: 12px; border: 1.5px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.04); overflow: hidden; }
+    .etapas-scroll-wrapper { max-height: 56vh; overflow-y: auto; overflow-x: auto; }
+    .etapas-table { width: 100%; border-collapse: collapse; }
+    .etapas-table thead th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; color: #334155; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 12px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap; }
+    .etapas-table tbody td { padding: 14px 12px; border-bottom: 1.5px solid #e2e8f0; vertical-align: middle; }
+    .etapa-tr { transition: background 0.15s; }
+    .etapa-tr:hover { background: #f8fafc; }
+
+    .z3-inp { height: 42px; padding: 0 12px; font-size: 0.90rem; font-weight: 700; color: #0f172a; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; box-sizing: border-box; }
+    .z3-inp:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.18); }
+    .z3-seq { width: 82px; text-align: center; font-family: ui-monospace, monospace; font-weight: 800; font-size: 0.92rem; }
+
+    .acao-row { display: flex; align-items: center; gap: 8px; }
+    .btn-expand { height: 42px; padding: 0 12px; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #334155; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn-expand:hover { border-color: #0072B2; color: #0072B2; background: #f0f9ff; }
+
+    .row-actions { display: flex; gap: 5px; align-items: center; justify-content: center; }
+    .btn-row-act { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; }
+    .btn-row-act:hover { background: #f1f5f9; color: #0f172a; }
+    .btn-row-del { border-color: #fdba74; color: #D55E00; background: #fff7ed; }
+    .btn-row-del:hover { background: #D55E00; color: #ffffff; }
+
+    /* Barra Inferior Fixa */
+    .bottom-action-bar { position: fixed; bottom: 0; left: 80px; right: 0; height: 68px; background: #ffffff; border-top: 1.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 10; }
+    .btn-action-tablet { height: 44px; padding: 0 20px; border-radius: 8px; font-size: 0.90rem; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; text-decoration: none; }
+
+    /* Modais */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9100; padding: 16px; }
+    .modal-overlay-top { z-index: 9800 !important; }
+    .modal-box { background: #ffffff; border-radius: 14px; width: 100%; max-width: 720px; max-height: 86vh; box-shadow: 0 24px 48px rgba(0,0,0,0.35); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #0072B2; }
+    .modal-head { background: #0f172a; color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { font-size: 1rem; font-weight: 800; margin: 0; }
+    .modal-body { padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .modal-foot { padding: 12px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
+
+    .search-bar-modal { display: flex; gap: 8px; }
+    .search-bar-modal input { flex: 1; height: 42px; padding: 0 14px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: 700; outline: none; }
+    .search-bar-modal input:focus { border-color: #0072B2; }
+
+    .picker-list { border: 1.5px solid #e2e8f0; border-radius: 8px; max-height: 360px; overflow-y: auto; }
+    .picker-item { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.12s; }
+    .picker-item:hover { background: #f0f9ff; }
+    .picker-code { font-family: ui-monospace, monospace; font-weight: 800; color: #0072B2; font-size: 0.92rem; }
+    .picker-desc { font-weight: 700; color: #1e293b; font-size: 0.88rem; }
+    .picker-meta { font-size: 0.74rem; font-weight: 800; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+
+    .fulltext-area { width: 100%; min-height: 140px; padding: 12px 14px; font-size: 1rem; font-weight: 700; color: #0f172a; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; resize: vertical; line-height: 1.45; font-family: inherit; box-sizing: border-box; }
+    .fulltext-area:focus { border-color: #0072B2; box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.2); }
+
+    /* Alerta Acessível (Okabe-Ito) */
+    .alert-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .alert-card { background: #ffffff; border-radius: 14px; width: 100%; max-width: 500px; box-shadow: 0 24px 48px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; border: 3px solid #0072B2; }
+    .alert-card.card-warning { border-color: #D55E00; }
+    .alert-card.card-success { border-color: #0072B2; }
+    .alert-header { padding: 16px 20px; font-weight: 800; font-size: 1.05rem; color: #ffffff; }
+    .alert-header.error { background: #D55E00; }
+    .alert-header.success { background: #0072B2; }
+    .alert-body { padding: 22px 20px; font-size: 0.98rem; color: #0f172a; line-height: 1.5; font-weight: 600; }
+    .alert-footer { padding: 14px 20px; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-ciente { height: 42px; padding: 0 22px; border-radius: 8px; font-size: 0.88rem; font-weight: 800; color: #ffffff; border: none; cursor: pointer; }
+    .btn-ciente-success { background: #005AB5; }
+    .btn-ciente-warning { background: #D55E00; }
+  </style>
+</head>
+<body>
+
+  <!-- LATERAL FIXA -->
+  <aside class="sidebar">
+    <div class="brand-icon">PCP</div>
+    <a href="index.html" class="nav-link" title="Ordens Abertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+    <a href="comigo.html" class="nav-link" title="Minhas Ordens">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Comigo</span>
+    </a>
+    <a href="historico.html" class="nav-link" title="Ordens Encerradas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Histórico</span>
+    </a>
+    <a href="receita.html" class="nav-link" title="Gestão de Receitas (SZ7)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/>
+        <path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>
+      </svg>
+      <span>Receitas</span>
+    </a>
+    <a href="checklist.html" class="nav-link active" title="Checklist de Reatores (SZ3)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      <span>Checklist</span>
+    </a>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div class="main-area">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="app-title" style="font-size: 1rem;">CADASTRO & MANUTENÇÃO DE CHECKLIST POR REATOR (SZ3)</span>
+        <span class="badge-online">ONLINE • PROTHEUS TCLOUD</span>
+      </div>
+
+      <div class="user-pill">
+        <div class="user-avatar" id="avatarTop" style="background:#0072B2; color:white;">--</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.82rem;" id="userNameLbl">Engenharia PCP</div>
+          <div style="font-size: 0.72rem; color: #64748b;" id="userLoginLbl">Tabela SZ3 / Reatores</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-scroll">
+      <!-- CARD MESTRE: SELEÇÃO DO REATOR -->
+      <div class="master-card">
+        <div class="master-top-bar">
+          <div class="master-title-group">
+            <span style="font-weight: 800; font-size: 0.95rem; color: #0f172a;">REATOR / CENTRO DE TRABALHO (SZ3)</span>
+            <span class="mode-badge mode-new" id="badgeModoOperacao">NOVO / CONSULTA</span>
+          </div>
+
+          <div class="toolbar-actions">
+            <button class="btn-tool" onclick="abrirModalCatalogoSZ3('MESTRE')">
+              📂 Checklists Cadastrados (SZ3)
+            </button>
+            <button class="btn-tool" onclick="abrirModalDuplicar()">
+              📑 Clonar Checklist p/ Outro Reator
+            </button>
+            <button class="btn-tool" onclick="limparFormulario()">
+              ✨ Novo / Limpar
+            </button>
+            <button class="btn-tool btn-tool-danger" id="btnExcluirChecklist" style="display:none;" onclick="confirmarExclusaoChecklist()">
+              🗑️ Excluir Checklist
+            </button>
+          </div>
+        </div>
+
+        <div class="master-grid">
+          <div class="field-box">
+            <label>Código do Reator (Z3_REATOR) *</label>
+            <div class="picker-group">
+              <input type="text" id="reatorCod" class="reator-input" maxlength="16" placeholder="Digite ou selecione o Reator..." onchange="aoAlterarReatorManual()">
+              <button class="btn-lupa" onclick="abrirSeletorReator('MESTRE')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Reator
+              </button>
+            </div>
+          </div>
+
+          <div class="field-box">
+            <label>Descrição do Reator / Recurso</label>
+            <div class="desc-readonly" id="reatorDesc">Selecione um reator no botão Reator ou informe o código...</div>
+          </div>
+
+          <div class="field-box">
+            <label>Total de Itens</label>
+            <div class="desc-readonly" id="lblTotalItens" style="justify-content: center; font-weight: 800; color: #0072B2;">0 Itens</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRA DE AÇÕES DA GRADE -->
+      <div class="grid-header-bar">
+        <div style="font-size: 0.82rem; color: #475569; font-weight: 600;">
+          💡 <strong>Dica:</strong> Cadastre na ordem em que os itens aparecerão na aba <strong>Checklist Pré-Operacional</strong> do apontamento da OP (<code>pa1.html</code>).
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-tool" onclick="renumerarSequencias()">🔢 Renumerar Seq. (001, 002...)</button>
+          <button class="btn-tool btn-tool-primary" onclick="adicionarItemChecklist()">+ Adicionar Item</button>
+        </div>
+      </div>
+
+      <!-- TABELA EDITÁVEL DE ITENS DA SZ3 -->
+      <div class="etapas-card">
+        <div class="etapas-scroll-wrapper">
+          <table class="etapas-table">
+            <thead>
+              <tr>
+                <th style="width: 96px; text-align: center;">Seq.<br><small>(Z3_SEQ)</small></th>
+                <th>Item / Verificação Pré-Operacional do Reator<br><small>(Z3_ACAO)</small></th>
+                <th style="width: 135px; text-align: center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyChecklistZ3"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- BARRA INFERIOR FIXA -->
+    <footer class="bottom-action-bar">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #475569;" id="statusRodape">Pronto para edição.</span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-action-tablet" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#334155;" onclick="window.location.reload()">Descartar Alterações</button>
+        <button class="btn-action-tablet" style="background:linear-gradient(135deg, #0072B2, #005AB5); color:#ffffff;" onclick="salvarChecklistSZ3()">💾 Salvar Checklist na SZ3</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL 1: SELETOR DE REATORES (SH1 / SHB / SZ3) -->
+  <div class="modal-overlay modal-overlay-top" id="modalSeletorReator">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="tituloModalReator">🔍 Selecionar Reator / Recurso</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharSeletorReator()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-bar-modal">
+          <input type="text" id="inputBuscaReator" placeholder="Filtrar por código ou descrição do reator..." oninput="filtrarReatoresLocal()">
+        </div>
+        <div class="picker-list" id="listaReatores">
+          <div style="padding: 20px; text-align: center; color: #64748b;">A consultar reatores no Protheus...</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharSeletorReator()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CATÁLOGO DE REATORES COM CHECKLIST NA SZ3 -->
+  <div class="modal-overlay modal-overlay-top" id="modalCatalogoSZ3">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="tituloModalCatalogoSZ3">📂 Reatores com Checklist Cadastrado (SZ3)</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharModalCatalogoSZ3()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-bar-modal">
+          <input type="text" id="filtroCatalogoSZ3" placeholder="Filtrar reator..." oninput="filtrarCatalogoLocal()">
+        </div>
+        <div class="picker-list" id="listaCatalogoSZ3"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharModalCatalogoSZ3()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CLONAR / DUPLICAR CHECKLIST ENTRE REATORES -->
+  <div class="modal-overlay" id="modalDuplicarSZ3">
+    <div class="modal-box" style="max-width: 620px;">
+      <div class="modal-head">
+        <h3>📑 Clonar Checklist entre Reatores (SZ3)</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharModalDuplicar()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:10px 14px; font-size:0.84rem; color:#0369a1; font-weight:600;">
+          Copia todos os itens e sequências do checklist de um reator cadastrado na SZ3 para outro reator.
+        </div>
+
+        <div class="field-box">
+          <label>1. Reator de Origem (Copiar de — Somente com Checklist na SZ3) *</label>
+          <div class="picker-group">
+            <input type="text" id="dupOrigemCod" class="reator-input" placeholder="Selecione o reator origem..." readonly style="cursor:pointer;" onclick="abrirModalCatalogoSZ3('DUP_ORIGEM')">
+            <button class="btn-lupa" onclick="abrirModalCatalogoSZ3('DUP_ORIGEM')">🔍 Origem</button>
+          </div>
+          <div class="desc-readonly" id="dupOrigemDesc" style="height:36px; font-size:0.84rem;">---</div>
+        </div>
+
+        <div class="field-box" style="margin-top: 6px;">
+          <label>2. Reator de Destino (Colar em) *</label>
+          <div class="picker-group">
+            <input type="text" id="dupDestinoCod" class="reator-input" maxlength="16" placeholder="Digite ou selecione o destino...">
+            <button class="btn-lupa" onclick="abrirSeletorReator('DUP_DESTINO')">🔍 Destino</button>
+          </div>
+          <div class="desc-readonly" id="dupDestinoDesc" style="height:36px; font-size:0.84rem;">---</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharModalDuplicar()">Cancelar</button>
+        <button class="btn-tool btn-tool-primary" onclick="executarDuplicacao(false)">📑 Executar Clonagem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: EDITOR DE TEXTO AMPLIADO DA AÇÃO -->
+  <div class="modal-overlay modal-overlay-top" id="modalTextoCompleto">
+    <div class="modal-box" style="max-width: 640px;">
+      <div class="modal-head">
+        <h3>✏️ Editar Descrição da Verificação (Z3_ACAO)</h3>
+        <button style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;" onclick="fecharEditorTexto()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <span id="subtituloModalTexto" style="font-size:0.82rem; font-weight:800; color:#0072B2;"></span>
+        <textarea id="textareaModalCompleto" class="fulltext-area" maxlength="200" oninput="atualizarContadorTexto()"></textarea>
+        <div style="text-align:right; font-size:0.75rem; font-weight:700; color:#64748b;" id="contadorModalTexto">0 / 200 caracteres</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-tool" onclick="fecharEditorTexto()">Cancelar</button>
+        <button class="btn-tool btn-tool-primary" onclick="confirmarEditorTexto()">✓ Aplicar Texto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: ALERTA / CONFIRMAÇÃO (OKABE-ITO) -->
+  <div class="alert-overlay" id="customAlertModal">
+    <div class="alert-card card-success" id="customAlertCard">
+      <div class="alert-header success" id="customAlertHeader">✓ Confirmação</div>
+      <div class="alert-body" id="customAlertMessage"></div>
+      <div class="alert-footer">
+        <button class="btn-tool" id="btnCancelarModal" style="display:none;" onclick="fecharAlerta()">Cancelar</button>
+        <button class="btn-ciente btn-ciente-success" id="btnCienteModal" onclick="confirmarCienteModal()">
+          ✓ CIENTE / ENTENDIDO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // SESSÃO DO OPERADOR LOGADO NO PROTHEUS (MESMO PADRÃO DOS DEMAIS HTMLs)
+    // ========================================================================
+    const urlParams   = new URLSearchParams(window.location.search);
+    const paramIdUser = (urlParams.get('iduser') || '').trim();
+    const paramUser   = (urlParams.get('user')   || '').trim();
+    const paramNome   = (urlParams.get('nome')   || '').trim();
+    const paramAuth   = (urlParams.get('auth')   || '').trim();
+    const paramApi    = (urlParams.get('api')    || '').trim();
+
+    if (paramIdUser || paramUser || paramNome) {
+      sessionStorage.setItem('pcp_iduser', paramIdUser);
+      sessionStorage.setItem('pcp_user',   paramUser);
+      sessionStorage.setItem('pcp_nome',   paramNome);
+    }
+    if (paramAuth) {
+      sessionStorage.setItem('pcp_auth', paramAuth);
+      const cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete('auth');
+      const qs = cleanParams.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+    }
+    if (paramApi) {
+      sessionStorage.setItem('pcp_api', paramApi.replace(/\/+$/, ''));
+    }
+
+    const PCP_API_BASE   = (sessionStorage.getItem('pcp_api') || 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM').trim();
+    // Deriva automaticamente o endpoint /rest/WSCHKREAT mantendo o mesmo host/porta (homolog ou prd)
+    const API_CHK        = PCP_API_BASE.replace(/\/WSPCPQUIM$/i, '/WSCHKREAT').replace(/\/WSCHKREAT$/i, '/WSCHKREAT');
+    const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
+    const SESSAO_LOGIN   = (sessionStorage.getItem('pcp_user')   || '').trim();
+    const SESSAO_NOME    = (sessionStorage.getItem('pcp_nome')   || '').trim();
+    const SESSAO_AUTH    = (sessionStorage.getItem('pcp_auth')   || '').trim();
+    const authHeader     = SESSAO_AUTH;
+
+    function exigirAutenticacaoProtheus() {
+      if (authHeader) return true;
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;width:100vw;background:#0f172a;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif;padding:24px;box-sizing:border-box;">
+          <div style="max-width:480px;background:#1e293b;border:2px solid #D55E00;border-radius:14px;padding:28px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+            <div style="font-size:2.2rem;margin-bottom:10px;">🔒</div>
+            <h2 style="margin:0 0 10px;font-size:1.2rem;color:#ffffff;">Acesso Restrito ao Protheus</h2>
+            <p style="margin:0;font-size:0.92rem;color:#cbd5e1;line-height:1.5;">
+              Sessão não autenticada. Feche esta janela e abra o portal diretamente pelo menu do <strong>TOTVS Protheus</strong>.
+            </p>
+          </div>
+        </div>
+      `;
+      return false;
+    }
+
+    const reqHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader,
+      'tenantId': '01,0101'
+    };
+
+    let ITENS_Z3           = [];
+    let REATORES_CACHE     = [];
+    let CATALOGO_SZ3       = [];
+    let DESC_REATOR_MAP    = {};
+    let CONTEXTO_REATOR    = 'MESTRE';
+    let CONTEXTO_CATALOGO  = 'MESTRE';
+    let IDX_EDITOR_TEXTO   = null;
+    let ACAO_APOS_CIENTE   = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!exigirAutenticacaoProtheus()) return;
+
+      if (SESSAO_NOME || SESSAO_LOGIN) {
+        const nomeExibir = SESSAO_NOME || SESSAO_LOGIN;
+        document.getElementById('userNameLbl').textContent = nomeExibir;
+        if (SESSAO_LOGIN) document.getElementById('userLoginLbl').textContent = SESSAO_LOGIN.toLowerCase();
+        const partes = nomeExibir.trim().split(/\s+/).filter(n => n.length > 0);
+        const iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : '--');
+        document.getElementById('avatarTop').textContent = iniciais.toUpperCase();
+      }
+
+      await carregarReatoresCache();
+
+      const reatorUrl = (urlParams.get('reator') || '').trim();
+      if (reatorUrl) {
+        selecionarReatorMestre(reatorUrl, DESC_REATOR_MAP[reatorUrl] || '');
+      } else {
+        adicionarItemChecklist();
+      }
+    });
+
+    // ========================================================================
+    // ALERTAS E CONFIRMAÇÕES
+    // ========================================================================
+    function mostrarAlerta(mensagem, tipo = 'error', titulo = '', callbackConfirm = null, exibirCancelar = false) {
+      const modal     = document.getElementById('customAlertModal');
+      const card      = document.getElementById('customAlertCard');
+      const header    = document.getElementById('customAlertHeader');
+      const msg       = document.getElementById('customAlertMessage');
+      const btnOk     = document.getElementById('btnCienteModal');
+      const btnCancel = document.getElementById('btnCancelarModal');
+
+      ACAO_APOS_CIENTE = callbackConfirm;
+      msg.textContent = mensagem;
+      btnCancel.style.display = exibirCancelar ? 'inline-flex' : 'none';
+
+      if (tipo === 'error') {
+        card.className = 'alert-card card-warning';
+        header.className = 'alert-header error';
+        header.textContent = titulo || '⚠️ ATENÇÃO / VALIDAÇÃO';
+        btnOk.className = 'btn-ciente btn-ciente-warning';
+        btnOk.innerHTML = exibirCancelar ? '⚠️ CONFIRMAR AÇÃO' : '⚠️ CIENTE / ENTENDIDO';
+      } else {
+        card.className = 'alert-card card-success';
+        header.className = 'alert-header success';
+        header.textContent = titulo || '✓ OPERAÇÃO CONCLUÍDA';
+        btnOk.className = 'btn-ciente btn-ciente-success';
+        btnOk.innerHTML = '✓ CIENTE / ENTENDIDO';
+      }
+      modal.style.display = 'flex';
+    }
+
+    async function confirmarCienteModal() {
+      document.getElementById('customAlertModal').style.display = 'none';
+      if (typeof ACAO_APOS_CIENTE === 'function') {
+        const fn = ACAO_APOS_CIENTE;
+        ACAO_APOS_CIENTE = null;
+        await fn();
+      }
+    }
+
+    function fecharAlerta() {
+      ACAO_APOS_CIENTE = null;
+      document.getElementById('customAlertModal').style.display = 'none';
+    }
+
+    // ========================================================================
+    // REATORES (SH1 / SHB / SZ3)
+    // ========================================================================
+    async function carregarReatoresCache() {
+      try {
+        const resp = await fetch(`${API_CHK}/reatores`, { headers: reqHeaders });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'OK' && Array.isArray(data.reatores)) {
+          REATORES_CACHE = data.reatores;
+          REATORES_CACHE.forEach(r => {
+            DESC_REATOR_MAP[r.codigo] = r.descricao || r.codigo;
+          });
+        }
+      } catch (e) {
+        console.error('Erro ao carregar reatores:', e);
+      }
+    }
+
+    async function abrirSeletorReator(contexto = 'MESTRE') {
+      CONTEXTO_REATOR = contexto;
+      document.getElementById('tituloModalReator').textContent =
+        contexto === 'DUP_DESTINO'
+          ? '🔍 Selecionar Reator de Destino'
+          : '🔍 Selecionar Reator / Recurso (SH1 / SHB / SZ3)';
+      document.getElementById('inputBuscaReator').value = '';
+      document.getElementById('modalSeletorReator').style.display = 'flex';
+
+      await carregarReatoresCache();
+      renderizarListaReatores(REATORES_CACHE);
+      document.getElementById('inputBuscaReator').focus();
+    }
+
+    function fecharSeletorReator() {
+      document.getElementById('modalSeletorReator').style.display = 'none';
+    }
+
+    function filtrarReatoresLocal() {
+      const termo = document.getElementById('inputBuscaReator').value.trim().toUpperCase();
+      const filtrados = REATORES_CACHE.filter(r =>
+        r.codigo.toUpperCase().includes(termo) ||
+        (r.descricao || '').toUpperCase().includes(termo) ||
+        (r.origem || '').toUpperCase().includes(termo)
+      );
+      renderizarListaReatores(filtrados);
+    }
+
+    function renderizarListaReatores(lista) {
+      const container = document.getElementById('listaReatores');
+      if (!lista || lista.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;">Nenhum reator localizado. Você também pode digitar o código diretamente no campo.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      lista.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'picker-item';
+        div.onclick = () => {
+          fecharSeletorReator();
+          if (CONTEXTO_REATOR === 'DUP_DESTINO') {
+            document.getElementById('dupDestinoCod').value = r.codigo;
+            document.getElementById('dupDestinoDesc').textContent = r.descricao || r.codigo;
+          } else {
+            selecionarReatorMestre(r.codigo, r.descricao || r.codigo);
+          }
+        };
+        const qtdLbl = r.qtdItens > 0 ? `${r.qtdItens} item(ns) SZ3` : 'Sem checklist';
+        div.innerHTML = `
+          <div>
+            <div class="picker-code">${escaparHtml(r.codigo)}</div>
+            <div class="picker-desc">${escaparHtml(r.descricao || r.codigo)}</div>
+          </div>
+          <span class="picker-meta">${escaparHtml(r.origem || 'PROTHEUS')} • ${qtdLbl}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function aoAlterarReatorManual() {
+      const cod = document.getElementById('reatorCod').value.trim().toUpperCase();
+      document.getElementById('reatorCod').value = cod;
+      if (!cod) return;
+      selecionarReatorMestre(cod, DESC_REATOR_MAP[cod] || `Reator ${cod}`);
+    }
+
+    async function selecionarReatorMestre(codigo, descricao) {
+      const cod = codigo.trim().toUpperCase();
+      window.history.replaceState({}, '', `${window.location.pathname}?reator=${encodeURIComponent(cod)}`);
+
+      document.getElementById('reatorCod').value = cod;
+      document.getElementById('reatorDesc').textContent = descricao || DESC_REATOR_MAP[cod] || `Reator ${cod}`;
+      document.getElementById('statusRodape').textContent = `A carregar checklist da SZ3 para ${cod}...`;
+
+      try {
+        const resp = await fetch(`${API_CHK}/checklist?reator=${encodeURIComponent(cod)}`, { headers: reqHeaders });
+        const data = await resp.json();
+
+        const badge  = document.getElementById('badgeModoOperacao');
+        const btnDel = document.getElementById('btnExcluirChecklist');
+
+        if (resp.ok && data.status === 'OK' && data.itens && data.itens.length > 0) {
+          ITENS_Z3 = data.itens.map(item => ({
+            seq:  item.seq || '001',
+            acao: item.acao || ''
+          }));
+          badge.className = 'mode-badge mode-edit';
+          badge.textContent = 'MODO ALTERAÇÃO (SZ3 EXISTENTE)';
+          btnDel.style.display = 'inline-flex';
+          document.getElementById('statusRodape').textContent = `Checklist carregado (${ITENS_Z3.length} item(ns) na SZ3).`;
+        } else {
+          ITENS_Z3 = [{ seq: '001', acao: '' }];
+          badge.className = 'mode-badge mode-new';
+          badge.textContent = 'MODO INCLUSÃO (NOVO CHECKLIST)';
+          btnDel.style.display = 'none';
+          document.getElementById('statusRodape').textContent = `Reator ${cod} ainda sem checklist na SZ3. Adicione os itens e clique em Salvar.`;
+        }
+
+        renderizarGrade();
+      } catch (e) {
+        console.error('Erro ao carregar SZ3:', e);
+        mostrarAlerta('Falha ao consultar a SZ3 no Protheus REST (/WSCHKREAT). Verifique se o fonte WSCHKREAT.prw foi compilado.', 'error');
+      }
+    }
+
+    // ========================================================================
+    // RENDERIZAÇÃO E EDIÇÃO DA GRADE DE CHECKLIST
+    // ========================================================================
+    function renderizarGrade() {
+      const tbody = document.getElementById('tbodyChecklistZ3');
+      tbody.innerHTML = '';
+      document.getElementById('lblTotalItens').textContent = `${ITENS_Z3.length} Item(ns)`;
+
+      ITENS_Z3.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'etapa-tr';
+        tr.innerHTML = `
+          <td style="text-align:center;">
+            <input type="text" maxlength="6" class="z3-inp z3-seq" value="${escaparAttr(item.seq)}" oninput="ITENS_Z3[${idx}].seq = this.value.toUpperCase()">
+          </td>
+          <td>
+            <div class="acao-row">
+              <input type="text" maxlength="200" class="z3-inp" placeholder="Digite a pergunta ou verificação do checklist..." value="${escaparAttr(item.acao)}" oninput="ITENS_Z3[${idx}].acao = this.value">
+              <button type="button" class="btn-expand" title="Abrir editor ampliado" onclick="abrirEditorTexto(${idx})">✏️ Ampliar</button>
+            </div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="btn-row-act" title="Subir Item" onclick="moverItem(${idx}, -1)">▲</button>
+              <button type="button" class="btn-row-act" title="Descer Item" onclick="moverItem(${idx}, 1)">▼</button>
+              <button type="button" class="btn-row-act btn-row-del" title="Remover Item" onclick="removerItem(${idx})">✕</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function adicionarItemChecklist() {
+      let proxSeq = '001';
+      if (ITENS_Z3.length > 0) {
+        const ult = parseInt(ITENS_Z3[ITENS_Z3.length - 1].seq, 10);
+        proxSeq = !isNaN(ult) ? String(ult + 1).padStart(3, '0') : String(ITENS_Z3.length + 1).padStart(3, '0');
+      }
+      ITENS_Z3.push({ seq: proxSeq, acao: '' });
+      renderizarGrade();
+    }
+
+    function removerItem(idx) {
+      if (ITENS_Z3.length <= 1) {
+        mostrarAlerta('O checklist deve possuir pelo menos 1 item.', 'error');
+        return;
+      }
+      ITENS_Z3.splice(idx, 1);
+      renderizarGrade();
+    }
+
+    function moverItem(idx, direcao) {
+      const novoIdx = idx + direcao;
+      if (novoIdx < 0 || novoIdx >= ITENS_Z3.length) return;
+      const tmp = ITENS_Z3[idx];
+      ITENS_Z3[idx] = ITENS_Z3[novoIdx];
+      ITENS_Z3[novoIdx] = tmp;
+      renderizarGrade();
+    }
+
+    function renumerarSequencias() {
+      ITENS_Z3.forEach((it, i) => {
+        it.seq = String(i + 1).padStart(3, '0');
+      });
+      renderizarGrade();
+    }
+
+    function limparFormulario() {
+      window.history.replaceState({}, '', window.location.pathname);
+      document.getElementById('reatorCod').value = '';
+      document.getElementById('reatorDesc').textContent = 'Selecione um reator no botão Reator ou informe o código...';
+      document.getElementById('badgeModoOperacao').className = 'mode-badge mode-new';
+      document.getElementById('badgeModoOperacao').textContent = 'NOVO / CONSULTA';
+      document.getElementById('btnExcluirChecklist').style.display = 'none';
+      ITENS_Z3 = [];
+      adicionarItemChecklist();
+    }
+
+    // Editor ampliado de texto
+    function abrirEditorTexto(idx) {
+      IDX_EDITOR_TEXTO = idx;
+      const item = ITENS_Z3[idx];
+      document.getElementById('subtituloModalTexto').textContent = `Sequência: ${item.seq || '---'}`;
+      document.getElementById('textareaModalCompleto').value = item.acao || '';
+      atualizarContadorTexto();
+      document.getElementById('modalTextoCompleto').style.display = 'flex';
+      setTimeout(() => document.getElementById('textareaModalCompleto').focus(), 40);
+    }
+
+    function atualizarContadorTexto() {
+      const v = document.getElementById('textareaModalCompleto').value;
+      document.getElementById('contadorModalTexto').textContent = `${v.length} / 200 caracteres`;
+    }
+
+    function confirmarEditorTexto() {
+      if (IDX_EDITOR_TEXTO !== null && ITENS_Z3[IDX_EDITOR_TEXTO]) {
+        ITENS_Z3[IDX_EDITOR_TEXTO].acao = document.getElementById('textareaModalCompleto').value;
+        renderizarGrade();
+      }
+      fecharEditorTexto();
+    }
+
+    function fecharEditorTexto() {
+      IDX_EDITOR_TEXTO = null;
+      document.getElementById('modalTextoCompleto').style.display = 'none';
+    }
+
+    // ========================================================================
+    // GRAVAR / EXCLUIR / CATÁLOGO / CLONAR NA SZ3
+    // ========================================================================
+    async function salvarChecklistSZ3() {
+      const reator = document.getElementById('reatorCod').value.trim().toUpperCase();
+      if (!reator) {
+        mostrarAlerta('Informe ou selecione o Código do Reator (Z3_REATOR) antes de salvar.', 'error', '⚠️ Reator Obrigatório');
+        return;
+      }
+
+      const seqVistas = new Set();
+      for (let i = 0; i < ITENS_Z3.length; i++) {
+        const seq  = (ITENS_Z3[i].seq  || '').trim();
+        const acao = (ITENS_Z3[i].acao || '').trim();
+        if (!seq || !acao) {
+          mostrarAlerta(`Preencha a Sequência e a Descrição na linha ${i + 1}.`, 'error', '⚠️ Campos Obrigatórios');
+          return;
+        }
+        if (seqVistas.has(seq)) {
+          mostrarAlerta(`A sequência "${seq}" está duplicada. Cada item precisa de uma sequência única.`, 'error', '⚠️ Sequência Duplicada');
+          return;
+        }
+        seqVistas.add(seq);
+      }
+
+      try {
+        const resp = await fetch(`${API_CHK}/checklist_manut`, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify({ reator, itens: ITENS_Z3 })
+        });
+        const res = await resp.json();
+        if (res.status !== 'OK') throw new Error(res.mensagem || 'Erro ao gravar na SZ3.');
+
+        mostrarAlerta(
+          res.mensagem + ' O formulário será recarregado.',
+          'success',
+          '✓ Checklist Gravado na SZ3',
+          () => { window.location.href = `${window.location.pathname}?reator=${encodeURIComponent(reator)}`; }
+        );
+      } catch (e) {
+        mostrarAlerta('Falha ao gravar checklist na SZ3: ' + e.message, 'error', '⚠️ Erro de Gravação');
+      }
+    }
+
+    function confirmarExclusaoChecklist() {
+      const reator = document.getElementById('reatorCod').value.trim().toUpperCase();
+      if (!reator) return;
+
+      mostrarAlerta(
+        `Confirma a EXCLUSÃO de todos os ${ITENS_Z3.length} item(ns) do checklist do reator ${reator} na tabela SZ3?`,
+        'error',
+        '⚠️ Confirmar Exclusão',
+        async () => {
+          try {
+            const resp = await fetch(`${API_CHK}/checklist_del`, {
+              method: 'POST',
+              headers: reqHeaders,
+              body: JSON.stringify({ reator })
+            });
+            const res = await resp.json();
+            if (res.status !== 'OK') throw new Error(res.mensagem);
+            mostrarAlerta(res.mensagem, 'success', '✓ Checklist Excluído', () => {
+              window.location.href = window.location.pathname;
+            });
+          } catch (e) {
+            mostrarAlerta('Erro ao excluir checklist: ' + e.message, 'error');
+          }
+        },
+        true
+      );
+    }
+
+    async function abrirModalCatalogoSZ3(contexto = 'MESTRE') {
+      CONTEXTO_CATALOGO = contexto;
+      document.getElementById('tituloModalCatalogoSZ3').textContent =
+        contexto === 'DUP_ORIGEM'
+          ? '📂 1. Selecionar Reator de Origem (SZ3)'
+          : '📂 Reatores com Checklist Cadastrado (SZ3)';
+      document.getElementById('filtroCatalogoSZ3').value = '';
+      document.getElementById('modalCatalogoSZ3').style.display = 'flex';
+      const cont = document.getElementById('listaCatalogoSZ3');
+      cont.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;">A consultar checklists cadastrados na SZ3...</div>`;
+
+      try {
+        const resp = await fetch(`${API_CHK}/checklists_lista`, { headers: reqHeaders });
+        const data = await resp.json();
+        if (resp.ok && data.status === 'OK') {
+          CATALOGO_SZ3 = data.checklists || [];
+          renderizarCatalogo(CATALOGO_SZ3);
+        } else {
+          cont.innerHTML = `<div style="padding:20px; text-align:center; color:#D55E00;">Nenhum checklist cadastrado na SZ3.</div>`;
+        }
+      } catch (e) {
+        cont.innerHTML = `<div style="padding:20px; text-align:center; color:#D55E00;">Erro ao consultar catálogo da SZ3.</div>`;
+      }
+    }
+
+    function renderizarCatalogo(lista) {
+      const cont = document.getElementById('listaCatalogoSZ3');
+      if (!lista.length) {
+        cont.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;">Nenhum checklist encontrado na SZ3.</div>`;
+        return;
+      }
+      cont.innerHTML = '';
+      lista.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'picker-item';
+        div.onclick = () => {
+          fecharModalCatalogoSZ3();
+          if (CONTEXTO_CATALOGO === 'DUP_ORIGEM') {
+            document.getElementById('dupOrigemCod').value = item.reator;
+            document.getElementById('dupOrigemDesc').textContent = item.descricao || item.reator;
+          } else {
+            selecionarReatorMestre(item.reator, item.descricao || item.reator);
+          }
+        };
+        div.innerHTML = `
+          <div>
+            <div class="picker-code">${escaparHtml(item.reator)}</div>
+            <div class="picker-desc">${escaparHtml(item.descricao || item.reator)}</div>
+          </div>
+          <span class="picker-meta">${item.qtdItens} item(ns) na SZ3</span>
+        `;
+        cont.appendChild(div);
+      });
+    }
+
+    function filtrarCatalogoLocal() {
+      const t = document.getElementById('filtroCatalogoSZ3').value.trim().toUpperCase();
+      renderizarCatalogo(CATALOGO_SZ3.filter(c =>
+        c.reator.toUpperCase().includes(t) || (c.descricao || '').toUpperCase().includes(t)
+      ));
+    }
+
+    function fecharModalCatalogoSZ3() {
+      document.getElementById('modalCatalogoSZ3').style.display = 'none';
+    }
+
+    function abrirModalDuplicar() {
+      const codAtu  = document.getElementById('reatorCod').value.trim().toUpperCase();
+      const descAtu = document.getElementById('reatorDesc').textContent;
+      document.getElementById('dupOrigemCod').value = codAtu || '';
+      document.getElementById('dupOrigemDesc').textContent = codAtu ? descAtu : 'Selecione um reator já cadastrado na SZ3...';
+      document.getElementById('dupDestinoCod').value = '';
+      document.getElementById('dupDestinoDesc').textContent = 'Selecione ou digite o código do reator destino...';
+      document.getElementById('modalDuplicarSZ3').style.display = 'flex';
+    }
+
+    function fecharModalDuplicar() {
+      document.getElementById('modalDuplicarSZ3').style.display = 'none';
+    }
+
+    async function executarDuplicacao(sobrescrever = false) {
+      const origem  = document.getElementById('dupOrigemCod').value.trim().toUpperCase();
+      const destino = document.getElementById('dupDestinoCod').value.trim().toUpperCase();
+
+      if (!origem || !destino) {
+        mostrarAlerta('Informe o Reator de Origem e o Reator de Destino.', 'error', '⚠️ Dados Incompletos');
+        return;
+      }
+      if (origem === destino) {
+        mostrarAlerta('O Reator de Destino deve ser diferente do Reator de Origem.', 'error', '⚠️ Reatores Idênticos');
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_CHK}/checklist_dup`, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify({ reatorOrigem: origem, reatorDestino: destino, sobrescrever })
+        });
+        const res = await resp.json();
+
+        if (res.status === 'JA_EXISTE') {
+          mostrarAlerta(
+            `${res.mensagem} Deseja SOBRESCREVER o checklist do reator ${destino} pelo de ${origem}?`,
+            'error',
+            '⚠️ Checklist Já Existente no Destino',
+            () => executarDuplicacao(true),
+            true
+          );
+          return;
+        }
+        if (res.status !== 'OK') throw new Error(res.mensagem || 'Falha ao clonar checklist.');
+
+        fecharModalDuplicar();
+        mostrarAlerta(
+          res.mensagem + ' O formulário será recarregado com o reator clonado.',
+          'success',
+          '✓ Checklist Clonado',
+          () => { window.location.href = `${window.location.pathname}?reator=${encodeURIComponent(destino)}`; }
+        );
+      } catch (e) {
+        mostrarAlerta('Erro ao clonar checklist: ' + e.message, 'error');
+      }
+    }
+
+    function escaparAttr(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escaparHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
