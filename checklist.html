@@ -379,7 +379,7 @@
       sessionStorage.setItem('pcp_api', paramApi.replace(/\/+$/, ''));
     }
 
-    const PCP_API_BASE   = (sessionStorage.getItem('pcp_api') || 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10257/rest/WSPCPQUIM').trim();
+    const PCP_API_BASE   = (sessionStorage.getItem('pcp_api') || 'https://unimolbrasil207532.protheus.cloudtotvs.com.br:10257/rest/WSPCPQUIM').trim();
     // Deriva automaticamente o endpoint /rest/WSCHKREAT mantendo o mesmo host/porta (homolog ou prd)
     const API_CHK        = PCP_API_BASE.replace(/\/WSPCPQUIM$/i, '/WSCHKREAT').replace(/\/WSCHKREAT$/i, '/WSCHKREAT');
     const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
