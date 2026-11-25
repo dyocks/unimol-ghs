@@ -398,7 +398,6 @@
   <div class="toast-center" id="toastCenter"></div>
 
   <script>
-    const API_BASE = 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM';
 
     // ========================================================================
     // SESSÃO DO OPERADOR LOGADO NO PROTHEUS (URL -> sessionStorage)
@@ -409,6 +408,8 @@
     const paramNome   = (urlParams.get('nome')   || '').trim();
     const paramAuth   = (urlParams.get('auth')   || '').trim();
 
+    const paramApi    = (urlParams.get('api')    || '').trim();
+
     if (paramIdUser || paramUser || paramNome) {
       sessionStorage.setItem('pcp_iduser', paramIdUser);
       sessionStorage.setItem('pcp_user',   paramUser);
@@ -416,16 +417,38 @@
     }
     if (paramAuth) {
       sessionStorage.setItem('pcp_auth', paramAuth);
+      const cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete('auth');
+      const qs = cleanParams.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+    }
+    if (paramApi) {
+      sessionStorage.setItem('pcp_api', paramApi.replace(/\/+$/, ''));
     }
 
+    const API_BASE       = (sessionStorage.getItem('pcp_api')    || 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPCPQUIM').trim();
     const SESSAO_ID_USER = (sessionStorage.getItem('pcp_iduser') || '').trim();
     const SESSAO_LOGIN   = (sessionStorage.getItem('pcp_user')   || '').trim();
     const SESSAO_NOME    = (sessionStorage.getItem('pcp_nome')   || '').trim();
     const SESSAO_AUTH    = (sessionStorage.getItem('pcp_auth')   || '').trim();
 
-    const USER_LOGIN = 'rodrigo.amaral';
-    const USER_PASS  = 'RaquelEduarda2010@';
-    const authHeader = SESSAO_AUTH || ('Basic ' + btoa(USER_LOGIN + ':' + USER_PASS));
+    const authHeader = SESSAO_AUTH;
+
+    function exigirAutenticacaoProtheus() {
+      if (authHeader) return true;
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;width:100vw;background:#0f172a;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif;padding:24px;box-sizing:border-box;">
+          <div style="max-width:480px;background:#1e293b;border:2px solid #D55E00;border-radius:14px;padding:28px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+            <div style="font-size:2.2rem;margin-bottom:10px;">🔒</div>
+            <h2 style="margin:0 0 10px;font-size:1.2rem;color:#ffffff;">Acesso Restrito ao Protheus</h2>
+            <p style="margin:0;font-size:0.92rem;color:#cbd5e1;line-height:1.5;">
+              Sessão não autenticada. Feche esta janela e abra o portal diretamente pelo menu do <strong>TOTVS Protheus</strong>.
+            </p>
+          </div>
+        </div>
+      `;
+      return false;
+    }
 
     let USUARIO_LOGADO = '';
     let ID_USUARIO_LOGADO = ''; 
@@ -548,7 +571,7 @@
           throw new Error(data.mensagem || `Erro HTTP: ${resp.status}`);
         }
 
-        USUARIO_LOGADO    = SESSAO_LOGIN   || data.usuarioLogado   || USER_LOGIN;
+        USUARIO_LOGADO    = SESSAO_LOGIN   || data.usuarioLogado   || '';
         ID_USUARIO_LOGADO = SESSAO_ID_USER || data.idUsuarioLogado || ''; 
         const nomeCompleto = SESSAO_NOME   || data.nomeUsuarioLogado || USUARIO_LOGADO;
 
@@ -738,6 +761,7 @@
 
     // Inicialização
     window.addEventListener('DOMContentLoaded', () => {
+       if (!exigirAutenticacaoProtheus()) return;
        carregarUsuariosPCP();
        carregarOrdensAbertas();
     });

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Busca de Produtos - Pedido de Venda (F3)</title>
+  <style>
+    :root {
+      --primary: #0072B2;
+      --primary-dark: #005AB5;
+      --warning: #D55E00;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    html, body { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); }
+
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* Cabecalho */
+    .topbar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar h1 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.3px; }
+    .badge-env {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .kbd-hints { font-size: 0.75rem; color: #cbd5e1; display: flex; gap: 10px; align-items: center; }
+    .kbd {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    /* Painel de Pesquisa e Filtros */
+    .search-panel {
+      background: var(--surface);
+      border-bottom: 1.5px solid #e2e8f0;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .search-row { display: flex; gap: 8px; align-items: center; }
+    .search-input-wrap { position: relative; flex: 1; }
+    .search-input-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: #64748b; pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px 0 38px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 114, 178, 0.18);
+    }
+
+    .btn-primary {
+      height: 42px;
+      padding: 0 18px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-ghost {
+      height: 42px;
+      padding: 0 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.84rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: #f0f9ff; }
+
+    .filters-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chips-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .chip-label { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+    .chip {
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 16px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.active { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+
+    .check-disp {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      user-select: none;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      padding: 5px 12px;
+      border-radius: 8px;
+    }
+    .check-disp input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+    .status-count { font-size: 0.80rem; font-weight: 800; color: var(--primary); }
+
+    /* Grid de Resultados */
+    .grid-wrap { flex: 1; overflow: auto; padding: 12px 18px 16px; }
+    .table-card {
+      background: var(--surface);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 0.71rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 11px 10px;
+      border-bottom: 2px solid #cbd5e1;
+      text-align: left;
+      white-space: nowrap;
+    }
+    thead th.num, tbody td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    thead th.center, tbody td.center { text-align: center; white-space: nowrap; }
+
+    tbody tr.prod-row { cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #e2e8f0; }
+    tbody tr.prod-row:hover { background: #f0f9ff; }
+    tbody tr.prod-row.active { background: #e0f2fe; box-shadow: inset 4px 0 0 var(--primary); }
+    tbody td { padding: 10px; font-size: 0.84rem; vertical-align: middle; color: #1e293b; }
+
+    .col-cod { font-family: ui-monospace, monospace; font-weight: 800; color: var(--primary); font-size: 0.86rem; white-space: nowrap; }
+    .col-desc { font-weight: 700; color: #0f172a; line-height: 1.25; }
+    .sub-meta { display: block; font-size: 0.72rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+
+    /* Badges de Tipo */
+    .badge-tipo {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.73rem;
+      font-weight: 800;
+      border: 1px solid transparent;
+    }
+    .tipo-PA  { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+    .tipo-BN  { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .tipo-EMB { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+    .tipo-ME  { background: #dcfce7; color: #15803d; border-color: #86efac; }
+
+    .saldo-fisico { font-weight: 700; color: #334155; }
+    .saldo-res { font-weight: 700; color: #b45309; text-decoration: underline dotted; cursor: help; }
+    .saldo-disp-ok {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 800;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #7dd3fc;
+      cursor: help;
+    }
+    .saldo-disp-zero {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 800;
+      background: #fff7ed;
+      color: #D55E00;
+      border: 1px solid #fdba74;
+      cursor: help;
+    }
+
+    .btn-sel {
+      height: 30px;
+      padding: 0 12px;
+      border: none;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-sel:hover { background: var(--primary-dark); }
+
+    .msg-empty { text-align: center; padding: 38px 16px; color: var(--muted); font-weight: 700; font-size: 0.92rem; }
+    .msg-error { color: var(--warning); }
+
+    /* Rodape */
+    .footer {
+      background: var(--surface);
+      border-top: 1.5px solid #e2e8f0;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .footer-info { font-size: 0.78rem; color: #475569; font-weight: 600; }
+    .footer-actions { display: flex; gap: 8px; }
+
+    /* Overlay de confirmacao / envio */
+    .overlay-done {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .overlay-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 26px 32px;
+      border: 3px solid var(--primary);
+      text-align: center;
+      max-width: 440px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.35);
+    }
+    .overlay-card h2 { margin: 0 0 8px; font-size: 1.1rem; color: #0f172a; }
+    .overlay-card p { margin: 0; font-size: 0.9rem; color: #475569; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app" id="appContainer">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>🔍 BUSCA DE PRODUTOS — PEDIDO DE VENDA (SC6)</h1>
+        <span class="badge-env" id="badgeStatus">CONECTADO • PROTHEUS</span>
+      </div>
+      <div class="kbd-hints">
+        <span><span class="kbd">↑</span> <span class="kbd">↓</span> Navegar</span>
+        <span><span class="kbd">Enter</span> Selecionar</span>
+        <span><span class="kbd">Esc</span> Cancelar</span>
+      </div>
+    </header>
+
+    <section class="search-panel">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            id="txtBusca"
+            class="search-input"
+            type="text"
+            placeholder="Digite código, descrição, depositante, grupo, subgrupo ou embalagem (aceita várias palavras)..."
+            autocomplete="off"
+          />
+        </div>
+        <button class="btn-primary" onclick="buscarProdutos()">Pesquisar</button>
+        <button class="btn-ghost" onclick="limparFiltros()">Limpar</button>
+      </div>
+
+      <div class="filters-row">
+        <div class="chips-group">
+          <span class="chip-label">Tipo:</span>
+          <button type="button" class="chip active" data-tipo="" onclick="selecionarTipo(this, '')">Todos (PA / BN / EMB / ME)</button>
+          <button type="button" class="chip" data-tipo="PA" onclick="selecionarTipo(this, 'PA')">PA</button>
+          <button type="button" class="chip" data-tipo="BN" onclick="selecionarTipo(this, 'BN')">BN</button>
+          <button type="button" class="chip" data-tipo="EMB" onclick="selecionarTipo(this, 'EMB')">EMB</button>
+          <button type="button" class="chip" data-tipo="ME" onclick="selecionarTipo(this, 'ME')">ME</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px;">
+          <label class="check-disp">
+            <input type="checkbox" id="chkSoDisp" onchange="buscarProdutos()" />
+            Somente com Disponibilidade &gt; 0
+          </label>
+          <span class="status-count" id="lblContador">Carregando...</span>
+        </div>
+      </div>
+    </section>
+
+    <main class="grid-wrap">
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 130px;">Código</th>
+              <th style="min-width: 240px;">Descrição do Produto</th>
+              <th style="min-width: 150px;">Depositante</th>
+              <th style="min-width: 130px;">Grupo (SBM)</th>
+              <th style="min-width: 130px;">Subgrupo</th>
+              <th class="center" style="width: 68px;">Tipo</th>
+              <th style="width: 110px;">Embalagem</th>
+              <th class="num" style="width: 115px;">Saldo Físico</th>
+              <th class="num" style="width: 115px;">Total Reservas</th>
+              <th class="num" style="width: 125px;">Disponibilidade</th>
+              <th class="center" style="width: 96px;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyProdutos">
+            <tr><td colspan="11" class="msg-empty">A consultar produtos no Protheus...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-info">
+        <strong>Fórmula:</strong> Saldo Físico = soma de todos os armazéns (SB2) •
+        Reservas = B2_RESERVA + B2_QEMP + B2_QPEDVEN •
+        Disponibilidade = Saldo Físico − Reservas − B2_QACLASS (passe o mouse nos valores para detalhar)
+      </div>
+      <div class="footer-actions">
+        <button class="btn-ghost" style="height:36px;" onclick="cancelarBusca()">Cancelar (Esc)</button>
+        <button class="btn-primary" style="height:36px;" id="btnConfirmarLinha" onclick="confirmarSelecionado()">✓ Selecionar Produto (Enter)</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Overlay de retorno para o Protheus -->
+  <div class="overlay-done" id="overlayDone">
+    <div class="overlay-card">
+      <h2 id="overlayTitulo">✓ Produto Selecionado</h2>
+      <p id="overlayTexto">Preenchendo campo C6_PRODUTO no Pedido de Venda...</p>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // PARAMETROS RECEBIDOS DO PROTHEUS (PADRAO ITEM_PE - SEM CREDENCIAIS NO HTML)
+    // ========================================================================
+    const urlParams   = new URLSearchParams(window.location.search);
+    const isDone      = urlParams.get('done') === '1';
+    const paramAuth   = (urlParams.get('auth')   || '').trim();
+    const paramApi    = (urlParams.get('api')    || '').trim();
+    const paramTenant = (urlParams.get('tenant') || '').trim();
+    const paramToken  = (urlParams.get('token')  || '').trim();
+    const paramBusca  = (urlParams.get('busca')  || '').trim();
+
+    if (paramAuth)   sessionStorage.setItem('pvf3_auth',   paramAuth);
+    if (paramApi)    sessionStorage.setItem('pvf3_api',    paramApi.replace(/\/+$/, ''));
+    if (paramTenant) sessionStorage.setItem('pvf3_tenant', paramTenant);
+    if (paramToken)  sessionStorage.setItem('pvf3_token',  paramToken);
+
+    // Limpa a credencial da URL apos salvar em sessionStorage
+    if (paramAuth) {
+      const clean = new URLSearchParams(window.location.search);
+      clean.delete('auth');
+      const qs = clean.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+    }
+
+    const AUTH_HEADER = (sessionStorage.getItem('pvf3_auth')   || '').trim();
+    const API_BASE    = (sessionStorage.getItem('pvf3_api')    || 'https://unimolbrasil207533.protheus.cloudtotvs.com.br:10307/rest/WSPVPROD').trim();
+    const TENANT_ID   = (sessionStorage.getItem('pvf3_tenant') || '01,0101').trim();
+    const TOKEN_F3    = (sessionStorage.getItem('pvf3_token')  || '').trim();
+
+    const txtBusca   = document.getElementById('txtBusca');
+    const tbody      = document.getElementById('tbodyProdutos');
+    const lblCount   = document.getElementById('lblContador');
+    const chkSoDisp  = document.getElementById('chkSoDisp');
+    const badgeSt    = document.getElementById('badgeStatus');
+
+    let listaAtual   = [];
+    let idxAtivo     = 0;
+    let tipoFiltro   = '';
+    let timerBusca   = null;
+    let selecionando = false;
+
+    function exigirAutenticacao() {
+      if (AUTH_HEADER) return true;
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;width:100vw;background:#0f172a;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif;padding:24px;">
+          <div style="max-width:460px;background:#1e293b;border:2px solid #D55E00;border-radius:14px;padding:28px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+            <div style="font-size:2.2rem;margin-bottom:10px;">🔒</div>
+            <h2 style="margin:0 0 10px;font-size:1.2rem;color:#ffffff;">Acesso Restrito ao Protheus</h2>
+            <p style="margin:0;font-size:0.92rem;color:#cbd5e1;line-height:1.5;">
+              Esta consulta deve ser aberta pressionando <strong>F3</strong> no campo Produto do Pedido de Venda no TOTVS Protheus.
+            </p>
+          </div>
+        </div>
+      `;
+      return false;
+    }
+
+    function fmtNum(val) {
+      const n = Number(val || 0);
+      return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function selecionarTipo(btn, tipo) {
+      tipoFiltro = tipo;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      buscarProdutos();
+    }
+
+    function limparFiltros() {
+      txtBusca.value = '';
+      tipoFiltro = '';
+      chkSoDisp.checked = false;
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.tipo === ''));
+      txtBusca.focus();
+      buscarProdutos();
+    }
+
+    async function buscarProdutos() {
+      if (!AUTH_HEADER) return;
+
+      const termo  = txtBusca.value.trim();
+      const soDisp = chkSoDisp.checked ? '1' : '0';
+
+      lblCount.textContent = 'Buscando...';
+      tbody.innerHTML = '<tr><td colspan="11" class="msg-empty">⏳ Consultando SB1 / SBM / SB2 no Protheus...</td></tr>';
+
+      try {
+        const qs = new URLSearchParams({
+          busca: termo,
+          tipo: tipoFiltro,
+          so_disp: soDisp
+        }).toString();
+
+        const resp = await fetch(`${API_BASE}/produtos?${qs}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': AUTH_HEADER,
+            'tenantId': TENANT_ID
+          }
+        });
+
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        if (data.status !== 'OK') {
+          throw new Error(data.mensagem || 'Retorno inválido da API WSPVPROD.');
+        }
+
+        badgeSt.textContent = `CONECTADO • FILIAL ${data.filial || TENANT_ID}`;
+        renderizarTabela(data.produtos || []);
+      } catch (err) {
+        console.error('Erro ao buscar produtos:', err);
+        badgeSt.textContent = 'ERRO DE COMUNICAÇÃO REST';
+        lblCount.textContent = 'Falha na busca';
+        tbody.innerHTML = `<tr><td colspan="11" class="msg-empty msg-error">⚠️ Erro ao consultar WSPVPROD (${escHtml(err.message)}). Verifique se o fonte WSPVPROD.prw está compilado no REST.</td></tr>`;
+      }
+    }
+
+    function renderizarTabela(lista) {
+      listaAtual = lista;
+      idxAtivo   = 0;
+      tbody.innerHTML = '';
+
+      if (!lista.length) {
+        lblCount.textContent = '0 produtos';
+        tbody.innerHTML = '<tr><td colspan="11" class="msg-empty">Nenhum produto desbloqueado (PA, BN, EMB, ME) encontrado para o filtro informado.</td></tr>';
+        return;
+      }
+
+      lblCount.textContent = `${lista.length} produto(s) exibido(s)` + (lista.length >= 100 ? ' (máx. 100)' : '');
+
+      lista.forEach((p, idx) => {
+        const disp = Number(p.disponibilidade || 0);
+        const clsDisp = disp > 0 ? 'saldo-disp-ok' : 'saldo-disp-zero';
+        const tipReservas = `Reserva (B2_RESERVA): ${fmtNum(p.qtdReserva)}\nEmpenho (B2_QEMP): ${fmtNum(p.qtdEmpenho)}\nPed. Venda (B2_QPEDVEN): ${fmtNum(p.qtdPedVen)}`;
+        const tipDisp = `Saldo Físico: ${fmtNum(p.saldoFisico)}\n(-) Reservas/Emp/PV: ${fmtNum(p.totalReservas)}\n(-) A Classificar (B2_QACLASS): ${fmtNum(p.qtdAClass)}\n(=) Disponível: ${fmtNum(disp)}`;
+
+        const depoHtml = p.depositante
+          ? `${escHtml(p.depositante)}${p.codDepositante && p.codDepositante !== p.depositante ? `<span class="sub-meta">Cód: ${escHtml(p.codDepositante)}</span>` : ''}`
+          : '<span class="sub-meta">—</span>';
+
+        const grpHtml = p.grupo
+          ? `${escHtml(p.grupo)}${p.codGrupo ? `<span class="sub-meta">Cód: ${escHtml(p.codGrupo)}</span>` : ''}`
+          : '<span class="sub-meta">—</span>';
+
+        const subHtml = p.subgrupo
+          ? `${escHtml(p.subgrupo)}${p.codSubgrupo && p.codSubgrupo !== p.subgrupo ? `<span class="sub-meta">Cód: ${escHtml(p.codSubgrupo)}</span>` : ''}`
+          : '<span class="sub-meta">—</span>';
+
+        const embHtml = p.embalagem
+          ? `${escHtml(p.embalagem)}${p.um ? `<span class="sub-meta">UM: ${escHtml(p.um)}</span>` : ''}`
+          : (p.um ? `<span class="sub-meta">UM: ${escHtml(p.um)}</span>` : '<span class="sub-meta">—</span>');
+
+        const tr = document.createElement('tr');
+        tr.className = 'prod-row' + (idx === 0 ? ' active' : '');
+        tr.innerHTML = `
+          <td class="col-cod">${escHtml(p.codigo)}</td>
+          <td class="col-desc">${escHtml(p.descricao)}</td>
+          <td>${depoHtml}</td>
+          <td>${grpHtml}</td>
+          <td>${subHtml}</td>
+          <td class="center"><span class="badge-tipo tipo-${escHtml(p.tipo)}">${escHtml(p.tipo)}</span></td>
+          <td>${embHtml}</td>
+          <td class="num saldo-fisico">${fmtNum(p.saldoFisico)}</td>
+          <td class="num"><span class="saldo-res" title="${escHtml(tipReservas)}">${fmtNum(p.totalReservas)}</span></td>
+          <td class="num"><span class="${clsDisp}" title="${escHtml(tipDisp)}">${fmtNum(disp)}</span></td>
+          <td class="center">
+            <button type="button" class="btn-sel" onclick="event.stopPropagation(); selecionarProduto('${escHtml(p.codigo)}', '${escHtml(p.descricao)}')">
+              Selecionar
+            </button>
+          </td>
+        `;
+
+        tr.addEventListener('click', () => marcarAtivo(idx));
+        tr.addEventListener('dblclick', () => selecionarProduto(p.codigo, p.descricao));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function marcarAtivo(novoIdx) {
+      const rows = tbody.querySelectorAll('tr.prod-row');
+      if (!rows.length) return;
+      idxAtivo = Math.max(0, Math.min(novoIdx, rows.length - 1));
+      rows.forEach((r, i) => r.classList.toggle('active', i === idxAtivo));
+      rows[idxAtivo].scrollIntoView({ block: 'nearest' });
+    }
+
+    function confirmarSelecionado() {
+      if (listaAtual[idxAtivo]) {
+        const p = listaAtual[idxAtivo];
+        selecionarProduto(p.codigo, p.descricao);
+      }
+    }
+
+    async function selecionarProduto(codigo, descricao) {
+      if (selecionando || !codigo) return;
+      selecionando = true;
+
+      document.getElementById('overlayTitulo').textContent = `✓ Produto ${codigo} Selecionado`;
+      document.getElementById('overlayTexto').textContent = descricao
+        ? `${descricao} — Preenchendo Pedido de Venda...`
+        : 'Preenchendo campo C6_PRODUTO no Pedido de Venda...';
+      document.getElementById('overlayDone').style.display = 'flex';
+
+      // 1. Grava selecao via REST (garantia T-Cloud via TTimer no AdvPL)
+      if (TOKEN_F3) {
+        try {
+          await fetch(`${API_BASE}/selecionar`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': AUTH_HEADER,
+              'tenantId': TENANT_ID
+            },
+            body: JSON.stringify({ token: TOKEN_F3, produto: codigo })
+          });
+        } catch (e) {
+          console.warn('Fallback URL sera usado para retorno:', e);
+        }
+      }
+
+      // 2. Redireciona URL com pv_sel= para fechamento instantaneo via bLoadFinished
+      const base = window.location.origin + window.location.pathname;
+      window.location.href = `${base}?pv_sel=${encodeURIComponent(codigo)}&done=1`;
+    }
+
+    async function cancelarBusca() {
+      if (selecionando) return;
+      selecionando = true;
+
+      if (TOKEN_F3) {
+        try {
+          await fetch(`${API_BASE}/selecionar`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': AUTH_HEADER,
+              'tenantId': TENANT_ID
+            },
+            body: JSON.stringify({ token: TOKEN_F3, produto: '__CANCEL__' })
+          });
+        } catch (e) {}
+      }
+
+      const base = window.location.origin + window.location.pathname;
+      window.location.href = `${base}?pv_cancel=1&done=1`;
+    }
+
+    txtBusca.addEventListener('input', () => {
+      clearTimeout(timerBusca);
+      timerBusca = setTimeout(() => buscarProdutos(), 260);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        marcarAtivo(idxAtivo + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        marcarAtivo(idxAtivo - 1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        confirmarSelecionado();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelarBusca();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (isDone) {
+        const codSel = urlParams.get('pv_sel') || '';
+        document.getElementById('overlayTitulo').textContent = codSel
+          ? `✓ Produto ${codSel} Selecionado`
+          : 'Busca Cancelada';
+        document.getElementById('overlayTexto').textContent = 'Retornando ao Pedido de Venda...';
+        document.getElementById('overlayDone').style.display = 'flex';
+        return;
+      }
+
+      if (!exigirAutenticacao()) return;
+
+      if (paramBusca) {
+        txtBusca.value = paramBusca;
+      }
+      txtBusca.focus();
+      buscarProdutos();
+    });
+  </script>
+</body>
+</html>
